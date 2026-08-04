@@ -1,103 +1,64 @@
 # ЛЕНИН-КОРПУС: ИНДЕКС ВСЕГО СОЗДАННОГО
 
-> Последнее обновление: 2026-07-28 21:45 MSK
-> Коммитов: 27 | Файлов: 70+
+> Последнее обновление: 2026-08-05 02:52 MSK
+> Коммитов: 32 | Файлов: 121 (py/html/js/json/md)
 
 ---
 
-## 1. ЯДРО ПРОЕКТА
+## 1. ЯДРО — 10 ДВИЖКОВ (ТРЕК 1) ✅ ЗАВЕРШЁН
 
-### База данных
-| Файл | Размер | Описание |
-|------|--------|----------|
-| `../projects/lenin-knowledge/lenin.db` | ~300 MB | SQLite: 169 067 параграфов, FTS5, opponents, concepts |
-| `../projects/lenin-knowledge/embeddings/final_faiss.index` | 367 MB | FAISS: 93 711 векторов × 1024 dims |
+Все работают, API отдают живые данные, сайт обновляется.
 
-### Движки (engines/)
-| # | Файл | KB | Назначение | Результат |
-|---|------|----|------------|-----------|
-| 01 | engine_01_chronology.py | 5 | Хроно-разметка | 169 067 параграфов → год + период |
-| 02 | engine_02_concepts.py | 49 | Концептуальный граф | 206 концептов, 12 735 рёбер, 8 кластеров |
-| 03 | engine_03_dialectics.py | 17 | Диалектический парсер | 24 781 триада (тезис→антитезис→синтез) |
-| 04 | engine_04_opponents.py | 27 | Карта оппонентов | 29 оппонентов, 62 связи, лагеря |
-| 05 | engine_05_timemachine.py | 11 | Машина времени | 4 формата дат, 31 событие, контексты |
-| 06 | engine_06_rhetoric.py | 11 | Риторический отпечаток | 5 осей × 169K параграфов |
-| 07 | engine_07_positions.py | 28 | 500 позиций | 518 тем, 1 502 цитаты, 14 категорий |
-| 08 | engine_08_quotes.py | 11 | Цитатомёт | 5 000 цитат, скор 10.9 |
-| 09 | engine_09_comparative.py | 51 | Сравнительный анализатор | 62 темы, Маркс+Энгельс базис |
-| 10 | engine_10_master.py | 10 | Мастер-движок | Объединяет все поиски |
-
-### API
-| Файл | Функция |
-|------|---------|
-| `api_server.py` | FastAPI-сервер, порт 9770, 10+ эндпоинтов |
-| `start.sh` | Авторестарт после краша |
-
-### Веб-интерфейс
-| Файл | Размер | Вкладки |
-|------|--------|--------|
-| `index.html` | ~60 KB | 11 вкладок (0-11) |
-| `full.html` | — | Лента по годам с риторикой |
-
-### Кэш-данные (.json)
-| Файл | KB | Содержание |
-|------|----|-----------|
-| `concept_cache.json` | 34 | Легенда кластеров (8) |
-| `rhetoric_data.json` | 12 | Данные риторической дуги |
-| `entropy_data.json` | 18 | Энтропия Шеннона × 25 лет |
-| `phantom_opponents.json` | 252 | 149 фантомных оппонентов |
-| `tomography_data.json` | 382 | UMAP-проекция 9 371 точки |
-| `tomography_compact.json` | 164 | Сжатая версия для canvas |
+| # | Движок | Файл | KB | Назначение |
+|---|--------|------|----|------------|
+| 01 | Хронология | `engines/engine_01_chronology.py` | 5 | 169 067 параграфов → год + период |
+| 02 | Концепты | `engines/engine_02_concepts.py` | 50 | 206 концептов, 12 735 рёбер, 8 кластеров Louvain |
+| 03 | Диалектика | `engines/engine_03_dialectics.py` | 17 | 24 781 триада (тезис→антитезис→синтез) |
+| 04 | Оппоненты | `engines/engine_04_opponents.py` | 28 | 29 оппонентов, 62 связи, лагеря |
+| 05 | Машина времени | `engines/engine_05_timemachine.py` | 11 | 4 формата дат, 31 событие, контексты |
+| 06 | Риторика | `engines/engine_06_rhetoric.py` | 12 | 5 осей × 169K параграфов |
+| 07 | Позиции | `engines/engine_07_positions.py` | 29 | 518 тем, 1 502 цитаты, 14 категорий |
+| 08 | Цитаты | `engines/engine_08_quotes.py` | 12 | 5 000 цитат, скор 10.9 |
+| 09 | Сравнение | `engines/engine_09_comparative.py` | 53 | 89 тем Marx/Engels/Lenin (обновлён v2.32) |
+| 10 | Мастер | `engines/engine_10_master.py` | 10 | Объединяет все поиски |
 
 ---
 
-## 2. 10 ПРОДУКТОВ НА БАЗЕ КОРПУСА
+## 2. 10 ПРОДУКТОВ — iframe-панели на lenin-book.v2.site ✅ ВСЕ РАБОТАЮТ
 
-| # | Продукт | Директория | Статус | MVP |
-|---|---------|------------|--------|-----|
-| 1 | Lenin API | `products/01_lenin_api/` | 🟡 СПЕКА ГОТОВА | 3 дня |
-| 2 | Lenin Oracle Bot | `products/02_lenin_oracle/` | 🟡 СПЕКА ГОТОВА | 5 дней |
-| 3 | Dashboard Pro | `products/03_dashboard_pro/` | 🟡 СПЕКА ГОТОВА | 7 дней |
-| 4 | Ideology Comparator | `products/04_ideology_comparator/` | 🔴 ТРЕБУЕТ ДАННЫХ | 14 дней |
-| 5 | White Paper Generator | `products/05_white_paper/` | 🟡 СПЕКА ГОТОВА | 5 дней |
-| 6 | Obsidian Plugin | `products/06_obsidian_plugin/` | 🟡 СПЕКА ГОТОВА | 4 дня |
-| 7 | Digital Twin | `products/07_digital_twin/` | 🟡 СПЕКА ГОТОВА | 10 дней |
-| 8 | Style Mimic | `products/08_style_mimic/` | 🔴 ТРЕБУЕТ GPU | 14 дней |
-| 9 | Knowledge Graph | `products/09_knowledge_graph/` | 🟡 СПЕКА ГОТОВА | 3 дня |
-| 10 | Generative Art | `products/10_generative_art/` | 🟡 СПЕКА ГОТОВА | 4 дня |
-
----
-
-## 3. ФАЗЫ РАЗРАБОТКИ (ДОРОЖНАЯ КАРТА)
-
-### Фаза А: Фундамент (дни 1-3)
-- [ ] A1. Продукт #9: Knowledge Graph (быстрый визуальный win)
-- [ ] A2. Продукт #1: Lenin API v1 (базовые эндпоинты)
-- [ ] A3. `shared/lenin_core.py` — общий модуль для всех продуктов
-
-### Фаза Б: Быстрые победы (дни 4-7)
-- [ ] Б1. Продукт #2: Lenin Oracle Bot (Telegram)
-- [ ] Б2. Продукт #5: White Paper Generator
-- [ ] Б3. Продукт #6: Obsidian Plugin
-
-### Фаза В: Основные продукты (дни 8-14)
-- [ ] В1. Продукт #3: Dashboard Pro
-- [ ] В2. Продукт #7: Digital Twin
-- [ ] В3. Продукт #10: Generative Art
-
-### Фаза Г: Сложные продукты (дни 15-21)
-- [ ] Г1. Продукт #4: Ideology Comparator (нужны данные других авторов)
-- [ ] Г2. Продукт #8: Style Mimic (нужен GPU/fine-tune)
+| # | Продукт | URL | Файл | API |
+|---|---------|-----|------|-----|
+| 1 | Oracle (поиск) | `/oracle/` | `oracle/index.html` (7 KB) | `/api/oracle/search`, `/api/oracle/random`, `/api/oracle/stats` |
+| 2 | White Paper | `/papers/` | `papers/index.html` (7 KB) | `/api/papers/concepts`, `/api/papers/generate` |
+| 3 | Противоречия | `/contradictions/` | `contradictions/index.html` (4 KB) | `/api/contradictions` (30 противоречий) |
+| 4 | Тени | `/shadow/` | `shadow/index.html` (5 KB) | `/api/shadow` (дрейф частотности) |
+| 5 | Паспорт ДНК | `/passport/` | `passport/index.html` (5 KB) | `/api/passport` (стилометрия) |
+| 6 | Digital Twin | `/twin/` | `twin/index.html` (5 KB) | `/api/twin`, `/api/twin/ask` |
+| 7 | Dashboard | `/dashboard/` | `dashboard/index.html` (8 KB) | Все метрики в реальном времени |
+| 8 | Компаратор | `/comparator/` | `comparator/index.html` (6 KB) | `/api/comparator/topics`, `/api/comparator/compare` |
+| 9 | Obsidian Plugin | `/obsidian/` | `obsidian/index.html` (3 KB) | ZIP: `plugins/lenin-search.zip` |
+| 10 | Стиль Ленина | `/style/` | `style/index.html` (7 KB) | `/api/style/generate` (FTS5 + 6 тонов) |
 
 ---
 
-## 4. ОБЩИЕ МОДУЛИ (shared/)
+## 3. 26 ПАНЕЛЕЙ САЙТА (index.html)
 
-| Файл | Назначение |
-|------|-----------|
-| `lenin_core.py` | Ядро: FAISS-поиск, FTS5, доступ к БД |
-| `api_server.py` | Общий API-сервер (рефакторинг из корня) |
-| `utils.py` | Хелперы: кэширование, форматирование |
+Панели 0-11: движки (аналитика)
+Панели 12-21: продукты (iframe)
+Панели 22-24: data/json дампы
+Панель 25: полная книга (PDF)
+
+---
+
+## 4. API (api_v2.py) — 90+ эндпоинтов
+
+| Группа | Эндпоинты |
+|--------|-----------|
+| Ядро | `/api/stats`, `/api/summary`, `/api/search`, `/api/health` |
+| Движки | `/api/timeline`, `/api/rhetoric`, `/api/concepts`, `/api/opponents`, `/api/entropy`, `/api/phantoms`, `/api/tomography`, `/api/legend`, `/api/quote` |
+| Продукты | `/api/oracle/*`, `/api/papers/*`, `/api/contradictions`, `/api/shadow`, `/api/passport`, `/api/twin/*`, `/api/style/*` |
+| v1 API | `/api/v1/health`, `/api/v1/register`, `/api/v1/stats`, `/api/v1/analytics`, `/api/v1/rotate-key`, `/api/v1/search`, `/api/v1/timeline/{year}`, `/api/v1/quotes`, `/api/v1/concepts`, `/api/v1/concept/{name}`, `/api/v1/compare`, `/api/v1/entropy`, `/api/v1/phantoms` |
+| Компаратор | `/api/comparator/*` |
 
 ---
 
@@ -105,39 +66,40 @@
 
 | Слой | Технология |
 |------|-----------|
-| БД | SQLite 3 + FTS5 |
-| Векторный поиск | FAISS (93K × 1024d) |
-| Бэкенд | Python 3.11, FastAPI |
+| БД | SQLite 3 + FTS5 (`lenin.db`, ~300 MB) |
+| Векторный поиск | FAISS (93 711 × 1024d, 367 MB) |
+| Бэкенд | Python 3.11, FastAPI (uvicorn, порт 9770) |
 | Фронтенд | Vanilla JS, Canvas, SVG, D3.js |
 | Визуализация | UMAP, Matplotlib |
 | NLP | NLTK, pymorphy2, custom parsers |
-| Деплой | v2.site поддомены, port.txt, start.sh |
+| Деплой | lenin-book.v2.site, port.txt, start.sh |
 
 ---
 
-## 6. ИСТОРИЯ КОММИТОВ
+## 6. ИСТОРИЯ КОММИТОВ (32)
 
-| # | SHA | Дата | Описание |
-|---|-----|------|----------|
-| 1 | 3496c40 | — | Фаза 1: Хроно-разметка |
-| 2 | a23db0b | — | Фаза 2: Концептуальный граф |
-| 3 | c388157 | — | Фаза 3: Диалектический парсер |
-| 4 | — | — | Фаза 4: Карта оппонентов |
-| 5 | ea1e98b | — | Фаза 5: Машина времени |
-| 6 | 761710c | — | Фаза 6: Риторический отпечаток |
-| 7 | 8175850 | — | Фаза 7: 500 позиций |
-| 8 | 8d6bdd4 | — | Фаза 8: Цитатомёт |
-| 9 | 890df0f | — | Фаза 9: Сравнительный анализатор |
-| 10 | 00e5ec1 | — | Фаза 10: Сводный API + лендинг |
-| 11 | 6b74b27 | — | Исправление: старый контент восстановлен |
-| 12 | b583d07 | — | Визуал + интерактив |
-| 13 | — | — | Вкладки 1-9 |
-| 14 | a9f96a9 | — | Томография + Фантомы + Энтропия |
-| 15+ | ... | — | 10 продуктов (текущий) |
+| # | SHA | Описание |
+|---|-----|----------|
+| 1-10 | — | Трек 1: 10 движков (хронология → мастер) |
+| 11 | 6b74b27 | Исправление: старый контент |
+| 12 | b583d07 | Визуал + интерактив |
+| 13 | — | Вкладки 1-9 |
+| 14 | a9f96a9 | Томография + Фантомы + Энтропия |
+| 15 | 4ab8905 | v2.25 — Triple audit fixes |
+| 16 | cb5c170 | v2.26 — Analytics + Key rotation |
+| 17 | c2bbd8c | v2.27 — API docs |
+| 18 | 325a84c | v2.27 — OpenAPI spec |
+| 19 | 94cc245 | v2.28 — Methodology page |
+| 20 | ec0613e | v2.29 — Honest concept graph audit |
+| 21 | 711df89 | v2.31 — Validated concept graph + security |
+| 22 | 2d190b2 | v2.31 — Release notes: 8 corrections |
+| 23 | ccd659a | v2.31 — Methodology page + blog post |
+| 24 | 8f1b6cb | v2.31 — Add methodology link |
+| 25 | d348bf6 | v2.32 — 10 iframe panels + Comparator 89/89 + Style FTS5 |
 
 ---
 
-## 7. КЛЮЧЕВЫЕ МЕТРИКИ ПРОЕКТА
+## 7. КЛЮЧЕВЫЕ МЕТРИКИ
 
 | Метрика | Значение |
 |---------|----------|
@@ -152,6 +114,17 @@
 | Диалектических триад | 24 781 |
 | Цитат с оценкой | 5 000 |
 | Позиций | 518 |
-| API-эндпоинтов | 10+ |
-| Вкладок на сайте | 11 |
-| Уникальность в мире | **Единственный проект такого рода** |
+| API-эндпоинтов | 90+ |
+| Панелей на сайте | 26 |
+| Продуктов (iframe) | 10 |
+| Движков | 10 |
+
+---
+
+## 8. ЧТО ОСТАЛОСЬ (РЕАЛЬНЫЕ ЗАДАЧИ, НЕ СПЕКА)
+
+1. **GitHub sync** — часть файлов лежит только на live, нужно досинхронизировать
+2. **API-ключи** — Mistral переведён на env var, нужен `.env` на сервере
+3. **Интерпретационные движки** — семантический поиск противоречий, cross-engine linking
+4. **Продактизация** — вынос продуктов на отдельные поддомены (lenin-oracle.v2.site и т.д.)
+5. **Монетизация** — API-ключи, rate limiting, тарифы
