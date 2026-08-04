@@ -41,7 +41,7 @@ from fastapi.exception_handlers import http_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse, HTMLResponse
+from starlette.responses import JSONResponse, HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 # ===== CONFIG =====
@@ -1030,6 +1030,85 @@ async def api_comparative(topic: str = Query(...)):
     except Exception as e:
         logger.error(f"[comparator/topics] {e}"); return {"error": "internal error", "topic": topic}
 
+
+# ===== MISSING PAGE ROUTES (SPA fallback — serve index.html) =====
+@app.get("/positions")
+@app.get("/positions/")
+async def positions_index():
+    return FileResponse("index.html")
+
+@app.get("/quotes")
+@app.get("/quotes/")
+async def quotes_index():
+    return FileResponse("index.html")
+
+@app.get("/white-paper")
+@app.get("/white-paper/")
+async def whitepaper_index():
+    return RedirectResponse(url="/papers")
+
+@app.get("/style-mimic")
+@app.get("/style-mimic/")
+async def style_mimic_index():
+    return RedirectResponse(url="/style")
+
+# ===== POSITIONS API (500 Positions of Lenin) =====
+@app.get("/api/positions")
+async def api_positions(category: str = None, limit: int = Query(20, ge=1, le=100)):
+    """Return Lenin's 518 positions, optionally filtered by category."""
+    try:
+        sys.path.insert(0, str(SITE_DIR / "engines"))
+        from engine_07_positions import POSITIONS_DATA
+        positions = []
+        for p in POSITIONS_DATA[:limit]:
+            if category and p.get("category", "").lower() != category.lower():
+                continue
+            positions.append({
+                "id": p.get("id", "?"),
+                "position": p.get("position", ""),
+                "category": p.get("category", ""),
+                "year": p.get("year", 0),
+                "volume": p.get("volume", 0),
+                "evidence": p.get("evidence", "")[:300]
+            })
+        if category:
+            positions = positions[:limit]
+        return {"total": len(positions), "positions": positions}
+    except Exception as e:
+        logger.error(f"[positions] {e}"); return {"error": "internal error", "positions": []}
+
+@app.get("/api/positions/categories")
+async def api_positions_categories():
+    """Return list of position categories."""
+    try:
+        sys.path.insert(0, str(SITE_DIR / "engines"))
+        from engine_07_positions import POSITIONS_DATA
+        cats = list(set(p.get("category", "Общее") for p in POSITIONS_DATA))
+        return {"categories": sorted(cats)}
+    except Exception as e:
+        logger.error(f"[positions/cat] {e}")
+        return {"categories": ["Экономика", "Политика", "Философия", "Тактика", "Государство", "Революция",
+                                "Партия", "Классовая борьба", "Империализм", "Социализм",
+                                "Демократия", "Диктатура пролетариата", "Национальный вопрос", "Культура"]}
+
+# ===== SPA FALLBACK — catch undefined routes, serve index.html =====
+@app.get("/{path:path}")
+async def spa_fallback(path: str):
+    """Catch-all: serve index.html for SPA routing. Static files handled first."""
+    # Skip api paths
+    if path.startswith("api/"):
+        return {"error": "not found", "code": 404}
+    # Check if file exists
+    target = SITE_DIR / path
+    if target.is_file():
+        return FileResponse(str(target))
+    # Check in subdirectories
+    for sub in ["css", "js", "images", "style", "papers", "obsidian", "comparator"]:
+        candidate = SITE_DIR / sub / path
+        if candidate.is_file():
+            return FileResponse(str(candidate))
+    # Default: serve index.html (SPA)
+    return FileResponse("index.html")
 
 # ===== STATIC FILES (MUST be after all routes) =====
 app.mount("/", StaticFiles(directory=str(SITE_DIR), html=True), name="static")
