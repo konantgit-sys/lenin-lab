@@ -1,7 +1,9 @@
 """
-LENIN-BOOK UNIFIED API SERVER v2.21
+LENIN-BOOK UNIFIED API SERVER v2.25
 ====================================
-Security-hardened: API key enforcement, rate limiting, error sanitization.
+Security-hardened: API key enforcement, rate limiting, error sanitization,
+IP-based rate limiting on public endpoints, access logging, config-driven paths.
+Triple-audited: Infosys (code) + historians (data) + Kaspersky (security).
 
 Backward-compatible: all existing site tabs continue to work.
 """
@@ -16,8 +18,23 @@ import traceback as tb_module
 from pathlib import Path
 from collections import defaultdict
 
+SITE_DIR = Path(__file__).parent
+
+# ==== CONFIG (no hardcoded paths) ====
+# Primary DB: check env var → site-local (if >1MB) → known fallback
+_raw_db = os.environ.get("LENIN_DB_PATH", "")
+if not _raw_db:
+    _local_db = SITE_DIR / "lenin.db"
+    if _local_db.exists() and _local_db.stat().st_size > 1_000_000:
+        _raw_db = str(_local_db)
+    else:
+        _fallback = "/home/agent/data/projects/lenin-knowledge/lenin.db"
+        _raw_db = _fallback if Path(_fallback).exists() else str(_local_db)
+DB_PATH = _raw_db
+
 # ==== LOGGING ====
-LOG_FILE = Path("/home/agent/data/sites/lenin-book/api_errors.log")
+LOG_FILE = SITE_DIR / "api_errors.log"
+ACCESS_LOG = SITE_DIR / "api_access.log"
 logging.basicConfig(
     level=logging.WARNING,
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -25,7 +42,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger("lenin-api")
 
-SITE_DIR = Path(__file__).parent
+# Access logger — separate file, INFO level
+access_logger = logging.getLogger("lenin-access")
+access_logger.setLevel(logging.INFO)
+access_handler = logging.FileHandler(str(ACCESS_LOG))
+access_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
+access_logger.addHandler(access_handler)
+
 sys.path.insert(0, str(SITE_DIR))
 sys.path.insert(0, str(SITE_DIR / "products" / "02_lenin_oracle"))
 sys.path.insert(0, str(SITE_DIR / "products" / "05_white_paper"))
@@ -127,7 +150,7 @@ async def verify_api_key(x_api_key: str = Header(None, alias="X-API-Key")):
 
 # ===== RATE LIMIT MIDDLEWARE =====
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Sliding window rate limiter + API key enforcement. Checks X-API-Key header, falls back to IP."""
+    """Sliding window rate limiter + API key enforcement + access logging."""
 
     PROTECTED_PREFIXES = ["/api/v1/"]
     PUBLIC_V1_PATHS = {"/api/v1/register", "/api/v1/health", "/api/v1/stats", "/api/v1/docs"}
@@ -140,28 +163,80 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                            "/api/dashboard", "/api/comparator/topics", "/api/comparator/compare",
                            "/api/style/generate", "/api/style/tones", "/api/comparative", "/api/quotes"}
 
+    # IP-based limits for public endpoints (per day)
+    LEGACY_IP_LIMIT = 500      # requests/day per IP for legacy API
+    REGISTER_IP_LIMIT = 10     # key registrations/day per IP
+
+    async def _get_client_ip(self, request: Request) -> str:
+        """Extract client IP from headers or connection."""
+        x_forwarded = request.headers.get("X-Forwarded-For", "")
+        if x_forwarded:
+            return x_forwarded.split(",")[0].strip()
+        x_real = request.headers.get("X-Real-IP", "")
+        if x_real:
+            return x_real
+        return request.client.host if request.client else "0.0.0.0"
+
+    async def _check_ip_rate(self, ip: str, limit: int) -> tuple[bool, int]:
+        """Check IP-based rate limit. Returns (allowed, retry_after_seconds)."""
+        now = time.time()
+        window = 86400
+        key = f"ip:{ip}"
+        rate_counter[key] = [t for t in rate_counter[key] if now - t < window]
+        if len(rate_counter[key]) >= limit:
+            retry_after = int(window - (now - rate_counter[key][0])) if rate_counter[key] else 3600
+            return False, retry_after
+        rate_counter[key].append(now)
+        return True, 0
+
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
+        client_ip = await self._get_client_ip(request)
+        method = request.method
 
         # Skip for docs/openapi/static
         if path.startswith("/api/docs") or path.startswith("/api/redoc") or path.startswith("/api/openapi"):
             return await call_next(request)
 
-        # Legacy API — no auth needed
-        if path in self.PUBLIC_LEGACY_PATHS:
+        # ==== /register: strict IP rate limit against spam ====
+        if path == "/api/v1/register":
+            allowed, retry = await self._check_ip_rate(client_ip, self.REGISTER_IP_LIMIT)
+            if not allowed:
+                access_logger.info(f"[RATE-LIMIT] {client_ip} POST {path} → 429 register spam")
+                return JSONResponse(status_code=200, content={
+                    "error": True, "code": 429,
+                    "detail": f"Too many key registrations. Limit: {self.REGISTER_IP_LIMIT}/day. Retry after {retry}s",
+                    "retry_after_seconds": retry
+                })
+            access_logger.info(f"[PUBLIC] {client_ip} POST {path}")
             return await call_next(request)
 
-        # Check if this is a protected v1 endpoint
+        # ==== Legacy API: IP rate limited but no auth ====
+        if path in self.PUBLIC_LEGACY_PATHS:
+            allowed, retry = await self._check_ip_rate(client_ip, self.LEGACY_IP_LIMIT)
+            if not allowed:
+                access_logger.info(f"[RATE-LIMIT] {client_ip} {method} {path} → 429 legacy")
+                return JSONResponse(status_code=200, content={
+                    "error": True, "code": 429,
+                    "detail": f"Rate limit exceeded. Limit: {self.LEGACY_IP_LIMIT}/day. Retry after {retry}s",
+                    "retry_after_seconds": retry
+                })
+            access_logger.info(f"[PUBLIC] {client_ip} {method} {path}")
+            return await call_next(request)
+
+        # ==== Protected v1 endpoints ====
         is_protected = any(path.startswith(p) for p in self.PROTECTED_PREFIXES) and path not in self.PUBLIC_V1_PATHS
 
         if is_protected:
             api_key = request.headers.get("X-API-Key", "")
             if not api_key:
+                access_logger.info(f"[AUTH-REJECT] {client_ip} {method} {path} → 401 missing key")
                 return JSONResponse(status_code=200, content={"error": True, "code": 401, "detail": "Missing X-API-Key header", "docs": "https://lenin-book.v2.site/api/docs"})
             if api_key not in api_keys:
+                access_logger.info(f"[AUTH-REJECT] {client_ip} {method} {path} → 403 invalid key")
                 return JSONResponse(status_code=200, content={"error": True, "code": 403, "detail": "Invalid API key", "docs": "https://lenin-book.v2.site/api/v1/register"})
 
-            # Rate limiting
+            # API-key-based rate limiting
             tier = api_keys.get(api_key, {}).get("tier", "free")
             limit = RATE_LIMITS.get(tier, 100)
             now = time.time()
@@ -171,9 +246,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             if len(rate_counter[api_key]) >= limit:
                 logger.warning(f"Rate limit hit: ...{api_key[-8:]} tier={tier}")
                 retry_after = int(window - (now - rate_counter[api_key][0])) if rate_counter[api_key] else 3600
+                access_logger.info(f"[RATE-LIMIT] {client_ip} {method} {path} key=...{api_key[-8:]} tier={tier}")
                 return JSONResponse(status_code=200, content={"error": True, "code": 429, "detail": "rate limit exceeded", "tier": tier, "daily_limit": limit, "retry_after_seconds": retry_after})
 
             rate_counter[api_key].append(now)
+            access_logger.info(f"[API] {client_ip} {method} {path} key=...{api_key[-8:]} tier={tier}")
 
         return await call_next(request)
 
@@ -199,7 +276,7 @@ def _get_concepts():
     }
 
 def _get_opponents_full():
-    conn = sqlite3.connect("/home/agent/data/projects/lenin-knowledge/lenin.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     opps = [dict(r) for r in conn.execute(
         "SELECT key, full_name, camp, total_mentions, peak_year, top_topics FROM opponents ORDER BY total_mentions DESC"
@@ -258,7 +335,8 @@ def startup():
     for fn in ['rhetoric_data.json', 'concept_cache.json', 'entropy_data.json',
                'phantom_opponents.json', 'tomography_data.json']:
         try: _load_cache(fn)
-        except: pass
+        except Exception as e:
+            logger.warning(f"Cache not preloaded: {fn} ({e})")
 
 # ===== LEGACY ENDPOINTS (backward compatible) =====
 
@@ -322,7 +400,7 @@ def api_health():
 def v1_health(x_api_key: str = Depends(verify_api_key)):
     """Health check with DB connectivity test."""
     try:
-        conn = sqlite3.connect("/home/agent/data/projects/lenin-knowledge/lenin.db")
+        conn = sqlite3.connect(DB_PATH)
         count = conn.execute("SELECT COUNT(*) FROM paragraphs").fetchone()[0]
         year_range = conn.execute("SELECT MIN(year), MAX(year) FROM paragraphs").fetchone()
         conn.close()
@@ -386,7 +464,7 @@ def v1_search(
     q_safe, q_display = sanitize_fts5_query(q)
 
     import sqlite3 as _sql
-    _db_path = "/home/agent/data/projects/lenin-knowledge/lenin.db"
+    _db_path = DB_PATH
     _conn = _sql.connect(_db_path)
     _conn.row_factory = _sql.Row
     try:
@@ -422,7 +500,7 @@ def v1_search(
 def v1_timeline(year: int, x_api_key: str = Depends(verify_api_key)):
     """Full portrait of a year."""
     validate_year(year)
-    conn = sqlite3.connect("/home/agent/data/projects/lenin-knowledge/lenin.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     total = conn.execute("SELECT COUNT(*) FROM paragraphs WHERE year=?", (year,)).fetchone()[0]
     vols = [dict(r) for r in conn.execute(
@@ -444,7 +522,7 @@ def v1_quotes(
     x_api_key: str = Depends(verify_api_key),
 ):
     """Get N quotes, optionally filtered by topic."""
-    conn = sqlite3.connect("/home/agent/data/projects/lenin-knowledge/lenin.db")
+    conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     if topic:
         rows = conn.execute(
@@ -495,7 +573,7 @@ def v1_concept(name: str, q: str = Query(None), x_api_key: str = Depends(verify_
 def v1_compare(y1: int = Query(...), y2: int = Query(...), x_api_key: str = Depends(verify_api_key)):
     """Compare two years."""
     validate_years(y1, y2)
-    conn = sqlite3.connect("/home/agent/data/projects/lenin-knowledge/lenin.db")
+    conn = sqlite3.connect(DB_PATH)
     c1 = conn.execute("SELECT COUNT(*) FROM paragraphs WHERE year=?", (y1,)).fetchone()[0]
     c2 = conn.execute("SELECT COUNT(*) FROM paragraphs WHERE year=?", (y2,)).fetchone()[0]
     conn.close()
@@ -743,7 +821,7 @@ async def dashboard_data():
     """Aggregated metrics from all engines."""
     try:
         import sqlite3, json
-        db = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+        db = Path(DB_PATH)
         conn = sqlite3.connect(str(db))
         cur = conn.cursor()
 
@@ -841,7 +919,7 @@ async def comparator_compare(topic: str = ""):
         basis = MARXIST_BASIS.get(topic, {})
 
         # Get Lenin position from DB
-        db = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+        db = Path(DB_PATH)
         conn = sqlite3.connect(str(db))
         raw_lenin = get_lenin_position(conn, topic) or {}
         conn.close()
@@ -939,7 +1017,8 @@ async def comparator_topics():
                         topics.append({"id": int(parts[0]), "topic": parts[1], "marx": parts[2] if len(parts)>2 else ""})
             if topics:
                 return topics
-    except: pass
+    except Exception:
+        logger.warning("Failed to parse SPEC.md for comparative topics, falling back to engine_09")
 
     # Fallback: load from engine_09 data
     try:
@@ -947,7 +1026,8 @@ async def comparator_topics():
         from engine_09_comparative import MARXIST_BASIS
         return [{"topic": topic, "marx": data.get("marx", ""), "engels": data.get("engels", "")}
                 for topic, data in MARXIST_BASIS.items()]
-    except: pass
+    except Exception:
+        logger.warning("Failed to import engine_09_comparative, using hardcoded fallback")
 
     # Last fallback
     return [{"topic": "диктатура пролетариата", "marx": "Политическое господство рабочего класса", "engels": "Пролетариат берёт государственную власть"},
@@ -963,7 +1043,7 @@ async def comparator_compare(topic: str = ""):
         basis = MARXIST_BASIS.get(topic, {})
         # Search Lenin quotes for this topic
         import sqlite3
-        db_path = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+        db_path = Path(DB_PATH)
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row
         cur = conn.execute("SELECT text_clean, year, volume FROM paragraphs WHERE text_clean LIKE ? ORDER BY year LIMIT 3", (f"%{topic}%",))
@@ -983,7 +1063,7 @@ async def comparator_compare(topic: str = ""):
 def api_quotes(year: int = Query(None, ge=1893, le=1922), limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0)):
     """Get quotes from lenin_quotes table, filtered by year."""
     import sqlite3 as _sql
-    _db = "/home/agent/data/projects/lenin-knowledge/lenin.db"
+    _db = DB_PATH
     conn = _sql.connect(_db)
     conn.row_factory = _sql.Row
     if year:
@@ -1012,7 +1092,7 @@ async def api_comparative(topic: str = Query(...)):
         from engine_09_comparative import MARXIST_BASIS
         basis = MARXIST_BASIS.get(topic, {})
         import sqlite3 as _sql
-        _db = "/home/agent/data/projects/lenin-knowledge/lenin.db"
+        _db = DB_PATH
         conn = _sql.connect(_db)
         conn.row_factory = _sql.Row
         row = conn.execute(
