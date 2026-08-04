@@ -1,0 +1,468 @@
+openapi: "3.0.3"
+info:
+  title: Lenin-Book API v1
+  description: |
+    REST API for full-text search, analytics, and exploration of V.I. Lenin's
+    Complete Collected Works — 169,067 paragraphs across 55 volumes (1893–1922).
+
+    **Authentication:** All endpoints require an `X-API-Key` header.
+    Get a free key at `/api/v1/register`.
+
+    **Rate Limits:** free=100, basic=1000, pro=10000 requests/day.
+  version: "2.27"
+  contact:
+    name: Lenin-Book Project
+    url: "https://lenin-book.v2.site"
+
+servers:
+  - url: "https://lenin-book.v2.site"
+    description: Production
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /api/v1/health:
+    get:
+      summary: Health + database status
+      operationId: health
+      tags: [System]
+      responses:
+        "200":
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+              example:
+                status: "ok"
+                version: "2.22"
+                database:
+                  status: "ok"
+                  total_paragraphs: 169067
+                  year_range: { from: 1893, to: 1922 }
+                cache:
+                  concepts: true
+                  rhetoric: true
+                  entropy: true
+
+  /api/v1/register:
+    post:
+      summary: Register a new API key
+      operationId: register
+      tags: [System]
+      parameters:
+        - name: tier
+          in: query
+          schema: { type: string, enum: [free, basic, pro], default: free }
+      responses:
+        "200":
+          description: API key generated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+              example:
+                api_key: "lenin-book-abc123def456"
+                tier: "free"
+                requests_per_day: 100
+
+  /api/v1/stats:
+    get:
+      summary: Corpus statistics
+      operationId: stats
+      tags: [Corpus]
+      responses:
+        "200":
+          description: Corpus-level statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsResponse"
+
+  /api/v1/search:
+    get:
+      summary: Full-text search (FTS5)
+      operationId: search
+      tags: [Corpus]
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+          description: Search query (Russian or English). Special chars + FTS5 operators are sanitized.
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: year
+          in: query
+          schema: { type: integer, minimum: 1893, maximum: 1922 }
+          description: Optional year filter
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SearchResponse"
+
+  /api/v1/timeline/{year}:
+    get:
+      summary: Year chronology
+      operationId: timeline
+      tags: [Corpus]
+      parameters:
+        - name: year
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1893, maximum: 1922 }
+      responses:
+        "200":
+          description: Year data with volume breakdown and samples
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimelineResponse"
+
+  /api/v1/quotes:
+    get:
+      summary: Random quotes
+      operationId: quotes
+      tags: [Analytics]
+      parameters:
+        - name: n
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 5 }
+        - name: topic
+          in: query
+          schema: { type: string }
+          description: Optional topic filter (substring match)
+      responses:
+        "200":
+          description: Random quotes 80-400 chars each
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuotesResponse"
+
+  /api/v1/concepts:
+    get:
+      summary: Concept graph (206 nodes)
+      operationId: concepts
+      tags: [Analytics]
+      responses:
+        "200":
+          description: Full concept graph with nodes, edges, and clusters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConceptsResponse"
+
+  /api/v1/concept/{name}:
+    get:
+      summary: Single concept detail
+      operationId: conceptDetail
+      tags: [Analytics]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema: { type: string }
+          description: Concept name (e.g. "революция")
+      responses:
+        "200":
+          description: Concept frequency, connections, timeline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConceptDetailResponse"
+
+  /api/v1/compare:
+    get:
+      summary: Compare two years
+      operationId: compare
+      tags: [Analytics]
+      parameters:
+        - name: y1
+          in: query
+          required: true
+          schema: { type: integer, minimum: 1893, maximum: 1922 }
+        - name: y2
+          in: query
+          required: true
+          schema: { type: integer, minimum: 1893, maximum: 1922 }
+      responses:
+        "200":
+          description: Year comparison with ratio
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompareResponse"
+
+  /api/v1/rhetoric:
+    get:
+      summary: Rhetorical fingerprint
+      operationId: rhetoric
+      tags: [Analytics]
+      responses:
+        "200":
+          description: Full rhetorical analysis — 25 years, 5 emotional axes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RhetoricResponse"
+
+  /api/v1/entropy:
+    get:
+      summary: Textual entropy over time
+      operationId: entropy
+      tags: [Analytics]
+      responses:
+        "200":
+          description: Entropy values per year
+          content:
+            application/json:
+              type: object
+
+  /api/v1/phantoms:
+    get:
+      summary: Phantom opponents
+      operationId: phantoms
+      tags: [Analytics]
+      parameters:
+        - name: year
+          in: query
+          schema: { type: integer, minimum: 1893, maximum: 1922 }
+      responses:
+        "200":
+          description: Detected phantom opponents with quotes
+          content:
+            application/json:
+              type: object
+
+  /api/v1/tomography:
+    get:
+      summary: Semantic tomography
+      operationId: tomography
+      tags: [Analytics]
+      parameters:
+        - name: n
+          in: query
+          schema: { type: integer, minimum: 100, maximum: 9371, default: 1000 }
+      responses:
+        "200":
+          description: 2D semantic projection points
+          content:
+            application/json:
+              type: object
+
+  /api/v1/analytics:
+    get:
+      summary: Visitor analytics (admin)
+      operationId: analytics
+      tags: [System]
+      parameters:
+        - name: days
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 90, default: 30 }
+      responses:
+        "200":
+          description: Daily stats, unique IPs, top paths, key activity
+
+  /api/v1/rotate-key:
+    post:
+      summary: Rotate API key
+      operationId: rotateKey
+      tags: [System]
+      responses:
+        "200":
+          description: New key issued, old key invalidated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  new_api_key: { type: string }
+                  tier: { type: string }
+                  old_key_invalidated: { type: boolean }
+
+  /api/positions:
+    get:
+      summary: Complete list of political positions (public)
+      operationId: positions
+      tags: [Public]
+      security: []
+      responses:
+        "200":
+          description: 518 positions grouped by category
+
+  /api/analytics/summary:
+    get:
+      summary: Quick analytics summary (public)
+      operationId: analyticsSummary
+      tags: [Public]
+      security: []
+      responses:
+        "200":
+          description: Total requests, today's requests, unique IPs
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Get a free key at POST /api/v1/register
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error, code, detail]
+      properties:
+        error: { type: boolean }
+        code: { type: integer }
+        detail: { type: string }
+
+    HealthResponse:
+      type: object
+      properties:
+        status: { type: string }
+        version: { type: string }
+        database:
+          type: object
+          properties:
+            status: { type: string }
+            total_paragraphs: { type: integer }
+            year_range:
+              type: object
+              properties:
+                from: { type: integer }
+                to: { type: integer }
+        cache:
+          type: object
+          properties:
+            concepts: { type: boolean }
+            rhetoric: { type: boolean }
+            entropy: { type: boolean }
+
+    RegisterResponse:
+      type: object
+      properties:
+        api_key: { type: string }
+        tier: { type: string }
+        requests_per_day: { type: integer }
+
+    StatsResponse:
+      type: object
+      properties:
+        total_paragraphs: { type: integer }
+        years_covered: { type: integer }
+        volumes: { type: integer }
+        concepts: { type: integer }
+        concept_edges: { type: integer }
+        concept_clusters: { type: integer }
+        faiss_embeddings: { type: integer }
+        scored_quotes: { type: integer }
+        date_range: { type: string }
+
+    SearchResponse:
+      type: object
+      properties:
+        query: { type: string }
+        total: { type: integer }
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              paragraph_id: { type: integer }
+              year: { type: integer }
+              volume: { type: integer }
+              snippet: { type: string }
+
+    TimelineResponse:
+      type: object
+      properties:
+        year: { type: integer }
+        total_paragraphs: { type: integer }
+        top_volumes:
+          type: array
+          items: { type: object }
+        samples:
+          type: array
+          items: { type: object }
+
+    QuotesResponse:
+      type: object
+      properties:
+        count: { type: integer }
+        quotes:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              text: { type: string }
+              year: { type: integer }
+              volume_id: { type: integer }
+
+    ConceptsResponse:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              count: { type: integer }
+              cluster: { type: integer }
+              cluster_name: { type: string }
+        links:
+          type: array
+          items:
+            type: object
+            properties:
+              source: { type: string }
+              target: { type: string }
+              weight: { type: integer }
+        clusters:
+          type: array
+          items: { type: string }
+        stats:
+          type: object
+          properties:
+            nodes: { type: integer }
+            edges_total: { type: integer }
+            clusters: { type: integer }
+
+    ConceptDetailResponse:
+      type: object
+      properties:
+        concept: { type: string }
+        frequency: { type: integer }
+        top_connections:
+          type: array
+          items: { type: object }
+
+    CompareResponse:
+      type: object
+      properties:
+        year1: { type: object }
+        year2: { type: object }
+        ratio: { type: number }
+
+    RhetoricResponse:
+      type: object
+      properties:
+        years_analyzed: { type: integer }
+        total_paragraphs: { type: integer }
+        emotional_arc:
+          type: array
+          items: { type: object }
+        periods:
+          type: array
+          items: { type: object }
+        top_aggressive_years:
+          type: array
+          items: { type: object }
