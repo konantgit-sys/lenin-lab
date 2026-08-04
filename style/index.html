@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style Mimic — Lenin Book</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#d0c8b8;font-family:'Georgia',serif;padding:24px;max-width:780px;margin:0 auto}
+h1{color:#c41e3a;font-size:1.4rem;margin-bottom:6px}
+.sub{color:#665;font-size:0.75rem;margin-bottom:20px}
+label{display:block;font-size:0.8rem;color:#998;margin:14px 0 4px}
+input,select,button{font-family:inherit;font-size:0.85rem}
+input,select{width:100%;padding:10px 12px;background:#14141f;border:1px solid #2a2a3a;color:#d0c8b8;border-radius:8px}
+input:focus,select:focus{outline:none;border-color:#c41e3a}
+.tones{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.tone-btn{padding:8px 16px;border:1px solid #2a2a3a;border-radius:8px;background:#14141f;color:#998;cursor:pointer;font-size:0.8rem;transition:all .2s}
+.tone-btn:hover{border-color:#c4a040;color:#c4a040}
+.tone-btn.active{border-color:#c41e3a;background:#1a0a10;color:#c41e3a}
+.btn-gen{display:block;width:100%;padding:14px;margin-top:20px;background:#c41e3a;color:#fff;border:none;border-radius:10px;font-size:0.95rem;font-weight:bold;cursor:pointer}
+.btn-gen:hover{background:#a01830}
+.btn-gen:disabled{opacity:0.5;cursor:not-allowed}
+.output{margin-top:24px;background:#14141f;border:1px solid #2a2a3a;border-radius:10px;padding:20px;min-height:120px;line-height:1.7;font-size:0.88rem;white-space:pre-wrap}
+.output.loading{color:#665}
+.attribution{margin-top:16px;font-size:0.7rem;color:#554;text-align:right}
+.note{background:#1a1a2e;border-left:3px solid #c4a040;padding:10px 14px;border-radius:0 8px 8px 0;margin-top:16px;font-size:0.75rem;color:#998}
+.quick-topics{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.quick-topic{padding:6px 12px;border:1px solid #222;border-radius:6px;background:#0f0f18;color:#887;cursor:pointer;font-size:0.75rem}
+.quick-topic:hover{border-color:#c4a040;color:#c4a040}
+.tone-desc{margin-top:6px;font-size:0.7rem;color:#554;min-height:18px}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid #333;border-top:2px solid #c41e3a;border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<h1>Style Mimic — Генератор текста в стиле Ленина</h1>
+<div class="sub">Поиск реальных цитат (FTS5) + риторическая обработка. v2.0</div>
+
+<label>Тема</label>
+<input id="topic" type="text" placeholder="Например: революция, капитал, империализм..." value="революция">
+<div class="quick-topics">
+  <span class="quick-topic" onclick="setTopic('революция')">революция</span>
+  <span class="quick-topic" onclick="setTopic('капитал')">капитал</span>
+  <span class="quick-topic" onclick="setTopic('империализм')">империализм</span>
+  <span class="quick-topic" onclick="setTopic('социализм')">социализм</span>
+  <span class="quick-topic" onclick="setTopic('партия')">партия</span>
+  <span class="quick-topic" onclick="setTopic('власть')">власть</span>
+  <span class="quick-topic" onclick="setTopic('крестьянство')">крестьянство</span>
+  <span class="quick-topic" onclick="setTopic('война')">война</span>
+</div>
+
+<label>Тон</label>
+<div class="tones" id="tones"></div>
+<div class="tone-desc" id="tone-desc"></div>
+
+<button class="btn-gen" onclick="generate()">Сгенерировать</button>
+
+<div class="output" id="output">Нажми «Сгенерировать», чтобы получить текст.</div>
+<div class="attribution" id="attr"></div>
+
+<div class="note">Этот генератор использует реальные цитаты Ленина из 55 томов с риторической обработкой в выбранном тоне. Текст основан на подлинных фрагментах собрания сочинений. Для контекстного поиска по конкретным вопросам используй <a href="/oracle/" style="color:#c4a040">Оракул</a>.</div>
+
+<script>
+let tones=[],selTone='mixed';
+async function init(){
+  try{const r=await fetch('/api/style/tones');const d=await r.json();
+    tones=d.tones;
+    tones.forEach((t,i)=>{
+      const el=document.createElement('span');
+      el.className='tone-btn'+(i===0?' active':'');
+      el.textContent=t.icon+' '+t.label;
+      el.onclick=()=>selectTone(t.id,el);
+      document.getElementById('tones').appendChild(el);
+    });
+    updateToneDesc('mixed');
+  }catch(e){}
+}
+function selectTone(id,el){
+  selTone=id;
+  document.querySelectorAll('.tone-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  updateToneDesc(id);
+}
+function updateToneDesc(id){
+  const map={mixed:'Все стили в случайной пропорции',aggression:'Борьба, разгром, враги, восклицания',sarcasm:'Пресловутый, так называемый, якобы...',inspiration:'Вперёд! Победа! Да здравствует!',analytical:'Следовательно, необходимо, во-первых...',contempt:'Жалкий, ничтожный, лакей, прихвостень...'};
+  document.getElementById('tone-desc').textContent=map[id]||'';
+}
+function setTopic(t){document.getElementById('topic').value=t}
+async function generate(){
+  const topic=document.getElementById('topic').value.trim()||'революция';
+  const out=document.getElementById('output');
+  const attr=document.getElementById('attr');
+  const btn=document.querySelector('.btn-gen');
+  out.innerHTML='<span class="spinner"></span>Генерирую...';
+  out.className='output loading';
+  attr.textContent='';
+  btn.disabled=true;
+  try{
+    const r=await fetch('/api/style/generate?topic='+encodeURIComponent(topic)+'&tone='+selTone+'&length=400');
+    const d=await r.json();
+    if(d.error){out.textContent='Ошибка: '+d.error;out.className='output';}
+    else{
+      out.textContent=d.text;
+      out.className='output';
+      attr.textContent='~'+d.length+' символов · '+d.quotes_used+' цитат из 55 томов · тон: '+selTone;
+    }
+  }catch(e){out.textContent='Ошибка соединения: '+e.message;out.className='output'}
+  btn.disabled=false;
+}
+init();
+</script>
+</body>
+</html>

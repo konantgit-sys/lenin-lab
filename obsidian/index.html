@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Obsidian Plugin — Lenin Book</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#d0c8b8;font-family:'Georgia',serif;padding:24px;max-width:760px;margin:0 auto}
+h1{color:#c41e3a;font-size:1.5rem;margin-bottom:8px}
+.subtitle{color:#665;font-size:0.8rem;margin-bottom:24px}
+h2{color:#c4a040;font-size:1.1rem;margin:24px 0 10px}
+p,li{line-height:1.6;font-size:0.85rem;margin-bottom:8px}
+ol{margin-left:20px;margin-bottom:16px}
+pre{background:#14141f;border:1px solid #2a2a3a;border-radius:8px;padding:14px;overflow-x:auto;font-size:0.75rem;color:#a0a0b0;margin:12px 0}
+code{color:#4ade80;font-size:0.78rem}
+.dl-btn{display:inline-block;padding:12px 28px;background:#c41e3a;color:#fff;text-decoration:none;border-radius:8px;font-size:0.9rem;margin:16px 0;font-weight:bold}
+.dl-btn:hover{background:#a01830}
+.note{background:#1a1a2e;border-left:3px solid #c4a040;padding:12px 16px;border-radius:0 8px 8px 0;margin:16px 0;font-size:0.8rem}
+.cmd{color:#c4a040}
+</style>
+</head>
+<body>
+<h1>Lenin Search — Obsidian Plugin</h1>
+<div class="subtitle">Поиск по 55 томам Ленина прямо из твоих заметок</div>
+
+<div class="note">⚡ Использует Lenin API v1 (25 эндпоинтов, FAISS+FTS5, 169K параграфов)</div>
+
+<h2>Установка</h2>
+<ol>
+  <li>Скачай архив плагина</li>
+  <li>В Obsidian: <code>Настройки → Community Plugins → включи Restricted Mode OFF</code></li>
+  <li>Распакуй архив в <code>.obsidian/plugins/lenin-search/</code> (в папке твоего vault)</li>
+  <li>Включи плагин: <code>Настройки → Community Plugins → Lenin Search → ON</code></li>
+</ol>
+
+<a class="dl-btn" href="/plugins/lenin-search.zip" download>⬇️ Скачать lenin-search.zip</a>
+
+<h2>Команды</h2>
+
+<h3><span class="cmd">Ctrl+P → «Поиск по Ленину»</span></h3>
+<p>Выдели текст (или введи запрос) → поиск по 169K параграфов → вставляет цитату с годом и томом.</p>
+
+<h3><span class="cmd">Ctrl+P → «Инфо о концепте»</span></h3>
+<p>Выдели слово (например «империализм») → показывает частоту, пик, кластер, связи с другими концептами.</p>
+
+<h3><span class="cmd">Ctrl+P → «Случайная цитата Ленина»</span></h3>
+<p>Вставляет случайную цитату с атрибуцией в текущую позицию курсора.</p>
+
+<h2>Горячие клавиши (настрой)</h2>
+<p>Ты можешь назначить свои сочетания в <code>Настройки → Hotkeys</code>:</p>
+<pre>Ctrl+Shift+L → случайная цитата
+Ctrl+Shift+K → поиск по Ленину
+Ctrl+Shift+I → инфо о концепте</pre>
+
+<p style="margin-top:40px;color:#554;font-size:0.7rem">Версия 1.0.0 · lenin-book.v2.site</p>
+</body>
+</html>

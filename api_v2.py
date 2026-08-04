@@ -1038,17 +1038,62 @@ async def comparator_compare(topic: str = ""):
         from engine_09_comparative import MARXIST_BASIS, get_lenin_position
         import sqlite3
 
-        topic = topic.strip().lower()
-        basis = MARXIST_BASIS.get(topic, {})
+        topic_lower = topic.strip().lower()
 
-        # Get Lenin position from DB
+        # Case-insensitive lookup in MARXIST_BASIS
+        basis = {}
+        for k, v in MARXIST_BASIS.items():
+            if k.lower() == topic_lower:
+                basis = v
+                break
+
+        # Get Lenin position from DB (case-insensitive)
         db = Path(DB_PATH)
         conn = sqlite3.connect(str(db))
-        raw_lenin = get_lenin_position(conn, topic) or {}
+        raw_lenin = get_lenin_position(conn, topic_lower) or {}
+
+        # Get mentions of Marx/Engels in context of this topic (broad search)
+        marx_mentions = 0
+        engels_mentions = 0
+        if topic_lower:
+            # Try exact phrase first, then individual words for multi-word topics
+            patterns = [f"%{topic_lower}%"]
+            words = topic_lower.split()
+            if len(words) > 1:
+                patterns += [f"%{w}%" for w in words if len(w) > 3]
+            
+            for pat in patterns:
+                cnt = conn.execute(
+                    "SELECT COUNT(*) FROM paragraphs WHERE (text LIKE '%Маркс%' OR text LIKE '%Маркса%') AND text LIKE ?",
+                    (pat,)
+                ).fetchone()[0]
+                if cnt > 0:
+                    marx_mentions = max(marx_mentions, cnt)
+                
+                cnt = conn.execute(
+                    "SELECT COUNT(*) FROM paragraphs WHERE text LIKE '%Энгельс%' AND text LIKE ?",
+                    (pat,)
+                ).fetchone()[0]
+                if cnt > 0:
+                    engels_mentions = max(engels_mentions, cnt)
+
+        total_mentions = marx_mentions + engels_mentions
+
+        # Calculate base_match: word overlap between Lenin position and Marx/Engels basis
+        base_match = 0
+        if raw_lenin and basis:
+            l_text = raw_lenin.get("text", "").lower()
+            m_text = (basis.get("marx", "") + " " + basis.get("engels", "")).lower()
+            m_words = set(m_text.split())
+            if m_words:
+                l_words = set(l_text.split())
+                overlap = len(l_words & m_words)
+                base_match = min(95, round(overlap / len(m_words) * 100))
+
         conn.close()
 
         result = {
-            "topic": topic,
+            "topic": topic_lower,
             "marx": {
                 "position": basis.get("marx", ""),
                 "source": basis.get("source", "")
@@ -1059,9 +1104,11 @@ async def comparator_compare(topic: str = ""):
             },
             "lenin": {
                 "position": raw_lenin.get("text", "") if raw_lenin else "",
-                "years": f"{raw_lenin.get('year', '')}-{raw_lenin.get('year', '')}" if raw_lenin else "",
+                "years": str(raw_lenin.get("year", "")) if raw_lenin else "",
                 "quotes": [raw_lenin.get("text", "")] if raw_lenin else [],
-                "volume": raw_lenin.get("volume", "")
+                "volume": raw_lenin.get("volume", ""),
+                "mentions": total_mentions,
+                "base_match": base_match
             },
             "development": "Ленин применил марксистские положения к российским условиям, добавив анализ империализма, авангардной партии и союза рабочих с крестьянством.",
             "divergence": ""

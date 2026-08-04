@@ -495,10 +495,10 @@ def create_comparative_table(conn):
 
 
 def get_lenin_position(conn, topic: str) -> dict:
-    """Получает лучшую цитату Ленина по теме."""
+    """Получает лучшую цитату Ленина по теме (case-insensitive)."""
     row = conn.execute(
         """SELECT text, year, volume_id FROM lenin_positions
-           WHERE topic = ? AND rank = 1
+           WHERE LOWER(topic) = LOWER(?) AND rank = 1
            ORDER BY relevance_score DESC LIMIT 1""",
         (topic,),
     ).fetchone()

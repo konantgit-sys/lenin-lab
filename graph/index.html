@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lenin Knowledge Graph — Концептуальный граф Ленина</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0a0a0f; color: #e0e0e0; font-family: 'Inter', -apple-system, sans-serif; overflow: hidden; height: 100vh; }
+#canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; cursor: grab; }
+#canvas:active { cursor: grabbing; }
+#overlay { position: fixed; top: 20px; left: 20px; z-index: 10; }
+#overlay h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; color: #fff; margin-bottom: 4px; }
+#overlay .subtitle { font-size: 13px; color: #888; }
+#legend { position: fixed; bottom: 20px; left: 20px; z-index: 10; display: flex; flex-wrap: wrap; gap: 8px; max-width: 90vw; }
+.legend-item { 
+    padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+    cursor: pointer; transition: all 0.2s; color: #aaa;
+}
+.legend-item:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.legend-item.active { color: #fff; transform: scale(1.05); }
+#tooltip { 
+    position: fixed; padding: 14px 18px; background: rgba(20,20,35,0.95); 
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
+    pointer-events: none; z-index: 20; display: none; font-size: 13px;
+    backdrop-filter: blur(10px); max-width: 280px;
+}
+#tooltip .name { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+#tooltip .cluster-name { color: #aaa; font-size: 12px; }
+#tooltip .count { color: #aaa; font-size: 12px; margin-top: 4px; }
+#search { position: fixed; top: 20px; right: 20px; z-index: 10; }
+#search input {
+    padding: 10px 16px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(20,20,35,0.9); color: #fff; font-size: 14px; width: 240px;
+    outline: none; transition: border-color 0.2s;
+}
+#search input:focus { border-color: rgba(255,255,255,0.5); }
+#search input::placeholder { color: #666; }
+#results { position: fixed; top: 62px; right: 20px; z-index: 10; max-height: 300px; overflow-y: auto;
+    background: rgba(20,20,35,0.95); border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); display: none; }
+.result-item { padding: 10px 16px; cursor: pointer; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); 
+    transition: background 0.15s; }
+.result-item:last-child { border-bottom: none; }
+.result-item:hover { background: rgba(255,255,255,0.1); }
+.result-item .hit-name { font-weight: 600; color: #fff; }
+.result-item .hit-cluster { font-size: 11px; color: #888; }
+#info-bar { position: fixed; bottom: 20px; right: 20px; z-index: 10; font-size: 12px; color: #555; text-align: right; }
+#info-bar div { margin-bottom: 2px; }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="overlay">
+    <h1>Ленин: Концептуальный граф</h1>
+    <div class="subtitle">206 концептов · 12 735 связей · 8 кластеров</div>
+</div>
+
+<div id="search">
+    <input type="text" id="search-input" placeholder="Поиск концепта..." autocomplete="off">
+    <div id="results"></div>
+</div>
+
+<div id="tooltip">
+    <div class="name"></div>
+    <div class="cluster-name"></div>
+    <div class="count"></div>
+</div>
+
+<div id="legend"></div>
+
+<div id="info-bar">
+    <div>Перетаскивайте для навигации</div>
+    <div>Колесо мыши — масштаб</div>
+    <div>Клик по узлу — информация</div>
+</div>
+
+<script>
+// ===== DATA =====
+const CLUSTER_COLORS = [
+    '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', 
+    '#ff922b', '#cc5de8', '#20c997', '#f06595'
+];
+
+let NODES = [];
+let LINKS = [];
+let CLUSTER_NAMES = [];
+
+// ===== CANVAS SETUP =====
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+let offsetX = 0, offsetY = 0;
+let scale = 1.0;
+let dragging = false;
+let dragStartX, dragStartY;
+let dragStartOffsetX, dragStartOffsetY;
+let hoveredNode = null;
+let selectedNode = null;
+let animFrame;
+
+function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ===== FORCE LAYOUT =====
+function initLayout() {
+    const centerX = W / 2;
+    const centerY = H / 2;
+    const spread = Math.min(W, H) * 0.45;
+    
+    // Position by cluster
+    const clusterCenters = {};
+    NODES.forEach(n => {
+        if (!clusterCenters[n.cluster]) {
+            const angle = (n.cluster / CLUSTER_NAMES.length) * Math.PI * 2;
+            clusterCenters[n.cluster] = {
+                x: centerX + Math.cos(angle) * spread * 0.6,
+                y: centerY + Math.sin(angle) * spread * 0.6
+            };
+        }
+    });
+    
+    NODES.forEach(n => {
+        const c = clusterCenters[n.cluster];
+        n.x = c.x + (Math.random() - 0.5) * spread * 0.5;
+        n.y = c.y + (Math.random() - 0.5) * spread * 0.5;
+        n.vx = 0; n.vy = 0;
+    });
+}
+
+function simulate() {
+    const alpha = 0.3;
+    const repulsion = 3000;
+    const attraction = 0.003;
+    const damping = 0.85;
+    
+    for (let i = 0; i < NODES.length; i++) {
+        for (let j = i + 1; j < NODES.length; j++) {
+            const dx = NODES[j].x - NODES[i].x;
+            const dy = NODES[j].y - NODES[i].y;
+            const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 10);
+            const force = repulsion / (dist * dist);
+            const fx = dx / dist * force;
+            const fy = dy / dist * force;
+            NODES[i].vx -= fx; NODES[i].vy -= fy;
+            NODES[j].vx += fx; NODES[j].vy += fy;
+        }
+    }
+    
+    LINKS.forEach(l => {
+        const s = NODES.find(n => n.id === l.source);
+        const t = NODES.find(n => n.id === l.target);
+        if (!s || !t) return;
+        const dx = t.x - s.x;
+        const dy = t.y - s.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 1) return;
+        const force = (dist - 80) * attraction * l.weight / 1000;
+        const fx = dx / dist * force;
+        const fy = dy / dist * force;
+        s.vx += fx; s.vy += fy;
+        t.vx -= fx; t.vy -= fy;
+    });
+    
+    NODES.forEach(n => {
+        n.vx *= damping;
+        n.vy *= damping;
+        n.x += n.vx;
+        n.y += n.vy;
+    });
+}
+
+// ===== RENDER =====
+function toScreenX(wx) { return (wx + offsetX) * scale + W / 2; }
+function toScreenY(wy) { return (wy + offsetY) * scale + H / 2; }
+function fromScreenX(sx) { return (sx - W / 2) / scale - offsetX; }
+function fromScreenY(sy) { return (sy - H / 2) / scale - offsetY; }
+
+function getNodeRadius(node) {
+    const isHovered = node === hoveredNode;
+    const isSelected = node === selectedNode;
+    const base = 3 + Math.log(node.count + 1) * 1.8;
+    if (isSelected) return base * 2.0;
+    if (isHovered) return base * 1.5;
+    return base;
+}
+
+function draw() {
+    ctx.clearRect(0, 0, W, H);
+    
+    // Background
+    ctx.fillStyle = '#0a0a0f';
+    ctx.fillRect(0, 0, W, H);
+    
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    ctx.scale(scale, scale);
+    ctx.translate(offsetX, offsetY);
+    
+    // Links
+    const maxWeight = Math.max(...LINKS.map(l => l.weight), 1);
+    LINKS.forEach(l => {
+        const s = NODES.find(n => n.id === l.source);
+        const t = NODES.find(n => n.id === l.target);
+        if (!s || !t) return;
+        
+        const alpha = Math.min(l.weight / maxWeight * 0.4, 0.4);
+        const isHighlighted = hoveredNode && (l.source === hoveredNode.id || l.target === hoveredNode.id);
+        
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(t.x, t.y);
+        ctx.strokeStyle = isHighlighted 
+            ? `rgba(255,255,255,${Math.min(alpha * 2.5, 0.8)})` 
+            : `rgba(80,80,100,${alpha})`;
+        ctx.lineWidth = isHighlighted ? 1.5 : 0.5;
+        ctx.stroke();
+    });
+    
+    // Nodes
+    NODES.forEach(n => {
+        const r = getNodeRadius(n);
+        const color = CLUSTER_COLORS[n.cluster];
+        const isHovered = n === hoveredNode;
+        const isSelected = n === selectedNode;
+        const isDimmed = hoveredNode && !isHovered && !isSelected;
+        
+        // Glow for hovered/selected
+        if (isHovered || isSelected) {
+            const glow = ctx.createRadialGradient(n.x, n.y, r * 0.5, n.x, n.y, r * 3);
+            glow.addColorStop(0, color + '99');
+            glow.addColorStop(1, 'transparent');
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, r * 3, 0, Math.PI * 2);
+            ctx.fillStyle = glow;
+            ctx.fill();
+        }
+        
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+        ctx.fillStyle = isDimmed ? color + '30' : color + 'cc';
+        ctx.fill();
+        
+        if (isHovered || isSelected) {
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+    });
+    
+    ctx.restore();
+}
+
+// ===== EVENT HANDLERS =====
+canvas.addEventListener('mousedown', e => {
+    dragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragStartOffsetX = offsetX;
+    dragStartOffsetY = offsetY;
+});
+
+canvas.addEventListener('mousemove', e => {
+    if (dragging) {
+        offsetX = dragStartOffsetX + (e.clientX - dragStartX) / scale;
+        offsetY = dragStartOffsetY + (e.clientY - dragStartY) / scale;
+        return;
+    }
+    
+    const wx = fromScreenX(e.clientX);
+    const wy = fromScreenY(e.clientY);
+    
+    let closest = null;
+    let closestDist = 30 / scale;
+    
+    for (const n of NODES) {
+        const dx = n.x - wx;
+        const dy = n.y - wy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < closestDist) {
+            closestDist = dist;
+            closest = n;
+        }
+    }
+    
+    hoveredNode = closest;
+    canvas.style.cursor = closest ? 'pointer' : 'grab';
+    
+    const tooltip = document.getElementById('tooltip');
+    if (closest) {
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 16) + 'px';
+        tooltip.style.top = (e.clientY - 80) + 'px';
+        tooltip.querySelector('.name').textContent = closest.id;
+        tooltip.querySelector('.cluster-name').textContent = 'Кластер: ' + CLUSTER_NAMES[closest.cluster];
+        tooltip.querySelector('.count').textContent = 'Упоминаний: ' + closest.count.toLocaleString();
+    } else {
+        tooltip.style.display = 'none';
+    }
+});
+
+canvas.addEventListener('mouseup', e => {
+    if (dragging && Math.abs(e.clientX - dragStartX) < 3 && Math.abs(e.clientY - dragStartY) < 3) {
+        // It was a click, not a drag
+        selectedNode = hoveredNode;
+    }
+    dragging = false;
+});
+
+canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const zoomIntensity = 0.001;
+    const newScale = scale * (1 - e.deltaY * zoomIntensity);
+    if (newScale < 0.2 || newScale > 5) return;
+    
+    const mx = fromScreenX(e.clientX);
+    const my = fromScreenY(e.clientY);
+    
+    scale = newScale;
+    offsetX = mx - (e.clientX - W / 2) / scale;
+    offsetY = my - (e.clientY - H / 2) / scale;
+});
+
+// ===== SEARCH =====
+const searchInput = document.getElementById('search-input');
+const resultsDiv = document.getElementById('results');
+
+searchInput.addEventListener('input', () => {
+    const q = searchInput.value.toLowerCase().trim();
+    if (q.length < 1) {
+        resultsDiv.style.display = 'none';
+        return;
+    }
+    
+    const matches = NODES.filter(n => n.id.toLowerCase().includes(q)).slice(0, 8);
+    if (matches.length === 0) {
+        resultsDiv.style.display = 'none';
+        return;
+    }
+    
+    resultsDiv.innerHTML = matches.map(n => 
+        `<div class="result-item" data-node="${n.id}">
+            <div class="hit-name">${n.id}</div>
+            <div class="hit-cluster">${CLUSTER_NAMES[n.cluster]} · ${n.count.toLocaleString()} упоминаний</div>
+        </div>`
+    ).join('');
+    resultsDiv.style.display = 'block';
+    
+    resultsDiv.querySelectorAll('.result-item').forEach(el => {
+        el.addEventListener('click', () => {
+            const node = NODES.find(n => n.id === el.dataset.node);
+            if (node) {
+                selectedNode = node;
+                offsetX = -node.x;
+                offsetY = -node.y;
+                scale = 2.0;
+                resultsDiv.style.display = 'none';
+                searchInput.value = '';
+            }
+        });
+    });
+});
+
+document.addEventListener('click', e => {
+    if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+        resultsDiv.style.display = 'none';
+    }
+});
+
+// ===== LEGEND =====
+function buildLegend() {
+    const legendDiv = document.getElementById('legend');
+    CLUSTER_NAMES.forEach((name, i) => {
+        const el = document.createElement('span');
+        el.className = 'legend-item';
+        el.textContent = name;
+        el.style.borderColor = CLUSTER_COLORS[i] + '66';
+        el.style.color = CLUSTER_COLORS[i];
+        el.addEventListener('click', () => {
+            el.classList.toggle('active');
+            // Could filter by cluster - not implemented in this version
+        });
+        legendDiv.appendChild(el);
+    });
+}
+
+// ===== ANIMATION LOOP =====
+let iterations = 0;
+function animate() {
+    if (iterations < 200) {
+        simulate();
+        iterations++;
+    }
+    draw();
+    animFrame = requestAnimationFrame(animate);
+}
+
+// ===== INIT =====
+async function init() {
+    const resp = await fetch('https://lenin-book.v2.site/api/concepts');
+    const data = await resp.json();
+    
+    NODES = data.nodes.map(n => ({
+        id: n.id,
+        count: n.count,
+        cluster: n.cluster,
+        x: 0, y: 0, vx: 0, vy: 0
+    }));
+    
+    LINKS = data.links.map(l => ({
+        source: l.source,
+        target: l.target,
+        weight: l.weight
+    }));
+    
+    CLUSTER_NAMES = data.clusters;
+    
+    initLayout();
+    buildLegend();
+    animate();
+}
+
+init();
+</script>
+</body>
+</html>

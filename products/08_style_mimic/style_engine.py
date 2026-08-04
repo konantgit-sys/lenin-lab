@@ -1,316 +1,331 @@
 """
-Style Mimic Engine — Level A (Markov Chains + Rhetoric Injection)
-Генерирует текст в стиле Ленина на заданную тему и с заданным тоном.
+Style Mimic Engine v2 — REAL QUOTES + TONE INJECTION
+====================================================
+Ищет реальные цитаты Ленина по теме через FTS5,
+затем инжектирует тоновые паттерны (агрессия, сарказм и т.д.)
+и собирает как связный текст в ленинском стиле.
+
+Никаких Markov-цепей. Только реальный корпус + риторическая обработка.
 """
 
-import json
-import random
+import sys
+import os
 import re
-import sqlite3
+import random
 from pathlib import Path
-from collections import defaultdict, Counter
+from collections import defaultdict
 
-DB_PATH = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+SITE_DIR = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(SITE_DIR))
 
-# Тоновые словари (унаследованы из engine_06_rhetoric)
-TONE_VOCAB = {
-    "aggression": [
-        "борьба", "уничтожить", "разгром", "свергнуть", "враг", "враги",
-        "подавление", "беспощадный", "сопротивление", "восстание",
-        "кровавый", "подавить", "революционный"
-    ],
-    "sarcasm": [
-        "пресловутый", "хвалёный", "так называемый", "якобы", "господа",
-        "знаменитый", "жалкий", "ничтожный", "лакей", "прихвостень",
-        "прислужник", "холоп", "оппортунист"
-    ],
-    "inspiration": [
-        "вперёд", "победа", "великий", "свобода", "будущее", "строить",
-        "коммунизм", "товарищи", "да здравствует", "революция",
-        "пролетариат", "социализм"
-    ],
-    "analytical": [
-        "следовательно", "таким образом", "необходимо отметить",
-        "из этого следует", "во-первых", "во-вторых", "в-третьих",
-        "необходимо", "анализ", "вывод", "диалектика", "противоречие"
-    ],
-    "contempt": [
-        "жалкий", "ничтожный", "лакей", "прихвостень", "прислужник",
-        "холоп", "пособник", "предатель", "ренегат", "оппортунист",
-        "реформист", "соглашатель"
-    ],
+from shared.lenin_core import fts5_search, get_paragraph
+
+# ===== ТОНОВЫЕ СЛОВАРИ =====
+TONE_SIGNATURES = {
+    "aggression": {
+        "weight": 0.35,
+        "openers": [
+            "Товарищи! Пора прямо сказать:",
+            "Довольно! Необходимо раз и навсегда покончить с",
+            "Нельзя молчать!",
+            "Кто этого не понимает — тот враг рабочего дела!",
+        ],
+        "injections": [
+            "борьба", "уничтожить", "разгром", "свергнуть", "враг", "враги",
+            "подавление", "беспощадный", "сопротивление", "восстание",
+            "революционный", "подавить", "в штыки", "долой"
+        ],
+        "closers": [
+            "Таков суровый закон классовой борьбы.",
+            "Другого пути нет и быть не может!",
+            "В этом — железная логика революции.",
+        ],
+        "exclamation_rate": 0.40,
+    },
+    "sarcasm": {
+        "weight": 0.30,
+        "openers": [
+            "Наши «учёные» оппортунисты, разумеется, думают иначе...",
+            "Пресловутая «свобода» буржуазной печати...",
+            "Господа реформисты снова «открыли»...",
+            "Как это ни печально для хвалёных знатоков марксизма...",
+        ],
+        "injections": [
+            "пресловутый", "хвалёный", "так называемый", "якобы", "господа",
+            "жалкий", "ничтожный", "лакей", "прихвостень",
+            "прислужник", "холоп", "оппортунист", "реформист",
+            "с позволения сказать", "изволите ли видеть"
+        ],
+        "closers": [
+            "Ну как тут не посмеяться над подобной «теорией»?",
+            "Вот до чего доводит «учёное» доктринёрство.",
+            "И это называется марксизмом! Поистине, убожество.",
+        ],
+        "question_rate": 0.35,
+    },
+    "inspiration": {
+        "weight": 0.30,
+        "openers": [
+            "Товарищи! Позвольте сказать несколько слов о",
+            "Великое дело — борьба за",
+            "С полной уверенностью можно утверждать:",
+            "История поставила перед нами великую задачу —",
+        ],
+        "injections": [
+            "вперёд", "победа", "великий", "свобода", "будущее", "строить",
+            "коммунизм", "товарищи", "да здравствует", "революция",
+            "пролетариат", "социализм", "светлое будущее", "освобождение"
+        ],
+        "closers": [
+            "Вперёд, товарищи! Победа будет за нами!",
+            "Таков наш путь — и мы пройдём его до конца!",
+            "Да здравствует революция! Да здравствует социализм!",
+        ],
+        "exclamation_rate": 0.30,
+    },
+    "analytical": {
+        "weight": 0.25,
+        "openers": [
+            "Необходимо внимательно рассмотреть вопрос о",
+            "С точки зрения диалектического материализма,",
+            "Анализ показывает, что",
+            "Рассмотрим фактическое положение дел:",
+        ],
+        "injections": [
+            "следовательно", "таким образом", "необходимо отметить",
+            "из этого следует", "во-первых", "во-вторых", "в-третьих",
+            "необходимо", "анализ", "вывод", "диалектика", "противоречие",
+            "объективно", "конкретно", "исторически"
+        ],
+        "closers": [
+            "Таковы объективные данные. Выводы пусть делает читатель.",
+            "В этом — диалектика данного вопроса.",
+            "Факты говорят сами за себя.",
+        ],
+        "question_rate": 0.20,
+    },
+    "contempt": {
+        "weight": 0.32,
+        "openers": [
+            "Жалкие попытки оппортунистов прикрыть свою измену...",
+            "С каким ничтожеством мы имеем дело!",
+            "Трудно представить более жалкое зрелище, чем",
+            "Ренегаты и перебежчики снова пытаются...",
+        ],
+        "injections": [
+            "жалкий", "ничтожный", "лакей", "прихвостень", "прислужник",
+            "холоп", "пособник", "предатель", "ренегат", "оппортунист",
+            "реформист", "соглашатель", "измена", "позор",
+            "политический труп", "убожество"
+        ],
+        "closers": [
+            "Вот цена их «революционности». Медный грош.",
+            "История сметёт этих жалких прислужников капитала.",
+            "Таким не место в рядах сознательных рабочих!",
+        ],
+        "exclamation_rate": 0.25,
+    },
+    "mixed": {
+        "weight": 0.20,
+        "openers": [
+            "Не подлежит никакому сомнению, что",
+            "Совершенно очевидно, что",
+            "Необходимо подчеркнуть, что",
+            "Суть дела в том, что",
+            "Основной вопрос состоит в",
+            "Нельзя забывать, что",
+        ],
+        "injections": [],
+        "closers": [
+            "Таковы факты.",
+            "В этом суть вопроса.",
+            "Это — факт.",
+            "Такова действительность.",
+            "Вывод ясен.",
+        ],
+        "exclamation_rate": 0.10,
+    },
 }
 
-# Типичные ленинские конструкции
-LENINISMS = {
-    "openers": [
-        "Не подлежит никакому сомнению, что",
-        "Совершенно очевидно, что",
-        "Необходимо подчеркнуть, что",
-        "Самое важное — это",
-        "Суть дела в том, что",
-        "Основной вопрос состоит в",
-        "Нельзя забывать, что",
-        "Надо иметь в виду, что",
-    ],
-    "transitions": [
-        "С другой стороны,",
-        "Более того,",
-        "Мало того,",
-        "Иначе говоря,",
-        "Другими словами,",
-        "В сущности,",
-        "На деле же,",
-    ],
-    "closers": [
-        "Таковы факты.",
-        "В этом суть вопроса.",
-        "Это — факт.",
-        "Такова действительность.",
-        "Это не подлежит сомнению.",
-        "Вывод ясен.",
-    ],
-    "exclamations": [
-        "Товарищи!",
-        "Вперёд!",
-        "Да здравствует!",
-        "Долой!",
-        "Ни шагу назад!",
-        "Это — позор!",
-        "Какой вздор!",
-        "Невероятно!",
-    ],
-    "questions": [
-        "Спрашивается, почему?",
-        "В чём же дело?",
-        "Что из этого следует?",
-        "Можно ли отрицать?",
-        "Кто же этого не видит?",
-        "Не ясно ли, что?",
-    ],
-}
+# ===== ЛЕНИНИЗМЫ (общие для всех тонов) =====
+LENIN_TRANSITIONS = [
+    "С другой стороны,", "Более того,", "Мало того,", "Иначе говоря,",
+    "Другими словами,", "В сущности,", "На деле же,", "В самом деле,",
+]
+
+LENIN_QUESTIONS = [
+    "Спрашивается, почему?", "В чём же дело?", "Что из этого следует?",
+    "Можно ли отрицать?", "Кто же этого не видит?", "Не ясно ли, что?",
+]
+
+LENIN_EXCLAMATIONS = [
+    "Какой вздор!", "Невероятно!", "Это — позор!", "Ни шагу назад!",
+    "Вот где корень вопроса!", "В том-то и дело!",
+]
 
 
-def load_paragraphs(conn, limit=8000):
-    """Загружает случайные параграфы для построения модели."""
-    rows = conn.execute(
-        "SELECT year, text FROM paragraphs WHERE year IS NOT NULL "
-        "AND LENGTH(text) BETWEEN 200 AND 800 ORDER BY RANDOM() LIMIT ?",
-        (limit,)
-    ).fetchall()
-    return rows
+def search_topic_quotes(topic: str, limit: int = 15) -> list:
+    """Ищет параграфы по теме через FTS5."""
+    results = fts5_search(topic, limit=limit)
+    quotes = []
+    for r in results:
+        pid = r.get('id') or r.get('para_id')
+        text = r.get('snippet', '') or r.get('text', '') or get_paragraph(pid)
+        if text and len(text) > 40:
+            quotes.append({
+                'text': text.strip(),
+                'year': r.get('year', '?'),
+                'volume': r.get('volume_id', r.get('volume', '?')),
+            })
+    return quotes
 
 
-def clean_text(text):
-    """Очистка текста для токенизации."""
-    # Убираем сноски [1], [2]...
-    text = re.sub(r'\[\d+\]', '', text)
-    # Нормализуем пробелы
-    text = re.sub(r'\s+', ' ', text)
-    return text.strip()
+def extract_topic_keywords(topic: str) -> list:
+    """Извлекает ключевые слова темы."""
+    words = re.findall(r'[а-яё]{3,}', topic.lower())
+    # Убираем стоп-слова
+    stop = {'для', 'это', 'что', 'как', 'есть', 'или', 'еще', 'уже'}
+    return [w for w in words if w not in stop][:5]
 
 
-def build_markov_model(paragraphs, n=2):
-    """Строит Марковскую модель n-го порядка."""
-    model = defaultdict(list)
-    starters = []
-
-    for _, text in paragraphs:
-        text = clean_text(text)
-        words = text.split()
-        if len(words) < n + 3:
-            continue
-
-        starters.append(tuple(words[:n]))
-
-        for i in range(len(words) - n):
-            prefix = tuple(words[i:i + n])
-            next_word = words[i + n]
-            model[prefix].append(next_word)
-
-    return model, starters
-
-
-def find_tone_paragraphs(paragraphs, tone, count=50):
-    """Находит параграфы с заданным тоном."""
-    if not tone or tone == "mixed":
-        return paragraphs
-
-    tone_words = TONE_VOCAB.get(tone, [])
-    scored = []
-    for year, text in paragraphs:
-        text_lower = text.lower()
-        score = sum(text_lower.count(w.lower()) for w in tone_words)
-        if score > 0:
-            scored.append((score, year, text))
-
-    scored.sort(reverse=True)
-    return [(y, t) for _, y, t in scored[:max(count, 30)]]
-
-
-def inject_topic(model, topic_words, bias=1):
-    """Внедряет слова темы в Марковскую модель — очень осторожно."""
-    if not topic_words:
-        return
-
-    # Добавляем слова темы только к 10% случайных префиксов, по 1 копии
-    keys = list(model.keys())
-    if not keys:
-        return
-    target_keys = random.sample(keys, min(len(keys) // 10, 200))
-    for key in target_keys:
-        for word in topic_words[:3]:  # максимум 3 ключевых слова
-            if len(word) > 2 and word not in TONE_VOCAB.get("analytical", []):
-                model[key].append(word)
-
-
-def generate(model, starters, tone, length=300, topic=None):
-    """Генерирует текст в стиле Ленина."""
-    if not model:
-        return "База данных пуста. Невозможно построить модель."
-
-    max_words = max(30, length // 3)
-
-    # Выбираем случайный стартер
-    if not starters:
-        return "Недостаточно данных для генерации."
-
-    prefix = random.choice(starters)
-    words = list(prefix)
-
-    tone_vocab = TONE_VOCAB.get(tone, []) if tone else []
-    topic_words = re.findall(r'\w+', topic.lower()) if topic else []
-
-    # Внедрение темы в модель (на лету) — минимальное
-    local_model = defaultdict(list, model)
-    if topic_words:
-        inject_topic(local_model, topic_words[:3])
-
-    attempts = 0
-    while len(words) < max_words and attempts < max_words * 3:
-        current = tuple(words[-len(prefix):])
-
-        if current in local_model:
-            candidates = local_model[current]
-            # Если есть тоновые слова — увеличиваем их вес
-            if tone_vocab:
-                weighted = candidates + [
-                    w for w in candidates
-                    if any(t in w.lower() for t in tone_vocab)
-                ] * 5
-                next_word = random.choice(weighted if random.random() < 0.6 else candidates)
-            else:
-                next_word = random.choice(candidates)
-        else:
-            # Fallback: случайное слово из модели
-            try:
-                next_word = random.choice(random.choice(list(local_model.values())))
-            except (IndexError, ValueError):
-                break
-
-        words.append(next_word)
-        attempts += 1
-
-    # Формирование текста с ленинскими конструкциями
-    return assemble_text(words, tone, topic)
-
-
-def assemble_text(words, tone, topic):
-    """Собирает сырой поток слов в осмысленный ленинский текст."""
-    sentences = []
-    current = []
-    sentence_len = 0
-
-    for word in words:
-        current.append(word)
-        sentence_len += 1
-
-        # Конец предложения: знаки препинания или длина
-        end_markers = word.endswith(('.', '!', '?', ':', ';'))
-        if end_markers or sentence_len > 18:
-            if sentence_len > 18 and not end_markers:
-                current.append('.')
-            sentences.append(' '.join(current))
-            current = []
-            sentence_len = 0
-
-    if current:
-        current.append('.')
-        sentences.append(' '.join(current))
-
-    # Внедрение ленинских конструкций
+def inject_tone_between(text: str, tone: str, sig: dict) -> str:
+    """Добавляет тоновые вставки МЕЖДУ предложениями, не трогая цитаты."""
+    if tone == "mixed":
+        return text
+    
+    injections = sig.get('injections', [])
+    if not injections:
+        return text
+    
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    if len(sentences) <= 2:
+        return text
+    
     result = []
-
-    # Вступление
-    if len(sentences) > 2:
-        opener = random.choice(LENINISMS["openers"])
-        topic_ref = f" вопроса о {topic}" if topic else ""
-        result.append(f"{opener}{topic_ref} {sentences[0]}")
-
-        # Основная часть
-        for i, s in enumerate(sentences[1:-2]):
-            if i % 3 == 0 and random.random() < 0.4:
-                result.append(f"{random.choice(LENINISMS['transitions'])} {s}")
-            elif i % 5 == 0 and random.random() < 0.3:
-                result.append(f"{random.choice(LENINISMS['questions'])} {s}")
-            else:
-                result.append(s)
-
-        # Вставка эмоциональных восклицаний
-        if tone in ("aggression", "inspiration") and len(sentences) > 4:
-            mid = len(result) // 2
-            exclam = random.choice(LENINISMS["exclamations"])
-            result.insert(mid, exclam)
-
-        # Заключение
-        result.append(sentences[-2] if len(sentences) > 1 else sentences[-1])
-        result.append(random.choice(LENINISMS["closers"]))
-
-    else:
-        result = sentences
-
+    for i, sent in enumerate(sentences):
+        result.append(sent)
+        # Каждые 2-3 предложения вставляем тоновый маркер
+        if i > 0 and i % 3 == 0:
+            marker = random.choice(injections)
+            result.append(f"({marker})")
+    
     return ' '.join(result)
 
 
-def generate_lenin_text(topic="революция", tone="mixed", length=400):
-    """Основной интерфейс генерации."""
-    conn = sqlite3.connect(str(DB_PATH))
+def assemble_style_text(topic: str, tone: str, quotes: list, target_length: int = 400) -> str:
+    """Собирает связный текст из цитат с тоновым обрамлением."""
+    sig = TONE_SIGNATURES.get(tone, TONE_SIGNATURES['mixed'])
+    
+    if not quotes:
+        opener = random.choice(sig['openers'])
+        closer = random.choice(sig['closers'])
+        return f"{opener} вопрос о {topic}. {closer}"
+    
+    parts = []
+    total_len = 0
+    
+    # 1. Открытие в выбранном тоне
+    opener = random.choice(sig['openers'])
+    parts.append(opener)
+    total_len += len(opener)
+    
+    # 2. Основной текст из цитат
+    max_quotes = min(len(quotes), 6)
+    for i, q in enumerate(quotes[:max_quotes]):
+        text = q['text']
+        # Ограничиваем длину одного фрагмента
+        if len(text) > 180:
+            # Обрезаем до последней точки в пределах 180
+            cut = text[:180]
+            last_dot = max(cut.rfind('.'), cut.rfind('!'), cut.rfind('?'))
+            if last_dot > 60:
+                text = text[:last_dot + 1]
+            else:
+                text = cut.rsplit(' ', 1)[0] + '...'
+        
+        # Инжектируем тон между предложениями
+        toned_text = inject_tone_between(text, tone, sig)
+        
+        # Добавляем переход между цитатами
+        if i > 0:
+            transition = random.choice(LENIN_TRANSITIONS)
+            parts.append(transition)
+            total_len += len(transition) + 1
+        
+        parts.append(toned_text)
+        total_len += len(toned_text) + 1
+        
+        # 3. Вопрос или восклицание (вероятностно)
+        if random.random() < sig.get('question_rate', 0.15):
+            q_text = random.choice(LENIN_QUESTIONS)
+            parts.append(q_text)
+            total_len += len(q_text) + 1
+        
+        if random.random() < sig.get('exclamation_rate', 0.15):
+            ex = random.choice(LENIN_EXCLAMATIONS)
+            parts.append(ex)
+            total_len += len(ex) + 1
+        
+        if total_len >= target_length * 0.8:
+            break
+    
+    # 4. Закрытие
+    closer = random.choice(sig['closers'])
+    parts.append(closer)
+    
+    return '\n\n'.join(parts)
+
+
+def generate_lenin_text(topic: str, tone: str = "mixed", length: int = 400) -> dict:
+    """
+    Генерирует текст в стиле Ленина на заданную тему.
+    Использует РЕАЛЬНЫЕ цитаты + тоновую обработку.
+    """
+    # Validate tone
+    valid_tones = set(TONE_SIGNATURES.keys())
+    if tone not in valid_tones:
+        tone = "mixed"
+    
+    # Validate length
+    length = max(100, min(length, 2000))
+    
     try:
-        # Загружаем параграфы
-        all_paragraphs = load_paragraphs(conn, limit=6000)
-
-        if not all_paragraphs:
-            return {"error": "База данных пуста"}
-
-        # Фильтруем по тону
-        tone_paragraphs = find_tone_paragraphs(all_paragraphs, tone, count=300)
-
-        # Строим модель
-        model, starters = build_markov_model(tone_paragraphs, n=3)
-
-        # Генерируем
-        text = generate(model, starters, tone, length, topic)
-
-        # Собираем статистику
-        tones_used = list(TONE_VOCAB.keys()) if tone == "mixed" else [tone]
-        sampled_years = [y for y, _ in tone_paragraphs[:100]]
-
+        # 1. Ищем цитаты по теме
+        quotes = search_topic_quotes(topic, limit=10)
+        
+        # 2. Собираем текст
+        text = assemble_style_text(topic, tone, quotes, length)
+        
+        # 3. Пост-обработка: убираем мусор
+        text = re.sub(r'\s+', ' ', text).strip()
+        text = re.sub(r'\n\s*\n', '\n\n', text)
+        
+        # 4. Обрезаем до целевой длины (по последнему предложению)
+        if len(text) > length:
+            cut = text[:length]
+            last_dot = max(cut.rfind('.'), cut.rfind('!'), cut.rfind('?'))
+            if last_dot > 50:
+                text = text[:last_dot + 1]
+            else:
+                text = cut.rsplit(' ', 1)[0] + '...'
+        
+        quote_count = len(quotes)
+        
         return {
             "topic": topic,
             "tone": tone,
             "text": text,
-            "word_count": len(text.split()),
-            "model_paragraphs": len(tone_paragraphs),
-            "year_range": f"{min(sampled_years)}–{max(sampled_years)}" if sampled_years else "1893–1922",
-            "tones_available": list(TONE_VOCAB.keys()),
+            "length": len(text),
+            "quotes_used": min(quote_count, 6),
+            "total_quotes_found": quote_count,
+            "method": "fts5+tone_injection",
         }
-    finally:
-        conn.close()
-
-
-if __name__ == "__main__":
-    import sys
-    topic = sys.argv[1] if len(sys.argv) > 1 else "революция"
-    tone = sys.argv[2] if len(sys.argv) > 2 else "mixed"
-    result = generate_lenin_text(topic, tone)
-    print(json.dumps(result, indent=2, ensure_ascii=False))
+        
+    except Exception as e:
+        return {
+            "topic": topic,
+            "tone": tone,
+            "text": f"[Ошибка генерации: {str(e)[:100]}]",
+            "length": 0,
+            "error": str(e)
+        }

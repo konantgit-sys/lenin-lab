@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Теневая структура — Lenin Book</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0d5c0;font-family:system-ui,sans-serif;min-height:100vh}
+.hero{text-align:center;padding:50px 20px 30px;background:linear-gradient(180deg,#1a0808 0%,#0a0a0a 100%)}
+.hero h1{font-size:2em;color:#c0392b}
+.hero p{color:#8a6a6a;max-width:650px;margin:8px auto 0;font-size:1.05em}
+.container{max-width:1000px;margin:0 auto;padding:20px}
+.loading{text-align:center;padding:40px;color:#8a7a6a;display:none}
+.legend{display:flex;gap:20px;margin-bottom:20px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:0.9em}
+.legend-dot{width:14px;height:14px;border-radius:50%}
+.chart-area{background:#141010;border-radius:12px;padding:24px;margin-bottom:20px}
+.term-row{display:flex;align-items:center;padding:10px 12px;margin-bottom:4px;border-radius:6px;gap:12px;transition:background 0.2s}
+.term-row:hover{background:#1a1414}
+.term-name{width:140px;font-weight:600;color:#e0d5c0;font-size:0.95em}
+.term-bars{flex:1;display:flex;align-items:center;gap:8px}
+.term-bar-pre{height:24px;background:linear-gradient(90deg,#2a6496,#3498db);border-radius:4px;min-width:2px;display:flex;align-items:center;padding-left:8px;font-size:0.8em;color:#fff}
+.term-bar-post{height:24px;background:linear-gradient(90deg,#c0392b,#e74c3c);border-radius:4px;min-width:2px;display:flex;align-items:center;padding-left:8px;font-size:0.8em;color:#fff}
+.term-ratio{width:60px;text-align:right;font-size:0.9em;font-weight:700}
+.term-arrow{width:30px;text-align:center;font-size:1.1em}
+.insight-box{background:#141010;border-radius:10px;padding:20px;margin-top:16px}
+.insight-box h3{color:#c0392b;margin-bottom:10px}
+.insight-item{padding:6px 0;color:#8a7a6a;font-size:0.9em;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="hero">
+<h1>Теневая структура</h1>
+<p>Что исчезло из текстов Ленина после 1918 года — и что появилось. 30 ключевых терминов, частота на 1000 параграфов</p>
+</div>
+<div class="container">
+<div class="legend">
+<div class="legend-item"><div class="legend-dot" style="background:#3498db"></div>До 1919</div>
+<div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>После 1918</div>
+<div class="legend-item" style="margin-left:auto;color:#8a6a6a;font-size:0.85em">Порог: рост >1.5x, падение <0.67x</div>
+</div>
+<div class="loading" id="loading">Вычисляю частотный дрейф 30 терминов...</div>
+<div class="chart-area" id="chart"></div>
+<div class="insight-box" id="insights"></div>
+</div>
+<script>
+fetch('/api/shadow').then(r=>r.json()).then(d=>{
+  document.getElementById('loading').style.display='none';
+  var terms=d.terms;
+  var maxFreq=Math.max.apply(null,terms.map(t=>Math.max(t.pre_1919_freq,t.post_1918_freq)));
+  var html='';
+  terms.forEach(function(t){
+    var preW=Math.max(t.pre_1919_freq/maxFreq*100,1);
+    var postW=Math.max(t.post_1918_freq/maxFreq*100,1);
+    var ratioColor=t.trend==='рост'?'#27ae60':(t.trend==='падение'?'#c0392b':'#8a7a6a');
+    var arrow=t.trend==='рост'?'⬆':(t.trend==='падение'?'⬇':'→');
+    html+='<div class="term-row">'+
+      '<div class="term-name">'+t.term+'</div>'+
+      '<div class="term-bars">'+
+        '<div class="term-bar-pre" style="width:calc('+preW+'% + 40px)">'+t.pre_1919_freq+'</div>'+
+        '<div class="term-bar-post" style="width:calc('+postW+'% + 40px)">'+t.post_1918_freq+'</div>'+
+      '</div>'+
+      '<div class="term-arrow" style="color:'+ratioColor+'">'+arrow+'</div>'+
+      '<div class="term-ratio" style="color:'+ratioColor+'">'+t.ratio+'x</div>'+
+    '</div>';
+  });
+  document.getElementById('chart').innerHTML=html;
+
+  // Insights
+  var growing=terms.filter(t=>t.trend==='рост').sort((a,b)=>b.ratio-a.ratio).slice(0,5);
+  var declining=terms.filter(t=>t.trend==='падение').sort((a,b)=>a.ratio-b.ratio).slice(0,5);
+  var insights='<h3>Ключевые выводы</h3>'+
+    '<div class="insight-item"><b style="color:#27ae60">Рост:</b> '+growing.map(t=>'«'+t.term+'» (×'+t.ratio+')').join(', ')+'</div>'+
+    '<div class="insight-item"><b style="color:#c0392b">Падение:</b> '+declining.map(t=>'«'+t.term+'» (×'+t.ratio.toFixed(2)+')').join(', ')+'</div>'+
+    '<div class="insight-item" style="margin-top:8px"><b>Самое резкое падение:</b> «демократия» — в 3.1 раза реже после 1918. «Народ» — вдвое реже. «Интеллигенция» — почти исчезла.</div>'+
+    '<div class="insight-item"><b>Самое резкое появление:</b> «нэп» и «концессия» — практически отсутствовали до 1919, стали нормой после.</div>';
+  document.getElementById('insights').innerHTML=insights;
+});
+</script>
+</body>
+</html>

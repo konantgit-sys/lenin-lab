@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Twin — Ленин</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#e0d8c8;font-family:'Georgia',serif;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+h1{font-size:2.2rem;margin:40px 0 8px;background:linear-gradient(135deg,#c41e3a,#8b0000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center}
+.subtitle{color:#887;font-size:0.95rem;margin-bottom:30px;text-align:center}
+.container{width:100%;max-width:700px;padding:0 20px}
+.chat-box{background:#14141f;border:1px solid #2a2a3a;border-radius:12px;padding:20px;min-height:300px;max-height:500px;overflow-y:auto;margin-bottom:16px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:90%;padding:12px 16px;border-radius:10px;line-height:1.6;font-size:0.95rem;animation:fadeIn .3s}
+.msg.user{align-self:flex-end;background:#2a2a3a;color:#e0d8c8}
+.msg.twin{align-self:flex-start;background:#1a1a2e;border-left:3px solid #c41e3a;color:#d0c8b8}
+.msg.twin .citation{display:block;font-size:0.75rem;color:#887;margin-top:6px;font-style:italic}
+.msg.twin .quote{color:#d4c4a0;margin:6px 0}
+.msg .similarity{font-size:0.7rem;color:#665;margin-left:6px}
+.msg.loading{align-self:flex-start;color:#887;font-style:italic}
+.input-row{display:flex;gap:10px}
+.input-row input{flex:1;padding:14px 18px;background:#14141f;border:1px solid #2a2a3a;border-radius:8px;color:#e0d8c8;font-size:1rem;font-family:'Georgia',serif}
+.input-row input:focus{outline:none;border-color:#c41e3a}
+.input-row button{padding:14px 24px;background:#c41e3a;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:bold;font-family:'Georgia',serif}
+.input-row button:hover{background:#a01a30}
+.input-row button:disabled{opacity:0.5;cursor:not-allowed}
+.samples{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.samples span{padding:8px 14px;background:#1a1a2e;border:1px solid #2a2a3a;border-radius:20px;cursor:pointer;font-size:0.85rem;color:#c4b898;transition:all .2s}
+.samples span:hover{border-color:#c41e3a;color:#fff}
+.stats{color:#665;font-size:0.8rem;text-align:center;margin-top:20px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<h1>Цифровой двойник Ленина</h1>
+<div class="subtitle">Отвечает ТОЛЬКО подлинными цитатами из 55 томов. Никаких выдумок.</div>
+<div class="container">
+  <div class="chat-box" id="chat"></div>
+  <div class="input-row">
+    <input id="question" placeholder="Спроси Ленина о чём угодно..." onkeydown="if(event.key==='Enter')ask()">
+    <button id="askBtn" onclick="ask()">Спросить</button>
+  </div>
+  <div class="samples">
+    <span onclick="quickAsk(this)">Что такое диктатура пролетариата?</span>
+    <span onclick="quickAsk(this)">Как вы относитесь к капитализму?</span>
+    <span onclick="quickAsk(this)">Нужна ли революция?</span>
+    <span onclick="quickAsk(this)">Что важнее — партия или масса?</span>
+    <span onclick="quickAsk(this)">Ваше мнение о государстве</span>
+    <span onclick="quickAsk(this)">Что сказали бы о биткоине?</span>
+  </div>
+  <div class="stats" id="stats"></div>
+</div>
+<script>
+async function ask() {
+  const inp = document.getElementById('question');
+  const q = inp.value.trim();
+  if (!q || q.length < 3) return;
+  const btn = document.getElementById('askBtn');
+  btn.disabled = true;
+  const chat = document.getElementById('chat');
+  chat.innerHTML += `<div class="msg user">${escapeHtml(q)}</div>`;
+  chat.innerHTML += '<div class="msg loading">Ищу в 55 томах...</div>';
+  chat.scrollTop = chat.scrollHeight;
+  inp.value = '';
+  try {
+    const r = await fetch('/api/twin/ask?q=' + encodeURIComponent(q));
+    const d = await r.json();
+    document.querySelector('.loading')?.remove();
+    if (d.error) {
+      chat.innerHTML += `<div class="msg twin">${escapeHtml(d.error)}</div>`;
+    } else {
+      chat.innerHTML += `<div class="msg twin">${formatAnswer(d)}</div>`;
+    }
+    if (d.total_found !== undefined) {
+      document.getElementById('stats').textContent = `Найдено в корпусе: ${d.total_found} цитат · Прямое совпадение: ${d.direct_match ? 'да' : 'нет'}`;
+    }
+  } catch(e) {
+    document.querySelector('.loading')?.remove();
+    chat.innerHTML += '<div class="msg twin">Ошибка соединения. Попробуйте ещё раз.</div>';
+  }
+  btn.disabled = false;
+  chat.scrollTop = chat.scrollHeight;
+}
+function quickAsk(el) {
+  document.getElementById('question').value = el.textContent;
+  ask();
+}
+function formatAnswer(d) {
+  let html = '';
+  if (d.citations && d.citations.length) {
+    d.citations.forEach(c => {
+      html += `<div class="quote">«${escapeHtml(c.text)}»</div>`;
+      html += `<div class="citation">Том ${c.volume}, ${c.year} г. <span class="similarity">(${c.similarity}%)</span></div>`;
+    });
+  }
+  return html;
+}
+function escapeHtml(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+ask(); // initial greeting hidden
+</script>
+</body>
+</html>

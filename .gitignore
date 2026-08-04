@@ -41,3 +41,50 @@ __pycache__/
 # Database (too large, regeneratable)
 lenin.db
 *.db
+
+# Axiom (separate project)
+AXIOM_SPEC.md
+
+# Generated images
+images/
+
+# Build artifacts (regeneratable)
+part*.html
+full*.html
+premium_book.html
+cover.html
+title_page.html
+gallery.html
+preview_v2.html
+products.html
+
+# PDFs (generated)
+*.pdf
+
+# Logs
+*.log
+
+# Backups
+*.bak
+*.backup
+
+# Old versions
+index_old.html
+methodology_v230.html
+
+# Server config
+port.txt
+api_keys.json
+
+# Cleanup scripts (one-time)
+clean_technical_mess.py
+cleanup_captions.py
+build_premium_book.py
+build_premium_book_clean.py
+editorial_engine.py
+editorial_pass2.py
+edit_engagement.py
+edit_fragments_v2.py
+generate_architecture_diagram.py
+insert_illustrations.py
+architecture_diagram.png

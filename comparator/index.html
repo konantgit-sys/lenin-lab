@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ideology Comparator — Lenin Book</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#d0c8b8;font-family:'Georgia',serif;min-height:100vh}
+h1{font-size:1.5rem;margin:20px 0 4px;text-align:center;color:#c41e3a}
+.subtitle{color:#665;font-size:0.8rem;text-align:center;margin-bottom:16px}
+.topics{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;padding:0 20px;margin-bottom:24px}
+.topic-btn{padding:6px 14px;border:1px solid #2a2a3a;background:#14141f;color:#887;border-radius:20px;cursor:pointer;font-size:0.78rem;transition:all .2s}
+.topic-btn:hover,.topic-btn.active{border-color:#c41e3a;color:#c4a040;background:#1a1a2e}
+.comparison{max-width:1100px;margin:0 auto;padding:0 20px 40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.col{border:1px solid #2a2a3a;border-radius:10px;background:#14141f;padding:20px;position:relative}
+.col h3{font-size:0.9rem;text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #2a2a3a}
+.col-marx h3{color:#d4af37}
+.col-engels h3{color:#3a7bd5}
+.col-lenin h3{color:#c41e3a}
+.col-lenin-dev h3{color:#4ade80}
+.thesis{margin:10px 0;padding:10px;background:#1a1a2e;border-radius:6px;font-size:0.8rem;line-height:1.5}
+.thesis .label{font-size:0.65rem;color:#665;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.thesis .text{color:#d0c8b8}
+.source{font-size:0.65rem;color:#554;margin-top:6px;font-style:italic}
+.loading{text-align:center;padding:80px;color:#665}
+.empty{margin-top:30px;text-align:center;color:#665;font-size:0.85rem}
+.metrics{margin-top:14px;display:flex;gap:10px}
+.metric{flex:1;background:#1a1a2e;border-radius:6px;padding:10px;text-align:center}
+.metric .val{font-size:1.1rem;font-weight:bold;color:#c4a040}
+.metric .lbl{font-size:0.65rem;color:#665;margin-top:2px}
+.legend{display:flex;gap:16px;justify-content:center;margin-bottom:20px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:0.7rem;color:#887}
+.legend-dot{width:10px;height:10px;border-radius:50%}
+</style>
+</head>
+<body>
+<h1>Ideology Comparator</h1>
+<div class="subtitle">Ленин vs Маркс и Энгельс — 89 тем, позиция за позицией</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#d4af37"></div> Маркс</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3a7bd5"></div> Энгельс</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#c41e3a"></div> Ленин</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div> Развитие Ленина</div>
+</div>
+
+<div class="topics" id="topics"></div>
+<div class="loading" id="loading">Загрузка тем...</div>
+<div class="comparison" id="comparison"></div>
+
+<script>
+let allTopics = [];
+
+async function init() {
+  const r = await fetch('/api/comparator/topics');
+  allTopics = await r.json();
+  const tc = document.getElementById('topics');
+  tc.innerHTML = allTopics.map((t,i)=>`<button class="topic-btn" data-idx="${i}">${t.topic}</button>`).join('');
+  tc.querySelectorAll('.topic-btn').forEach(btn=>{
+    btn.onclick = ()=>selectTopic(parseInt(btn.dataset.idx));
+  });
+  document.getElementById('loading').style.display = 'none';
+  // Auto-select first
+  if (allTopics.length>0) selectTopic(0);
+}
+
+async function selectTopic(idx) {
+  document.querySelectorAll('.topic-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`[data-idx="${idx}"]`).classList.add('active');
+  const topic = allTopics[idx].topic;
+  const r = await fetch(`/api/comparator/compare?topic=${encodeURIComponent(topic)}`);
+  const data = await r.json();
+  render(data);
+}
+
+function render(data) {
+  const comp = document.getElementById('comparison');
+  let html = '';
+
+  // Marx
+  html += `<div class="col col-marx"><h3>Карл Маркс (1818–1883)</h3>`;
+  html += `<div class="thesis"><div class="label">Позиция</div><div class="text">${esc(data.marx?.position||'')}</div></div>`;
+  if (data.marx?.source) html += `<div class="source">Источник: ${esc(data.marx.source)}</div>`;
+  html += `</div>`;
+
+  // Engels
+  html += `<div class="col col-engels"><h3>Фридрих Энгельс (1820–1895)</h3>`;
+  html += `<div class="thesis"><div class="label">Позиция</div><div class="text">${esc(data.engels?.position||'')}</div></div>`;
+  if (data.engels?.source) html += `<div class="source">Источник: ${esc(data.engels.source)}</div>`;
+  html += `</div>`;
+
+  // Lenin
+  html += `<div class="col col-lenin"><h3>В.И. Ленин (1870–1924)</h3>`;
+  html += `<div class="thesis"><div class="label">Позиция</div><div class="text">${esc(data.lenin?.position||'')}</div></div>`;
+  if (data.lenin?.years) html += `<div class="source">Годы: ${esc(data.lenin.years)} | Упоминаний: ${data.lenin.mentions ?? '—'}</div>`;
+  if (data.lenin?.quotes?.length) {
+    html += `<div class="thesis"><div class="label">Цитата</div><div class="text">«${esc(data.lenin.quotes[0])}»</div></div>`;
+  }
+  html += `<div class="metrics">
+    <div class="metric"><div class="val">${data.lenin?.mentions ?? 0}</div><div class="lbl">упоминаний</div></div>
+    <div class="metric"><div class="val">${data.lenin?.years||'—'}</div><div class="lbl">лет охвата</div></div>
+  </div>`;
+  html += `</div>`;
+
+  // Lenin Development
+  html += `<div class="col col-lenin-dev"><h3>Ленинское развитие</h3>`;
+  html += `<div class="thesis"><div class="label">Что добавил</div><div class="text">${esc(data.lenin?.development||data.development||'')}</div></div>`;
+  if (data.divergence) {
+    html += `<div class="thesis"><div class="label">Отличие от базиса</div><div class="text">${esc(data.divergence)}</div></div>`;
+  }
+  html += `<div class="metric" style="margin:12px 0;text-align:center">
+    <div class="val">${data.lenin?.base_match ?? '—'}%</div>
+    <div class="lbl">совпадение с марксистским базисом</div>
+  </div>`;
+  html += `</div>`;
+
+  comp.innerHTML = html;
+}
+
+function esc(s) { return (s||'').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Pro — Lenin Book</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0f;color:#d0c8b8;font-family:'Georgia',serif;min-height:100vh}
+h1{font-size:1.6rem;margin:20px 0 4px;text-align:center;color:#c41e3a}
+.subtitle{color:#665;font-size:0.8rem;text-align:center;margin-bottom:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;padding:0 20px 40px;max-width:1200px;margin:0 auto}
+.card{background:#14141f;border:1px solid #2a2a3a;border-radius:10px;padding:18px;transition:border-color .2s}
+.card:hover{border-color:#c41e3a}
+.card h3{font-size:0.85rem;color:#887;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
+.big-num{font-size:2.4rem;font-weight:bold;color:#e0d8c8;line-height:1}
+.big-num span{font-size:0.9rem;color:#665;font-weight:normal;margin-left:6px}
+.metrics{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.metric{flex:1;min-width:90px;background:#1a1a2e;border-radius:8px;padding:12px;text-align:center}
+.metric .val{font-size:1.3rem;font-weight:bold;color:#c4a040}
+.metric .lbl{font-size:0.7rem;color:#665;margin-top:2px}
+.bar-row{display:flex;align-items:center;margin:6px 0}
+.bar-row .name{width:120px;font-size:0.75rem;color:#998;text-align:right;padding-right:10px;flex-shrink:0}
+.bar-row .bar-wrap{flex:1;height:16px;background:#1a1a2e;border-radius:4px;overflow:hidden}
+.bar-row .bar-fill{height:100%;border-radius:4px;transition:width .5s}
+.bar-row .val-num{width:50px;font-size:0.75rem;color:#887;padding-left:8px}
+.engines-list{max-height:300px;overflow-y:auto;font-size:0.8rem}
+.engines-list .row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1a1a2e}
+.engines-list .row:last-child{border-bottom:none}
+.engines-list .ename{color:#c4a040}
+.engines-list .edesc{color:#665}
+.period-bar{display:flex;height:40px;border-radius:6px;overflow:hidden;margin-top:10px}
+.period-seg{display:flex;align-items:center;justify-content:center;font-size:0.7rem;color:#fff;font-weight:bold}
+.loading{text-align:center;padding:100px 20px;color:#665;font-size:1.2rem}
+.error{color:#c41e3a;text-align:center;padding:40px}
+.fresher{font-size:0.65rem;color:#443;text-align:center;margin:0 0 20px}
+</style>
+</head>
+<body>
+<h1>Dashboard Pro</h1>
+<div class="subtitle">Аналитическая панель — все метрики в одном месте</div>
+<div class="fresher" id="fresher"></div>
+<div class="loading" id="loading">Загрузка данных...</div>
+<div class="grid" id="grid" style="display:none"></div>
+<div class="error" id="error" style="display:none"></div>
+
+<script>
+(async function(){
+  const loading = document.getElementById('loading');
+  const grid = document.getElementById('grid');
+  const errEl = document.getElementById('error');
+  const fresher = document.getElementById('fresher');
+
+  try {
+    const r = await fetch('/api/dashboard');
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+
+    loading.style.display = 'none';
+    grid.style.display = 'grid';
+    fresher.textContent = 'Обновлено: ' + new Date().toLocaleString('ru-RU');
+
+    // ===== CARD 1: Overview =====
+    const overview = mkCard('Обзор корпуса',
+      `<div class="big-num">${fmtNum(d.corpus.paragraphs)}<span>параграфов</span></div>
+       <div class="big-num" style="font-size:1.6rem;margin-top:6px">${d.corpus.chars}<span>символов</span></div>
+       <div class="metrics">
+         <div class="metric"><div class="val">${d.corpus.years}</div><div class="lbl">лет охвата</div></div>
+         <div class="metric"><div class="val">${d.corpus.volumes}</div><div class="lbl">томов</div></div>
+         <div class="metric"><div class="val">${fmtNum(d.corpus.db_size_mb)}</div><div class="lbl">МБ БД</div></div>
+         <div class="metric"><div class="val">${d.engines_count}</div><div class="lbl">движков</div></div>
+       </div>`
+    );
+
+    // ===== CARD 2: Period Distribution =====
+    const periods = d.corpus.periods;
+    const totalP = periods.reduce((s,p)=>s+p.count,0);
+    const colors = ['#2d6a4f','#e09f3e','#c41e3a'];
+    const segs = periods.map((p,i)=>{
+      const pct = ((p.count/totalP)*100).toFixed(0);
+      return `<div class="period-seg" style="flex:${p.count};background:${colors[i]}" title="${p.label}: ${fmtNum(p.count)} параграфов">${pct}%</div>`;
+    }).join('');
+    const periodCard = mkCard('Распределение по периодам',
+      `<div class="period-bar">${segs}</div>
+       <div class="metrics" style="margin-top:12px">` +
+      periods.map((p,i)=>`<div class="metric"><div class="val" style="color:${colors[i]}">${fmtNum(p.count)}</div><div class="lbl">${p.label}</div></div>`).join('') +
+      `</div>`
+    );
+
+    // ===== CARD 3: Engine Details =====
+    const engRows = d.engines.map(e=>
+      `<div class="row"><span class="ename">${e.name}</span><span class="edesc">${e.metric}</span></div>`
+    ).join('');
+    const enginesCard = mkCard('Движки анализа',
+      `<div class="engines-list">${engRows}</div>`
+    );
+
+    // ===== CARD 4: Top Topics =====
+    const topicBars = (d.top_topics||[]).map((t,i)=>{
+      const pct = Math.min(100, (t.count/d.top_topics[0].count)*100);
+      return `<div class="bar-row">
+        <div class="name">${t.name}</div>
+        <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%;background:${grad(i, d.top_topics.length)}"></div></div>
+        <div class="val-num">${fmtNum(t.count)}</div>
+      </div>`;
+    }).join('');
+    const topicsCard = mkCard('Топ тем',
+      `<div style="margin-top:4px">${topicBars}</div>`
+    );
+
+    // ===== CARD 5: Contradictions =====
+    const contrCard = mkCard('Противоречия',
+      `<div class="big-num">${d.contradictions?.total||0}<span>найдено</span></div>
+       <div class="metrics" style="margin-top:10px">
+         <div class="metric"><div class="val">${d.contradictions?.high_conflict||0}</div><div class="lbl">сильных (≥80%)</div></div>
+         <div class="metric"><div class="val">1502</div><div class="lbl">всего позиций</div></div>
+       </div>`
+    );
+
+    // ===== CARD 6: Rhetoric Arc =====
+    const rhetCard = mkCard('Риторическая дуга',
+      `<div style="margin-top:4px">${d.rhetoric_summary||'Загрузка...'}</div>`
+    );
+
+    // ===== CARD 7: Shadow =====
+    const shadowCard = mkCard('Теневая структура',
+      `<div class="big-num">${d.shadow?.terms||29}<span>терминов</span></div>
+       <div class="metrics" style="margin-top:10px">
+         <div class="metric"><div class="val">${d.shadow?.before_1918||'?'}</div><div class="lbl">до 1918</div></div>
+         <div class="metric"><div class="val">${d.shadow?.after_1918||'?'}</div><div class="lbl">после 1918</div></div>
+       </div>`
+    );
+
+    // ===== CARD 8: Quick Links =====
+    const linksCard = mkCard('Быстрые переходы',
+      `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">` +
+      ['oracle','papers','contradictions','shadow','twin','graph'].map(p=>
+        `<a href="/${p}/" style="padding:8px 14px;background:#1a1a2e;border-radius:6px;color:#c4b898;text-decoration:none;font-size:0.8rem" target="_top">${p}</a>`
+      ).join('') +
+      `</div>`
+    );
+
+    grid.innerHTML = overview + periodCard + enginesCard + topicsCard + contrCard + rhetCard + shadowCard + linksCard;
+
+  } catch(e) {
+    loading.style.display = 'none';
+    errEl.style.display = 'block';
+    errEl.textContent = 'Ошибка загрузки: ' + e.message;
+  }
+})();
+
+function mkCard(title, body) {
+  return `<div class="card"><h3>${title}</h3>${body}</div>`;
+}
+function fmtNum(n) { return n?.toLocaleString?.('ru-RU') || n; }
+function grad(i, total) {
+  const c = ['#c41e3a','#d4af37','#2d6a4f','#3a7bd5','#a855f7','#e07b39','#4ade80','#f472b6'];
+  return c[i % c.length] || '#c4a040';
+}
+</script>
+</body>
+</html>
