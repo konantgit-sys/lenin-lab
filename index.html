@@ -806,10 +806,12 @@ html{scroll-behavior:smooth}
 .method-card{background:#0e0e16;border:1px solid #1a1a25;border-radius:6px;padding:16px 18px;transition:all .2s}
 .method-card:hover{border-color:#2a2a3a;background:#111118}
 .method-card.method-ok{border-left:3px solid #2d6b2d}
+.method-card.method-audited{border-left:3px solid #5b7a2d}
 .method-card.method-blackbox{border-left:3px solid #8b6b2d}
 .method-header{margin-bottom:6px}
 .method-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;letter-spacing:.3px}
 .method-badge.badge-ok{background:#0a1a0a;color:#5a5}
+.method-badge.badge-audit{background:#0f1a08;color:#9c5}
 .method-badge.badge-bb{background:#1a1008;color:#da5}
 .method-title{color:#ccc;font-size:13px;font-weight:600;margin-bottom:4px}
 .method-desc{color:var(--text-muted);font-size:11px;line-height:1.65}
@@ -1012,23 +1014,26 @@ html{scroll-behavior:smooth}
         <div class="method-desc">FAISS + FTS5 гибридный поиск. Ноль генерации — только retrieval реальных цитат из корпуса. Ответ собирается из найденных параграфов. Никаких галлюцинаций.</div>
       </div>
 
-      <div class="method-card method-blackbox">
-        <div class="method-header"><span class="method-badge badge-bb">⚠ ПРЕДВЫЧИСЛЕНО</span></div>
+      <div class="method-card method-audited">
+        <div class="method-header"><span class="method-badge badge-audit">✓ ПРОЗРАЧНО (требует валидации)</span></div>
         <div class="method-title">Граф концептов (206 узлов, 12&thinsp;735 рёбер)</div>
-        <div class="method-desc">NLP-пайплайн (внешний, не в коде). Кластеризация в 8 групп. Методика извлечения и построения рёбер будет опубликована в v3.0. Сейчас — экспериментальный слой.</div>
+        <div class="method-desc">
+          <strong>Метод:</strong> Co-occurrence на 169K параграфах. <strong>Концепты:</strong> ручной словарь из 200+ терминов с падежными формами (16 категорий). <strong>Рёбра:</strong> совместное вхождение в один параграф. <strong>Кластеры:</strong> Louvain community detection, seed=42. Код: <code>engine_02_concepts.py</code> — полностью читаем.
+          <br><em>Слабость:</em> ручная валидация не проводилась, precision/recall не замерялись.
+        </div>
       </div>
 
       <div class="method-card method-blackbox">
         <div class="method-header"><span class="method-badge badge-bb">⚠ ПРЕДВЫЧИСЛЕНО</span></div>
         <div class="method-title">Томография (UMAP 2D)</div>
-        <div class="method-desc">Координаты предвычислены внешним пайплайном из 93&thinsp;711 FAISS-векторов (384d → 2d). Проекция статична. Алгоритм и параметры UMAP — в планах на документирование.</div>
+        <div class="method-desc">Координаты предвычислены внешним пайплайном из 93&thinsp;711 FAISS-векторов (384d → 2d). Проекция статична. Параметры UMAP (n_neighbors, min_dist, metric) и seed — не в коде. Этот компонент — единственный чёрный ящик.</div>
       </div>
 
     </div>
 
     <div class="instr-tip" style="border-color:#2a1a1a">
       <div class="icon-wrap" style="background:#2a1a1a"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="#c44"/></svg></div>
-      <p style="color:var(--text-secondary);font-size:12px;line-height:1.7;margin:0"><strong>Мы публикуем методику как есть.</strong> Три компонента (цитаты, оппоненты, фантомы) полностью воспроизводимы из корпуса. Два (граф концептов, томография) — результат внешнего NLP-пайплайна, методика будет раскрыта в v3.0. Если вы исследователь и хотите воспроизвести результаты — <a href="https://t.me/AnKocrypto" style="color:#c44;text-decoration:none" target="_blank">свяжитесь с нами</a>, предоставим сырые данные.</p>
+      <p style="color:var(--text-secondary);font-size:12px;line-height:1.7;margin:0"><strong>Честный итог аудита:</strong> 4 компонента полностью воспроизводимы (цитаты — rule-based, оппоненты — парсинг, фантомы — маркерный поиск, двойник — retrieval). Граф концептов — метод прозрачен (co-occurrence + Louvain), но без ручной валидации. Томография — единственный компонент с внешним пайплайном. <a href="https://t.me/AnKocrypto" style="color:#c44;text-decoration:none" target="_blank">Свяжитесь с нами</a> — предоставим сырые данные для независимой проверки.</p>
     </div>
 
     <h3 class="subheading">Технологии</h3>
