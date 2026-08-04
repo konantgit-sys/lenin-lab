@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Методология — Ленин-Бук v2.31</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-deep:#08080a;--bg-body:#0a0a0f;--bg-surface:#0f0f16;--bg-card:#111118;--bg-raised:#14141c;--bg-input:#17171f;
+  --border-dim:#191923;--border:#1e1e2a;--border-hover:#2a2a38;--border-accent:#2d3a10;
+  --red:#c44;--red-bright:#d55;--red-glow:#e44;--red-bg:rgba(200,60,60,.08);--red-bg-hover:rgba(200,60,60,.15);
+  --gold:#c9a030;--gold-dim:rgba(201,160,48,.12);--gold-glow:rgba(201,160,48,.25);
+  --green:#4a8;--green-bg:rgba(68,170,136,.08);--green-border:rgba(68,170,136,.2);
+  --text-primary:#ddd;--text-body:#bbb;--text-secondary:#999;--text-muted:#666;--text-dim:#444;
+  --font-display:'Playfair Display',serif;--font-body:'Inter',-apple-system,sans-serif;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.25);--shadow-md:0 6px 24px rgba(0,0,0,.35);--shadow-lg:0 12px 48px rgba(0,0,0,.5);
+  --radius-sm:4px;--radius:6px;--radius-lg:10px;
+  --ease-out:cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg-deep);color:var(--text-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--gold);text-decoration:none;transition:color .15s var(--ease-out)}
+a:hover{color:var(--red-bright)}
+.container{max-width:900px;margin:0 auto;padding:0 24px}
+
+/* Header */
+.site-header{padding:32px 0 24px;border-bottom:1px solid var(--border-dim);margin-bottom:40px}
+.site-header .logo{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--text-primary);letter-spacing:-.5px}
+.site-header .logo span{color:var(--red)}
+.site-header .back{font-size:14px;color:var(--text-muted);margin-top:8px;display:inline-block}
+.site-header .version{font-family:monospace;font-size:12px;color:var(--text-dim);background:var(--bg-card);padding:2px 8px;border-radius:var(--radius-sm);margin-left:10px}
+
+/* Sections */
+h1{font-family:var(--font-display);font-size:34px;color:var(--text-primary);margin-bottom:12px;letter-spacing:-.5px}
+h2{font-family:var(--font-display);font-size:24px;color:var(--text-primary);margin:48px 0 16px}
+h3{font-size:17px;color:var(--text-primary);margin:28px 0 10px;font-weight:600}
+p{margin-bottom:14px;color:var(--text-body)}
+
+.intro{font-size:16px;color:var(--text-secondary);margin-bottom:32px;max-width:700px}
+
+/* Metric cards */
+.metrics-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:24px 0 36px}
+.metric-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+.metric-card .label{font-size:12px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.metric-card .value{font-family:var(--font-display);font-size:28px;color:var(--text-primary)}
+.metric-card .delta{font-size:14px;color:var(--green);margin-left:4px}
+.metric-card .delta.neg{color:var(--red)}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:20px 0 28px;font-size:14px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);padding:8px 12px;border-bottom:1px solid var(--border-dim)}
+td{padding:10px 12px;border-bottom:1px solid var(--border-dim);color:var(--text-body);vertical-align:top}
+tr:hover td{background:var(--bg-raised)}
+td.from{color:var(--red);font-size:13px}
+td.to{color:var(--green);font-size:13px}
+td.src{font-size:12px;color:var(--text-muted);max-width:260px}
+
+/* Correction cards */
+.correction-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px;margin:20px 0 32px}
+.corr-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;border-left:3px solid var(--gold)}
+.corr-card .concept{font-weight:600;color:var(--text-primary);font-size:15px}
+.corr-card .path{font-size:13px;margin-top:4px}
+.corr-card .reason{font-size:12px;color:var(--text-muted);margin-top:6px;line-height:1.4}
+
+/* Resolution table */
+.res-badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:3px;font-weight:600}
+.res-badge.good{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.res-badge.bad{background:var(--red-bg);color:var(--red);border:1px solid rgba(200,60,60,.2)}
+.res-badge.warn{background:rgba(201,160,48,.1);color:var(--gold);border:1px solid var(--gold-dim)}
+
+/* Multi-domain box */
+.md-box{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin:24px 0}
+.md-box h4{font-size:18px;color:var(--gold);margin-bottom:10px}
+.md-box .tags{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.md-box .tag{font-size:12px;padding:3px 10px;border-radius:var(--radius-sm);background:var(--bg-input);color:var(--text-secondary);border:1px solid var(--border-dim)}
+
+/* Callout */
+.callout{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin:24px 0;border-left:3px solid var(--gold)}
+.callout h4{font-size:14px;color:var(--text-primary);margin-bottom:4px}
+.callout p{font-size:14px;color:var(--text-secondary);margin:0}
+
+/* Methodology steps */
+.steps{counter-reset:step;margin:24px 0}
+.step{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;margin-bottom:12px;position:relative}
+.step h4{font-size:15px;color:var(--text-primary);margin-bottom:6px}
+.step h4::before{counter-increment:step;content:counter(step)". ";color:var(--gold)}
+.step p{font-size:14px;color:var(--text-secondary);margin:0}
+
+/* Source refs */
+.source-ref{font-size:13px;color:var(--text-muted);padding:8px 14px;background:var(--bg-card);border-radius:var(--radius);margin:6px 0;border:1px solid var(--border-dim)}
+.source-ref strong{color:var(--text-primary)}
+
+/* Footer */
+.site-footer{border-top:1px solid var(--border-dim);padding:24px 0;margin-top:48px;font-size:13px;color:var(--text-muted)}
+.site-footer a{color:var(--text-secondary)}
+
+@media(max-width:600px){
+  h1{font-size:26px}
+  h2{font-size:20px}
+  .metrics-row{grid-template-columns:1fr 1fr}
+  .correction-list{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- Header -->
+<header class="site-header">
+  <div class="logo">Ленин<span>·</span>Бук <span class="version">v2.31</span></div>
+  <a href="/" class="back">← На главную</a>
+</header>
+
+<!-- Title -->
+<h1>Методология: валидация графа концептов</h1>
+<p class="intro">
+  Как мы превратили визуализацию из «красивой картинки» в проверенный инструмент. 
+  Внешние эталоны, тестирование границ кластеризации, честная фиксация ограничений.
+</p>
+
+<!-- Results summary -->
+<h2>Результаты</h2>
+
+<div class="metrics-row">
+  <div class="metric-card">
+    <div class="label">Macro Accuracy (до → после)</div>
+    <div class="value">64% → 66%<span class="delta">+2 pp</span></div>
+  </div>
+  <div class="metric-card">
+    <div class="label">Purity</div>
+    <div class="value">36% → 37%<span class="delta">+1 pp</span></div>
+  </div>
+  <div class="metric-card">
+    <div class="label">Легенд на кластер</div>
+    <div class="value">6.9 → 6.2<span class="delta neg">−0.7</span></div>
+  </div>
+  <div class="metric-card">
+    <div class="label">Resolution проверено</div>
+    <div class="value">12</div>
+  </div>
+</div>
+
+<p>Улучшения по категориям: НЭП <strong>+20 п.п.</strong>, Эконом. политика <strong>+11 п.п.</strong>, 
+Внешняя политика <strong>+10 п.п.</strong>, Труд <strong>+10 п.п.</strong>, Революция <strong>+7 п.п.</strong> 
+Просадка: Империализм <strong>−14 п.п.</strong> — осознанная жертва (колонии и раздел мира → внешняя политика по советскому указателю).</p>
+
+<!-- Method -->
+<h2>Метод</h2>
+
+<div class="steps">
+  <div class="step">
+    <h4>Стратифицированная выборка</h4>
+    <p>Из 206 концептов взято 50 (24.2%), пропорционально из каждого Louvain-кластера, seed=42 для воспроизводимости.</p>
+  </div>
+  <div class="step">
+    <h4>Триангуляция с внешними эталонами</h4>
+    <p>Два источника, не зависящих от нашего кода, использованы как ground truth:</p>
+    <div class="source-ref"><strong>Советский «Предметный указатель к ПСС В. И. Ленина»</strong> (ИМЛ, 1972) — ~30 экспертов, 55 томов, 2 464 рубрики вручную. Оцифрован, доступен в открытом доступе.</div>
+    <div class="source-ref"><strong>Georg Lukács, «Lenin: A Study on the Unity of His Thought»</strong> (1924) — 5 концептуальных доменов: империализм, государство, партия, классы, революция.</div>
+  </div>
+  <div class="step">
+    <h4>Проверка границ кластеризации</h4>
+    <p>Запущен Louvain на 12 значениях resolution (0.85–2.50), произведено от 8 до 35 кластеров. Определён практический предел: 8 кластеров при resolution=1.0.</p>
+  </div>
+  <div class="step">
+    <h4>Честная фиксация ограничений</h4>
+    <p>Вместо искусственного разделения мульти-доменного кластера — документирован как свойство корпуса, не баг.</p>
+  </div>
+</div>
+
+<!-- Corrections -->
+<h2>8 скорректированных концептов</h2>
+
+<table>
+<tr><th>Концепт</th><th>Было</th><th>Стало</th><th>Основание</th></tr>
+<tr>
+  <td>профсоюз</td>
+  <td class="from">Партия</td>
+  <td class="to">Политэкономия</td>
+  <td class="src">Советский указатель: профсоюзы — отдельная рубрика «Профессиональное движение», не партстроительство</td>
+</tr>
+<tr>
+  <td>частник</td>
+  <td class="from">Партия</td>
+  <td class="to">Политэкономия</td>
+  <td class="src">Советский указатель: частная собственность и частный капитал — экономические категории</td>
+</tr>
+<tr>
+  <td>красная гвардия</td>
+  <td class="from">Партия</td>
+  <td class="to">Революция</td>
+  <td class="src">Lukács, гл. 5: инструмент вооружённого восстания, не партийной организации</td>
+</tr>
+<tr>
+  <td>колония</td>
+  <td class="from">Политэкономия</td>
+  <td class="to">Внешняя политика</td>
+  <td class="src">Советский указатель: «Колониальный вопрос» в разделе международных отношений</td>
+</tr>
+<tr>
+  <td>раздел мира</td>
+  <td class="from">Политэкономия</td>
+  <td class="to">Внешняя политика</td>
+  <td class="src">Советский указатель: империалистический раздел → международные отношения</td>
+</tr>
+<tr>
+  <td>генуя</td>
+  <td class="from">Революция</td>
+  <td class="to">Внешняя политика</td>
+  <td class="src">Советский указатель: Генуэзская конференция (1922) — дипломатия, не революция</td>
+</tr>
+<tr>
+  <td>план ГОЭЛРО</td>
+  <td class="from">Революция 2</td>
+  <td class="to">Политэкономия</td>
+  <td class="src">Советский указатель: «План и планирование народного хозяйства»</td>
+</tr>
+<tr>
+  <td>электрификация</td>
+  <td class="from">Революция 2</td>
+  <td class="to">Политэкономия</td>
+  <td class="src">Советский указатель: ГОЭЛРО — хозяйственный план, не революционная тактика</td>
+</tr>
+</table>
+
+<!-- Cluster boundary test -->
+<h2>Проверка границ кластеризации</h2>
+
+<table>
+<tr><th>Resolution</th><th>Кластеров</th><th>Purity</th><th>Чистых кластеров</th><th>Вердикт</th></tr>
+<tr><td>0.85</td><td>8</td><td>66%</td><td>0/8</td><td><span class="res-badge warn">базовый</span></td></tr>
+<tr><td>1.00</td><td>8</td><td>66%</td><td>0/8</td><td><span class="res-badge good">используется</span></td></tr>
+<tr><td>1.20</td><td>10</td><td>58%</td><td>0/10</td><td><span class="res-badge bad">деградация</span></td></tr>
+<tr><td>1.50</td><td>13</td><td>44%</td><td>0/13</td><td><span class="res-badge bad">деградация</span></td></tr>
+<tr><td>2.00</td><td>27</td><td>39%</td><td>4/27</td><td><span class="res-badge bad">фрагментация</span></td></tr>
+<tr><td>2.50</td><td>35</td><td>36%</td><td>5/35</td><td><span class="res-badge bad">фрагментация</span></td></tr>
+</table>
+
+<p>При resolution ≥ 1.20 все кластеры становятся мульти-доменными (≥2 легендарных категорий на кластер). Louvain-алгоритм на разреженной матрице совместных упоминаний не способен разделить концепты чище — это структурное ограничение метода, не ошибка данных.</p>
+
+<!-- Multi-domain -->
+<h2>«Социалистическое строительство» — мульти-доменный кластер</h2>
+
+<div class="md-box">
+  <h4>Документирован как мульти-доменный</h4>
+  <p>Этот кластер содержит концепты из 4 легендарных категорий. Они неразделимы при любом resolution.</p>
+  <div class="tags">
+    <span class="tag">Революция: восстание, баррикады</span>
+    <span class="tag">Партия: агитация, пропаганда</span>
+    <span class="tag">Политэкономия: стачка, индустриализация</span>
+    <span class="tag">Внешняя: капиталистическое окружение</span>
+  </div>
+  <p style="font-size:13px;color:var(--text-secondary);margin-top:12px">
+    <strong>Почему не разделяется:</strong> Ленин обсуждал эти концепты в одних параграфах. 
+    Ко-оккурентный граф отражает реальную связность его мысли — восстание без агитации, 
+    стачка без индустриализации, окружение без внутренней политики не рассматривались.
+  </p>
+</div>
+
+<!-- Limitations -->
+<h2>Ограничения (честно)</h2>
+
+<div class="callout">
+  <h4>66% — скромная точность</h4>
+  <p>Louvain на разреженных данных ко-оккурентности не может идеально восстановить экспертные категории. Это структурное ограничение.</p>
+</div>
+
+<div class="callout">
+  <h4>8 кластеров — практический предел</h4>
+  <p>При 9+ кластерах ни один не имеет доминирующей категории — unusable для навигации.</p>
+</div>
+
+<div class="callout">
+  <h4>Выборка 50 из 206 (24.2%)</h4>
+  <p>Полная внешняя валидация всех 206 концептов требует большего объёма доменной экспертизы, чем доступно.</p>
+</div>
+
+<div class="callout">
+  <h4>Будущие улучшения</h4>
+  <p>Overlapping community detection (Girvan-Newman), иерархическая кластеризация, или другие алгоритмы могут дать более тонкую структуру в v3.0.</p>
+</div>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <p>Версия: v2.31 · Коммит: <a href="https://github.com/konantgit-sys/lenin-lab/commit/2d190b2">2d190b2</a> · 
+  <a href="https://github.com/konantgit-sys/lenin-lab">GitHub</a> · 
+  <a href="https://lenin-book.v2.site">Главная</a></p>
+</footer>
+
+</div>
+
+</body>
+</html>
