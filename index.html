@@ -803,6 +803,17 @@ html{scroll-behavior:smooth}
 .instr-flow .step{background:#0e0e16;border:1px solid #1a1a25;border-radius:5px;padding:10px 14px;font-size:11px;color:#999;display:flex;align-items:center;gap:6px}
 .instr-flow .step .s-num{width:18px;height:18px;border-radius:50%;background:#c44;color:#fff;text-align:center;line-height:18px;font-size:10px;font-weight:700;flex-shrink:0}
 .instr-flow .arrow{color:var(--text-dim);font-size:14px;align-self:center}
+.method-card{background:#0e0e16;border:1px solid #1a1a25;border-radius:6px;padding:16px 18px;transition:all .2s}
+.method-card:hover{border-color:#2a2a3a;background:#111118}
+.method-card.method-ok{border-left:3px solid #2d6b2d}
+.method-card.method-blackbox{border-left:3px solid #8b6b2d}
+.method-header{margin-bottom:6px}
+.method-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:3px;letter-spacing:.3px}
+.method-badge.badge-ok{background:#0a1a0a;color:#5a5}
+.method-badge.badge-bb{background:#1a1008;color:#da5}
+.method-title{color:#ccc;font-size:13px;font-weight:600;margin-bottom:4px}
+.method-desc{color:var(--text-muted);font-size:11px;line-height:1.65}
+.method-desc code{background:#0a0a12;color:#c44;padding:1px 5px;border-radius:2px;font-size:10px}
 .api-table{width:100%;border-collapse:collapse;font-size:11px;margin:12px 0 20px}
 .api-table th{text-align:left;color:#888;padding:8px 10px;border-bottom:1px solid #1a1a25;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
 .api-table td{padding:8px 10px;border-bottom:1px solid #111118;color:var(--text-secondary)}
@@ -970,6 +981,56 @@ html{scroll-behavior:smooth}
       <div class="card"><div class="card-title">9 движков анализа</div><div class="card-meta">Хронология, концепты, диалектика, оппоненты, риторика, позиции, цитаты, сравнения, тени</div></div>
       <div class="card"><div class="card-title">FTS5 + FAISS</div><div class="card-meta">Гибридный поиск: полнотекстовый + семантический. Результат за &lt;100 мс</div></div>
     </div>
+    <h3 class="subheading">Прозрачность методов</h3>
+    <p class="body-text" style="margin-bottom:16px">
+      Исследовательская платформа обязана быть честной о том, как получены её данные. Ниже — разбор каждого компонента.
+    </p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:20px">
+
+      <div class="method-card method-ok">
+        <div class="method-header"><span class="method-badge badge-ok">✓ ВОСПРОИЗВОДИМО</span></div>
+        <div class="method-title">Цитаты (aphorism_score)</div>
+        <div class="method-desc">Rule-based скоринг: 8 паттернов (длина, модальность, универсалии, ключевые концепты). <code>extract_quotes.py</code> открыт, методика документирована. Любой может перезапустить на своём корпусе.</div>
+      </div>
+
+      <div class="method-card method-ok">
+        <div class="method-header"><span class="method-badge badge-ok">✓ ВОСПРОИЗВОДИМО</span></div>
+        <div class="method-title">Оппоненты + споры</div>
+        <div class="method-desc">Парсинг корпуса: поиск имён (Бернштейн, Каутский, Плеханов…) + маркеры обвинения (оппортунизм, предательство, ревизионизм). Все 21 dispute с реальными paragraph_id и текстовыми превью.</div>
+      </div>
+
+      <div class="method-card method-ok">
+        <div class="method-header"><span class="method-badge badge-ok">✓ ВОСПРОИЗВОДИМО</span></div>
+        <div class="method-title">Фантомные оппоненты</div>
+        <div class="method-desc">149 instances — не магия. Маркерный поиск: «нам говорят», «нам скажут», «нам возражают», «кричат», «уверяют». Каждый фантом привязан к конкретному году, тому, параграфу и контексту Ленина.</div>
+      </div>
+
+      <div class="method-card method-ok">
+        <div class="method-header"><span class="method-badge badge-ok">✓ БЕЗ LLM</span></div>
+        <div class="method-title">Цифровой двойник</div>
+        <div class="method-desc">FAISS + FTS5 гибридный поиск. Ноль генерации — только retrieval реальных цитат из корпуса. Ответ собирается из найденных параграфов. Никаких галлюцинаций.</div>
+      </div>
+
+      <div class="method-card method-blackbox">
+        <div class="method-header"><span class="method-badge badge-bb">⚠ ПРЕДВЫЧИСЛЕНО</span></div>
+        <div class="method-title">Граф концептов (206 узлов, 12&thinsp;735 рёбер)</div>
+        <div class="method-desc">NLP-пайплайн (внешний, не в коде). Кластеризация в 8 групп. Методика извлечения и построения рёбер будет опубликована в v3.0. Сейчас — экспериментальный слой.</div>
+      </div>
+
+      <div class="method-card method-blackbox">
+        <div class="method-header"><span class="method-badge badge-bb">⚠ ПРЕДВЫЧИСЛЕНО</span></div>
+        <div class="method-title">Томография (UMAP 2D)</div>
+        <div class="method-desc">Координаты предвычислены внешним пайплайном из 93&thinsp;711 FAISS-векторов (384d → 2d). Проекция статична. Алгоритм и параметры UMAP — в планах на документирование.</div>
+      </div>
+
+    </div>
+
+    <div class="instr-tip" style="border-color:#2a1a1a">
+      <div class="icon-wrap" style="background:#2a1a1a"><svg width="14" height="14" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="#c44"/></svg></div>
+      <p style="color:var(--text-secondary);font-size:12px;line-height:1.7;margin:0"><strong>Мы публикуем методику как есть.</strong> Три компонента (цитаты, оппоненты, фантомы) полностью воспроизводимы из корпуса. Два (граф концептов, томография) — результат внешнего NLP-пайплайна, методика будет раскрыта в v3.0. Если вы исследователь и хотите воспроизвести результаты — <a href="https://t.me/AnKocrypto" style="color:#c44;text-decoration:none" target="_blank">свяжитесь с нами</a>, предоставим сырые данные.</p>
+    </div>
+
     <h3 class="subheading">Технологии</h3>
     <div style="background:#0e0e16;border:1px solid #1a1a25;border-radius:6px;padding:16px 20px;font-size:11px;color:#888;line-height:2;margin-bottom:20px">
       <strong class="c-muted">Бэкенд:</strong> Python 3 + FastAPI + Uvicorn<br>
