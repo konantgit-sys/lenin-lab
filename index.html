@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ленин-Бук — аналитический корпус 55 томов</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta property="og:title" content="Ленин-Бук — аналитический корпус 55 томов">
+<meta property="og:description" content="169 067 параграфов, 48 млн символов, 9 движков анализа, 22 инструмента. Весь Ленин в одном сайте.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://lenin-book.v2.site/">
+<meta property="og:image" content="https://lenin-book.v2.site/favicon.svg">
+<meta property="og:image:width" content="512">
+<meta property="og:image:height" content="512">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ленин-Бук — 55 томов в одном инструменте">
+<meta name="twitter:description" content="Поиск, таймлайн, риторика, граф концептов, оракул, цифровой двойник — весь Ленин.">
+<meta name="twitter:image" content="https://lenin-book.v2.site/favicon.svg">
+<meta name="description" content="Аналитическая платформа по 55 томам Ленина: поиск, таймлайн, риторика, граф концептов, оракул, цифровой двойник и ещё 16 инструментов.">
+<script src="/i18n.js"></script>
+<style>
+	/* ═══ CSS CUSTOM PROPERTIES ═══ */
+	:root{
+	  --bg-deep:#08080a;--bg-body:#0a0a0f;--bg-surface:#0f0f16;--bg-card:#111118;--bg-raised:#14141c;--bg-input:#17171f;
+	  --border-dim:#191923;--border:#1e1e2a;--border-hover:#2a2a38;--border-accent:#c4440;
+	  --red:#c44;--red-bright:#d55;--red-glow:#e44;--red-bg:rgba(200,60,60,.08);--red-bg-hover:rgba(200,60,60,.15);
+	  --gold:#c9a030;--gold-dim:rgba(201,160,48,.12);--gold-glow:rgba(201,160,48,.25);
+	  --text-primary:#ddd;--text-body:#bbb;--text-secondary:#999;--text-muted:#666;--text-dim:#444;
+	  --font-display:'Playfair Display',serif;--font-body:'Inter',-apple-system,sans-serif;
+	  --shadow-sm:0 2px 8px rgba(0,0,0,.25);--shadow-md:0 6px 24px rgba(0,0,0,.35);--shadow-lg:0 12px 48px rgba(0,0,0,.5);
+	  --radius-sm:4px;--radius:6px;--radius-lg:10px;
+	  --ease-out:cubic-bezier(.4,0,.2,1);
+	}
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600&display=swap');
+/* ============ RESET ============ */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-body);color:var(--text-body);background:var(--bg-body);min-height:100vh;display:flex;overflow-x:hidden;position:relative}
+a{color:#d55;text-decoration:none;transition:color .2s}
+a:hover{color:#f66}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:#0a0a10}
+::-webkit-scrollbar-thumb{background:#2a2a35;border-radius:2px}
+/* ============ ANIMATED ORBS ============ */
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(80px);will-change:transform}
+.orb-1{width:700px;height:700px;background:radial-gradient(circle,rgba(200,40,40,.07),transparent 70%);top:-300px;right:-200px;animation:orbFloat1 12s ease-in-out infinite}
+.orb-2{width:500px;height:500px;background:radial-gradient(circle,rgba(180,130,50,.05),transparent 70%);bottom:-200px;left:-150px;animation:orbFloat2 15s ease-in-out infinite}
+.orb-3{width:400px;height:400px;background:radial-gradient(circle,rgba(200,60,60,.04),transparent 70%);top:40%;left:60%;animation:orbFloat3 18s ease-in-out infinite}
+@keyframes orbFloat1{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(-60px,40px) scale(1.1)}66%{transform:translate(30px,-30px) scale(.9)}}
+@keyframes orbFloat2{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(50px,-30px) scale(1.15)}66%{transform:translate(-40px,40px) scale(.85)}}
+@keyframes orbFloat3{0%,100%{transform:translate(0,0) scale(1);opacity:.6}50%{transform:translate(-80px,-60px) scale(1.2);opacity:1}}
+/* Noise texture overlay */
+
+/* ============ ACCESSIBILITY & POLISH (Phase 7) ============ */
+@media(prefers-reduced-motion:reduce){*,::before,::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+:focus-visible{outline:2px solid #d55;outline-offset:2px;border-radius:2px}
+::selection{background:rgba(200,60,60,.35);color:#fff}
+html{scroll-behavior:smooth}
+/* ============ SKELETON LOADING ============ */
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+.skeleton{background:linear-gradient(90deg,#14141c 25%,#1a1a28 50%,#14141c 75%);background-size:800px 100%;animation:shimmer 1.5s ease-in-out infinite;border-radius:4px;min-height:16px}
+.skeleton-text{height:12px;margin-bottom:8px;width:80%}
+.skeleton-title{height:18px;margin-bottom:12px;width:50%}
+.skeleton-card{height:120px;border-radius:8px}
+.skeleton-stat{height:80px;border-radius:8px;display:inline-block;width:30%;margin-right:2%}
+/* ============ SIDEBAR ICON ANIMATION ============ */
+.side-item .side-icon{transition:all .25s var(--ease-out)}
+.side-item:hover .side-icon{opacity:1;transform:scale(1.15);filter:drop-shadow(0 0 6px rgba(200,60,60,.4))}
+.side-item.active .side-icon{opacity:1;filter:drop-shadow(0 0 6px rgba(200,60,60,.3))}
+/* ============ MOBILE: DISABLE GLASSMORPHISM ============ */
+@media(max-width:768px){
+  .tilt-card{transform:none!important}
+}
+/* ============ CONTENT-VISIBILITY ============ */
+/* content-visibility removed — broke tab panel rendering */
+/* ============ ENHANCED FOOTER ============ */
+#site-footer{background:var(--bg-deep);border-top:1px solid var(--border);padding:32px 24px 20px;position:relative;z-index:1;margin-top:auto}
+#site-footer .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:24px;max-width:900px;margin:0 auto}
+#site-footer .footer-col h4{font-family:var(--font-display);font-size:13px;color:var(--text-primary);margin-bottom:10px;font-weight:600;letter-spacing:.3px}
+#site-footer .footer-col a,.footer-col span{display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px;transition:color .2s;cursor:pointer;text-decoration:none}
+#site-footer .footer-col a:hover{color:#d55}
+#site-footer .footer-bottom{max-width:900px;margin:20px auto 0;padding-top:16px;border-top:1px solid var(--border-dim);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:10px;color:var(--text-dim)}
+#site-footer .footer-orn{display:flex;gap:12px;align-items:center}
+#site-footer .footer-orn .fline{width:24px;height:1px;background:linear-gradient(90deg,transparent,rgba(200,60,60,.4))}
+#site-footer .footer-orn .fdot{width:4px;height:4px;background:#c44;border-radius:50%;box-shadow:0 0 6px rgba(200,60,60,.4)}
+@media(max-width:768px){
+  #site-footer .footer-grid{grid-template-columns:1fr 1fr;gap:16px}
+  #site-footer .footer-col h4{font-size:11px}
+}
+.noise-overlay{position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* ============ ANIMATED BORDER (runner) ============ */
+@keyframes borderRun{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.glass-glow{position:relative}
+.glass-glow::before{content:'';position:absolute;inset:-1px;border-radius:inherit;background:linear-gradient(135deg,rgba(200,60,60,.15),rgba(201,160,48,.08),rgba(200,60,60,.15));background-size:200% 200%;animation:borderRun 4s ease infinite;z-index:-1;opacity:0;transition:opacity .4s}
+.glass-glow:hover::before{opacity:1}
+/* ============ PARTICLES CANVAS ============ */
+#particles-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.3}
+/* ============ SVG ICONS ============ */
+.side-icon{width:16px;height:16px;flex-shrink:0;opacity:.65}
+.card-icon{width:28px;height:28px;margin-bottom:10px;opacity:.8;filter:drop-shadow(0 0 4px rgba(200,60,60,.3))}
+.stat-icon{width:20px;height:20px;opacity:.5}
+/* ============ SIDEBAR ============ */
+#sidebar{width:256px;min-width:256px;background:var(--bg-deep);border-right:1px solid var(--border-dim);height:100vh;position:sticky;top:0;display:flex;flex-direction:column;z-index:200;overflow-y:auto;box-shadow:2px 0 30px rgba(0,0,0,.4)}
+.side-logo{padding:22px 20px 18px;border-bottom:1px solid var(--border-dim);position:relative}
+.side-logo::after{content:'';position:absolute;bottom:0;left:20px;width:40px;height:2px;background:linear-gradient(90deg,#c44,transparent);box-shadow:0 0 10px rgba(200,60,60,.4)}
+.side-logo h1{font-family:var(--font-display);font-size:20px;color:var(--red-glow);margin-bottom:2px;letter-spacing:.8px;text-shadow:0 0 24px rgba(200,40,40,.35);font-weight:700}
+.side-logo .sub{font-size:10px;color:var(--text-dim);font-style:italic;letter-spacing:.3px}
+.lang-toggle{position:absolute;top:22px;right:16px;background:var(--bg-raised);border:1px solid var(--border-hover);border-radius:3px;color:var(--text-muted);font-size:10px;padding:2px 7px;cursor:pointer;transition:all .2s;font-weight:600;letter-spacing:.5px}
+.lang-toggle:hover{color:var(--text-primary);border-color:#c4460;background:#1a1a24}
+.side-group{padding:2px 0}
+.side-group-label{padding:14px 20px 6px;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;transition:color .2s}
+.side-group-label:hover{color:var(--text-secondary)}
+.side-group-label svg.arrow{width:8px;height:8px;transition:transform .25s;opacity:.4}
+.side-group.collapsed svg.arrow{transform:rotate(-90deg)}
+.side-group.collapsed .side-item{display:none}
+.side-item{display:flex;align-items:center;gap:10px;padding:7px 20px;font-size:12.5px;color:var(--text-secondary);cursor:pointer;transition:all .18s;border-left:2px solid transparent;white-space:nowrap;position:relative}
+.side-item:hover{color:var(--text-primary);background:#14141c}
+.side-item.active{color:var(--text-primary);background:var(--red-bg);border-left-color:#d44;font-weight:500}
+.side-item .badge{font-size:8px;background:#c44;color:#fff;padding:1px 6px;border-radius:8px;margin-left:auto;font-weight:600}
+.side-item .badge-dl{font-size:7px;background:var(--red-glow);color:#fff;padding:1px 6px;border-radius:6px;margin-left:auto;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.side-item-book{border-left:2px solid var(--red)!important}
+.side-item-book:hover{background:rgba(200,40,40,.08)!important}
+/* ============ MAIN LAYOUT ============ */
+#main{flex:1;min-width:0;display:flex;flex-direction:column;min-height:100vh}
+#header{background:var(--bg-body);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+#header .menu-btn{display:none;background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;padding:6px;line-height:1}
+#global-search{flex:1;max-width:480px;position:relative}
+#global-search input{width:100%;padding:9px 34px 9px 13px;background:var(--bg-raised);border:1px solid var(--border-hover);border-radius:5px;color:var(--text-body);font-size:12.5px;font-family:inherit;outline:none;transition:border-color .2s}
+#global-search input:focus{border-color:#c44;box-shadow:0 0 0 2px rgba(200,60,60,.08)}
+#global-search button{position:absolute;right:3px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;padding:5px 8px;transition:color .2s}
+#global-search button:hover{color:#c44}
+#header .quick-links{display:flex;gap:5px;margin-left:auto}
+#header .ql{font-size:10px;padding:5px 10px;background:var(--bg-raised);border:1px solid var(--border-hover);border-radius:4px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;transition:all .18s;display:flex;align-items:center;gap:5px}
+#header .ql:hover{border-color:#c44;color:var(--text-body);background:#180c0c}
+#header .ql svg{width:11px;height:11px;opacity:.5}
+/* ============ CONTENT ============ */
+#content{flex:1}
+.tab-panel{display:none;animation:fadeSlide .25s ease}
+.tab-panel.active{display:block}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes revealUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+@keyframes revealScale{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.reveal{opacity:0}
+.reveal.revealed{animation:revealUp .6s var(--ease-out) forwards}
+.reveal-scale{opacity:0}
+.reveal-scale.revealed{animation:revealScale .5s var(--ease-out) forwards}
+.reveal-d1.revealed{animation-delay:.05s}
+.reveal-d2.revealed{animation-delay:.1s}
+.reveal-d3.revealed{animation-delay:.15s}
+.reveal-d4.revealed{animation-delay:.2s}
+.reveal-d5.revealed{animation-delay:.25s}
+.reveal-d6.revealed{animation-delay:.3s}
+/* ============ HERO ============ */
+.hero{max-width:800px;margin:0 auto;padding:56px 24px 40px;text-align:center;position:relative;z-index:1}
+.hero::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;height:400px;background:radial-gradient(circle,rgba(200,50,50,.07),transparent 60%);pointer-events:none;animation:heroGlow 4s ease-in-out infinite}
+@keyframes heroGlow{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}}
+.hero-orn{display:flex;gap:16px;align-items:center;justify-content:center;margin-bottom:20px}
+.hero-orn .line{width:30px;height:1px;background:linear-gradient(90deg,transparent,rgba(220,80,80,.6))}
+.hero-orn .dot{width:5px;height:5px;background:#d44;border-radius:50%;box-shadow:0 0 8px rgba(220,60,60,.5)}
+.hero h2{font-family:var(--font-display);font-size:42px;font-weight:700;line-height:1.15;margin-bottom:14px;letter-spacing:-.3px;background:linear-gradient(135deg,var(--red) 0%,var(--red-glow) 40%,#f99 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 0 40px rgba(200,40,40,.3))}
+.hero .hero-sub{font-size:14px;color:var(--text-muted);line-height:1.75;margin-bottom:34px;max-width:540px;margin-left:auto;margin-right:auto;letter-spacing:.2px}
+.hero-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:540px;margin:0 auto 30px}
+.hero-stat{background:linear-gradient(135deg,rgba(22,22,38,.5),rgba(12,12,20,.6));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.04);border-radius:10px;padding:18px 14px;transition:all .4s var(--ease-out);position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.015),0 4px 20px rgba(0,0,0,.25)}
+.hero-stat::before{content:'';position:absolute;top:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,60,60,.3),transparent);opacity:0;transition:opacity .3s}
+.hero-stat:hover::before{opacity:1}
+.hero-stat:hover{transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 30px rgba(200,60,60,.08);border-color:#c4430}
+.hero-stat .hs-num{font-size:32px;font-weight:700;color:var(--red-glow);font-family:var(--font-display);text-shadow:0 0 14px rgba(200,40,40,.4),0 0 2px rgba(200,60,60,.6);letter-spacing:-.5px}
+.hero-stat .hs-label{font-size:10px;color:var(--text-muted);margin-top:4px;text-transform:uppercase;letter-spacing:.8px}
+.hero-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.hero-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 26px;background:linear-gradient(135deg,var(--red),var(--red-bright));color:#fff;text-decoration:none;border-radius:6px;font-size:13px;font-weight:500;transition:all .25s;border:none;cursor:pointer;letter-spacing:.2px;box-shadow:0 4px 16px rgba(200,40,40,.2)}
+.hero-btn:hover{background:linear-gradient(135deg,#d55,#b44);transform:translateY(-2px);box-shadow:0 6px 24px rgba(200,40,40,.35)}
+.hero-btn-outline{background:transparent;color:var(--red);border:1px solid var(--border-accent);box-shadow:none}
+.hero-btn-outline:hover{background:rgba(200,60,60,.08);color:#e55;border-color:rgba(200,60,60,.6);box-shadow:0 0 20px rgba(200,40,40,.1)}
+.hero-section{margin-top:44px;max-width:700px;margin-left:auto;margin-right:auto}
+/* ============ INSIGHT BLOCKS (v3 homepage) ============ */
+.iblock{max-width:820px;margin:38px auto 0;padding:0 20px}
+.iblock h3{font-family:var(--font-display);font-size:18px;color:var(--text-primary);text-align:center;margin-bottom:4px;letter-spacing:.8px;font-weight:600}
+.iblock .iblock-sub{text-align:center;color:var(--text-muted);font-size:11px;margin-bottom:20px}
+.iblock .divider{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--border-accent),transparent);margin:0 auto 18px}
+/* ============ 3D TILT ============ */
+.tilt-card{transform-style:preserve-3d;perspective:800px;transition:transform .15s ease-out}
+.tilt-card:hover{transition:transform .05s ease-out}
+.tilt-card .tilt-inner{transform:translateZ(0);transition:transform .15s ease-out}
+/* Pathway cards */
+.path-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
+.path-card{background:linear-gradient(145deg,var(--bg-card),var(--bg-deep));border:1px solid var(--border-dim);border-radius:8px;padding:16px;cursor:pointer;transition:all .3s var(--ease-out);position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.012)}
+.path-card::after{content:'';position:absolute;inset:0;border-radius:8px;background:radial-gradient(500px circle at var(--mx,50%) var(--my,50%),rgba(200,60,60,.05),transparent 50%);opacity:0;transition:opacity .3s}
+.path-card:hover::after{opacity:1}
+.path-card:hover{border-color:#c4440;transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.4),0 0 16px rgba(200,60,60,.06)}
+.path-card .path-label{font-size:9px;color:#c44;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600}
+.path-card .path-title{font-size:13px;color:var(--text-primary);font-weight:600;margin-bottom:10px}
+.path-steps{display:flex;flex-direction:column;gap:4px}
+.path-step{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--text-secondary)}
+.path-step .step-num{width:18px;height:18px;border-radius:50%;background:rgba(200,60,60,.12);border:1px solid rgba(200,60,60,.2);display:flex;align-items:center;justify-content:center;font-size:9px;color:#c44;flex-shrink:0}
+.path-step .step-arrow{color:#333;font-size:8px}
+.path-card:hover .path-step{color:var(--text-secondary)}
+/* Findings */
+.find-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
+.find-card{background:linear-gradient(145deg,var(--bg-surface),var(--bg-deep));border:1px solid var(--border-dim);border-radius:8px;padding:18px;transition:all .3s var(--ease-out);position:relative;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.01),var(--shadow-sm)}
+.find-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,transparent,rgba(200,60,60,.2),transparent);opacity:.5}
+.find-card:hover{border-color:#2a2a35;box-shadow:0 4px 20px rgba(0,0,0,.3);transform:translateY(-1px)}
+.find-num{font-family:var(--font-display);font-size:28px;font-weight:700;color:var(--red-glow);margin-bottom:4px;text-shadow:0 0 16px rgba(200,40,40,.35),0 0 2px rgba(200,60,60,.5);letter-spacing:-.5px}
+.find-card:hover .find-num{text-shadow:0 0 20px rgba(200,40,40,.5)}
+.find-title{font-size:13px;color:#ccc;font-weight:600;margin-bottom:6px}
+.find-desc{font-size:11px;color:var(--text-muted);line-height:1.55;transition:color .2s}
+.find-card:hover .find-desc{color:#888}
+/* About-block (Что это) */
+.about-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
+.about-card{background:linear-gradient(145deg,rgba(20,20,35,.5),rgba(10,10,20,.6));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.04);border-radius:8px;padding:20px;text-align:center;transition:all .4s var(--ease-out);position:relative;box-shadow:inset 0 1px 0 rgba(255,255,255,.015),0 8px 32px rgba(0,0,0,.2)}
+.about-card::after{content:'';position:absolute;inset:0;border-radius:8px;background:radial-gradient(400px circle at 50% 0%,rgba(200,60,60,.03),transparent 60%);opacity:0;transition:opacity .3s}
+.about-card:hover::after{opacity:1}
+.about-card:hover{border-color:#333;transform:translateY(-1px);box-shadow:0 4px 24px rgba(0,0,0,.3),0 0 12px rgba(200,60,60,.04)}
+.about-card .about-icon{width:32px;height:32px;margin:0 auto 10px;color:#c44;opacity:.7;transition:all .3s}
+.about-card:hover .about-icon{opacity:1;filter:drop-shadow(0 0 6px rgba(200,60,60,.3))}
+.about-card .about-title{font-size:13px;color:#ccc;font-weight:600;margin-bottom:6px}
+.about-card .about-desc{font-size:10.5px;color:var(--text-muted);line-height:1.6;transition:color .2s}
+.about-card:hover .about-desc{color:var(--text-secondary)}
+/* ============ PANEL WRAPPER ============ */
+.panel-wrap{max-width:880px;margin:0 auto;padding:32px 24px;position:relative}
+.panel-wrap h2{font-family:var(--font-display);font-size:22px;color:var(--text-primary);text-align:center;margin-bottom:6px;letter-spacing:.5px;font-weight:600}
+.panel-wrap .panel-desc{text-align:center;color:var(--text-muted);font-size:11.5px;margin-bottom:26px;letter-spacing:.2px}
+.panel-wrap .divider{width:48px;height:1px;background:linear-gradient(90deg,transparent,var(--border-accent),transparent);margin:0 auto 20px}
+/* ============ CARDS ============ */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-bottom:22px}
+.card{background:linear-gradient(135deg,rgba(20,20,36,.6),rgba(15,15,24,.5));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.03);border-radius:10px;padding:18px;transition:all .4s var(--ease-out);cursor:pointer;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.015),0 4px 16px rgba(0,0,0,.2)}
+.card::before{content:'';position:absolute;top:0;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,60,60,.15),transparent);opacity:0;transition:opacity .3s}
+.card::after{content:'';position:absolute;inset:0;border-radius:10px;background:radial-gradient(600px circle at var(--mx,50%) var(--my,50%),rgba(200,60,60,.06),transparent 40%);opacity:0;transition:opacity .3s}
+.card:hover::before{opacity:1}
+.card:hover::after{opacity:1}
+.card:hover{border-color:#c4440;transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4),0 0 20px rgba(200,60,60,.08)}
+.card .card-title{font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.card .card-meta{font-size:11px;color:var(--text-muted);line-height:1.6}
+.card .card-action{font-size:10px;color:var(--red-bright);margin-top:9px;font-weight:500;display:flex;align-items:center;gap:4px;opacity:0;transform:translateX(-4px);transition:all .25s}
+.card:hover .card-action{opacity:1;transform:translateX(0)}
+/* ============ SEARCH ============ */
+.search-bar{display:flex;gap:8px;max-width:620px;margin:0 auto 14px}
+.search-bar input{flex:1;padding:11px 14px;background:var(--bg-raised);border:1px solid var(--border-hover);border-radius:5px;color:var(--text-body);font-size:13px;outline:none;font-family:inherit;transition:border-color .2s}
+.search-bar input:focus{border-color:#c44}
+.search-bar button{padding:11px 22px;background:var(--red);color:#fff;border:none;border-radius:5px;font-size:13px;cursor:pointer;font-weight:500;transition:all .2s;white-space:nowrap}
+.search-bar button:disabled{opacity:.4}
+.sr-block{margin-bottom:15px}
+.sr-label{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;font-weight:600}
+.sr-item{padding:10px 13px;background:var(--bg-raised);border:1px solid var(--border);border-radius:4px;margin-bottom:4px;font-size:12.5px;color:var(--text-secondary);line-height:1.55;transition:border-color .15s}
+.sr-item:hover{border-color:#333}
+.sr-item .year{font-size:9px;color:#c44;margin-right:6px;font-weight:600}
+.sr-item .score{font-size:8px;color:var(--text-muted);margin-left:4px}
+/* ============ YEAR PILLS ============ */
+.year-pills{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-bottom:18px}
+.year-pill{padding:5px 11px;background:var(--bg-raised);border:1px solid var(--border-hover);border-radius:4px;font-size:11px;color:var(--text-secondary);cursor:pointer;transition:all .18s}
+.year-pill:hover{border-color:#c4460;color:var(--text-body)}
+.year-pill.active{background:rgba(200,60,60,.1);border-color:#c44;color:#d44;font-weight:600}
+.year-pill.yr-historical{border-color:rgba(200,60,60,.35);position:relative}
+.year-pill.yr-historical::after{content:'';position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;background:#c44;border:1px solid #111;box-shadow:0 0 4px rgba(200,60,60,.4)}
+.year-pill[data-year="1914"].yr-historical::after{background:var(--gold);box-shadow:0 0 6px var(--gold-glow)}
+.year-pill[data-year="1917"].yr-historical::after{background:#c41e1e;box-shadow:0 0 8px rgba(200,30,30,.6)}
+.year-pill[data-year="1921"].yr-historical::after{background:#4a8}
+/* ============ TIMELINE ============ */
+.tl-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.tl-stat{background:var(--bg-card);border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center;transition:all .2s}
+.tl-stat:hover{border-color:#333}
+.tl-num{font-size:20px;font-weight:700;color:#d44;font-family:var(--font-display)}
+.tl-label{font-size:9px;color:var(--text-muted);margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+.tl-chart{background:var(--bg-raised);border-radius:3px;height:5px;overflow:hidden;margin-bottom:10px}
+.tl-bar{height:100%;background:linear-gradient(90deg,#c44,#d88);border-radius:3px;transition:width .4s ease-out}
+.tl-quote{padding:10px 13px;background:var(--bg-raised);border-left:2px solid var(--red);margin-bottom:5px;font-size:12.5px;color:var(--text-secondary);font-style:italic;line-height:1.55}
+/* ============ RHETORIC ============ */
+.rhet-bars{display:flex;gap:22px;justify-content:center;margin:28px 0;flex-wrap:wrap}
+.bar-item{text-align:center}
+.bar-fill{width:28px;height:130px;background:var(--bg-surface);border-radius:3px;position:relative;margin:0 auto 7px;overflow:hidden}
+.bar-inner{position:absolute;bottom:0;width:100%;border-radius:3px 3px 0 0;transition:height .5s ease-out}
+/* ============ QUOTES ============ */
+.q-item{padding:15px 17px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;margin-bottom:7px;transition:border-color .2s}
+.q-item:hover{border-color:#333}
+.q-text{font-size:13.5px;color:var(--text-body);line-height:1.65;font-style:italic}
+.q-meta{margin-top:7px;font-size:10px;color:var(--text-muted);display:flex;align-items:center;gap:8px}
+.q-score{color:#c44;font-weight:600}
+/* ============ ENGINES ============ */
+.engine-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:18px;cursor:pointer;transition:all .22s;position:relative}
+.engine-card:hover{border-color:#c4430}
+.engine-card.expanded{border-color:#c44;background:#0f0f18}
+.e-id{font-size:9px;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.8px}
+.e-name{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:5px}
+.e-metric{font-size:10px;color:var(--text-muted);margin-bottom:9px}
+.e-more{font-size:10px;color:var(--text-muted);padding-top:5px;border-top:1px solid #1a1a22}
+.e-detail-key{color:#c44;font-size:9px}
+/* ============ CONCEPT GRAPH ============ */
+.cl-tag{display:inline-block;padding:4px 12px;border-radius:14px;font-size:10px;margin:2px 3px;cursor:pointer;border:1px solid;transition:all .18s}
+.cl-tag:hover{opacity:.75}
+/* ============ OPPONENTS ============ */
+.opp-node{padding:15px 17px;background:var(--bg-card);border:1px solid var(--border);border-radius:6px;margin-bottom:6px;cursor:pointer;transition:all .2s}
+.opp-node:hover{border-color:#c4430;transform:translateX(2px)}
+.o-name{font-size:14px;font-weight:600;color:var(--text-primary)}
+.o-mentions{font-size:10px;color:var(--text-muted);margin-top:5px}
+.o-camp{font-size:9px;color:#c44;margin-top:3px;text-transform:uppercase;letter-spacing:.5px}
+.opp-detail{background:var(--bg-surface);border:1px solid var(--red);border-radius:8px;padding:18px;margin-top:10px;display:none;animation:fadeSlide .2s ease}
+.opp-detail.show{display:block}
+.od-name{font-size:19px;font-weight:700;color:#d44;margin-bottom:10px;font-family:var(--font-display)}
+.od-stats{font-size:12.5px;color:var(--text-secondary);line-height:1.9}
+/* ============ COMPARATIVE ============ */
+.comp-item{padding:13px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:5px;margin-bottom:5px;cursor:pointer;transition:all .2s}
+.comp-item:hover{border-color:#c4430}
+.comp-item.open .comp-body{display:block;padding-top:12px}
+.comp-topic{font-size:14px;font-weight:600;color:var(--text-primary)}
+.comp-body{display:none;font-size:12.5px;color:var(--text-secondary);line-height:1.6}
+.comp-col{margin-bottom:8px}
+/* ============ TOMOGRAPHY ============ */
+#tomo-container{position:relative;background:var(--bg-deep);border:1px solid var(--border-dim);border-radius:8px;overflow:hidden;margin-bottom:10px}
+#tomo-tooltip{position:absolute;pointer-events:none;background:rgba(10,10,15,.92);color:var(--text-body);padding:5px 10px;border-radius:3px;font-size:10px;opacity:0;transition:opacity .12s;border:1px solid #333}
+/* ============ IFRAME ============ */
+.product-iframe{width:100%;height:82vh;border:none;border-radius:6px;background:var(--bg-deep)}
+/* ============ COMPARE ============ */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.c-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:18px;transition:border-color .2s}
+.c-card:hover{border-color:#333}
+.c-card h5{color:#d44;font-size:15px;margin-bottom:12px;font-family:var(--font-display)}
+.c-stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.c-num{font-size:17px;font-weight:700;color:#d88}
+.c-label{font-size:9px;color:var(--text-muted)}
+/* ============ SPINNER ============ */
+.spinner{display:inline-block;width:15px;height:15px;border:2px solid #222;border-top-color:#c44;border-radius:50%;animation:spin .5s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ============ ENTROPY BARS ============ */
+#entropy-bars{display:flex;align-items:flex-end;gap:2px;height:140px;margin:10px 0}
+/* ============ GLOW PULSE ============ */
+@keyframes glowPulse{0%,100%{box-shadow:0 0 12px rgba(200,60,60,.05)}50%{box-shadow:0 0 24px rgba(200,60,60,.15)}}
+.glow-pulse{animation:glowPulse 3s ease-in-out infinite}
+@keyframes neonFlicker{0%,100%{opacity:1}92%{opacity:1}94%{opacity:.7}96%{opacity:1}}
+.neon-text{animation:neonFlicker 3.5s ease-in-out infinite}
+/* ============ SOCIAL SHARE BAR ============ */
+.share-bar{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.share-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:var(--bg-raised);border:1px solid var(--border);border-radius:4px;color:var(--text-muted);font-size:10px;cursor:pointer;transition:all .2s}
+.share-btn:hover{background:#1a1a24;border-color:#c4440;color:var(--text-body)}
+.share-btn.copied{background:#1a2a1a;border-color:#3a3;color:#4a4}
+.share-btn svg{width:11px;height:11px;opacity:.5}
+.social-proof{text-align:center;font-size:10px;color:#3a3a3a;margin-top:8px;display:flex;gap:20px;justify-content:center}
+.social-proof span{display:flex;align-items:center;gap:4px}
+/* ============ MOBILE ============ */
+@media(max-width:1024px){
+  #sidebar{width:220px;min-width:220px}
+  .hero h2{font-size:30px}
+  .cards-grid{grid-template-columns:repeat(2,1fr)}
+  .compare-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  #main{margin-left:0}
+  #sidebar{position:fixed;left:-280px;top:0;transition:left .25s;z-index:300;box-shadow:2px 0 20px rgba(0,0,0,.5);width:280px;min-width:280px}
+  #sidebar.open{left:0}
+  #sidebar-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.65);z-index:250}
+  #sidebar-overlay.show{display:block}
+  #header .menu-btn{display:block}
+  #header .quick-links{display:none}
+  #header{padding:8px 14px}
+  #content{padding:0}
+  .tl-stats{grid-template-columns:repeat(2,1fr)}
+  .rhet-bars{gap:14px}
+  .bar-fill{width:22px;height:90px}
+  .hero-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .hero h2{font-size:26px}
+  .hero{padding:50px 20px 40px}
+  .hero .hero-sub{font-size:13px;max-width:100%}
+  .hero-actions{flex-direction:column;align-items:center;gap:10px}
+  .compare-grid{grid-template-columns:1fr}
+  .cards-grid{grid-template-columns:1fr}
+  .hero-section{margin-top:30px;padding:0 8px}
+  .panel-wrap{padding:24px 16px}
+  .product-card{min-width:100%}
+  .search-row{flex-direction:column;gap:8px}
+  #search-input{width:100%}
+  #search-btn{width:100%}
+  footer{padding:12px 14px !important;flex-direction:column !important;text-align:center;gap:8px !important;font-size:10px !important}
+  .oracle-layout,.shadow-layout{flex-direction:column}
+  input,select,textarea{max-width:100%;box-sizing:border-box}
+  .stat-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  iframe{height:400px}
+}
+@media(max-width:480px){
+  .hero h2{font-size:22px}
+  .hero{padding:36px 14px 26px}
+  .hero .hero-sub{font-size:12px}
+  .hero-grid{grid-template-columns:1fr;gap:8px}
+  .hero-stat{padding:14px 10px}
+  .hs-num{font-size:24px}
+  .panel-wrap{padding:16px 10px}
+  .section-label{font-size:10px;margin-bottom:8px}
+  .subheading{font-size:16px}
+  .tl-stats{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:1fr}
+  .rhet-bars{gap:8px}
+  .bar-fill{width:18px;height:70px}
+  #global-search-input{font-size:12px;padding:8px 10px}
+  .cards-grid{grid-template-columns:1fr;gap:10px}
+  .compare-grid{grid-template-columns:1fr}
+  body{font-size:13px}
+  h3{font-size:16px}
+  iframe{height:350px}
+  .path-grid,.find-grid,.about-grid{grid-template-columns:1fr}
+  .iblock{padding:0 10px}
+  .iblock h3{font-size:16px}
+  .lang-toggle{top:14px;right:8px;font-size:9px;padding:2px 5px}
+  .hero-actions .btn{padding:8px 14px;font-size:12px}
+  .oracle-input-row{flex-direction:column;gap:6px}
+  .oracle-input-row input{width:100%}
+}
+/* ═══ REUSABLE UTILITY CLASSES (Phase 2) ═══ */
+.c-muted{color:#ccc}.c-dim{color:var(--text-muted)}.c-accent{color:#c44}.c-gold{color:#d4af37}
+.c-666{color:var(--text-muted)}.c-888{color:#888}.c-aaa{color:var(--text-secondary)}
+.section-label{color:#888;font-size:12px;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}
+.subheading{font-family:var(--font-display);font-size:18px;color:#d88;margin-bottom:12px}
+.padded-full{max-width:100%;padding:16px}
+.desc-text{color:var(--text-secondary);font-size:13px;margin-bottom:12px;letter-spacing:.3px}
+.body-text{color:var(--text-secondary);font-size:13px;line-height:1.8;margin-bottom:20px}
+.empty-state{color:var(--text-muted);text-align:center;padding:20px}
+.fs-xs{font-size:10px;color:var(--text-muted)}
+.tc{text-align:center;color:var(--text-muted)}
+.hidden-c{display:none}
+.w-full{width:100%;height:auto}
+.mx-auto{max-width:700px;margin:0 auto}
+.fs-11{font-size:11px;color:var(--text-muted)}.fs-12{font-size:12px;color:var(--text-muted)}
+.fs-13{font-size:13px;color:var(--text-secondary)}.fs-14{font-size:14px;color:#ccc}
+</style>
+<meta http-equiv="Cache-Control" content="public, max-age=3600">
+<meta http-equiv="Expires" content="Fri, 31 Jul 2026 10:41:08 GMT">
+</head>
+<body>
+<div class="noise-overlay"></div>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<a href="#main" class="skip-link" style="position:absolute;top:-100px;left:8px;background:#c44;color:#fff;padding:4px 12px;z-index:9999;border-radius:0 0 4px 4px;font-size:12px;transition:top .2s" onfocus="this.style.top='0'">К содержанию</a>
+<svg class="hidden-c" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ico-home" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1m-5 0h4" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ico-chart" viewBox="0 0 24 24"><rect x="3" y="12" width="4" height="9" rx="1" fill="currentColor" opacity=".5"/><rect x="10" y="7" width="4" height="14" rx="1" fill="currentColor" opacity=".75"/><rect x="17" y="3" width="4" height="18" rx="1" fill="currentColor"/></symbol>
+  <symbol id="ico-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" stroke="currentColor" fill="none" stroke-width="1.6"/><line x1="15" y1="15" x2="21" y2="21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="ico-calendar" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="18" rx="2" stroke="currentColor" fill="none" stroke-width="1.5"/><line x1="2" y1="9" x2="22" y2="9" stroke="currentColor" stroke-width="1.5"/><line x1="7" y1="2" x2="7" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="17" y1="2" x2="17" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="ico-graph" viewBox="0 0 24 24"><circle cx="5" cy="19" r="2" fill="currentColor"/><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="19" cy="15" r="2" fill="currentColor"/><line x1="6.7" y1="17.5" x2="10.5" y2="7" stroke="currentColor" stroke-width="1.2" opacity=".5"/><line x1="13.5" y1="7" x2="17.3" y2="13.5" stroke="currentColor" stroke-width="1.2" opacity=".5"/></symbol>
+  <symbol id="ico-rhetoric" viewBox="0 0 24 24"><polyline points="2,20 7,12 12,16 17,6 22,14" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ico-people" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3" stroke="currentColor" fill="none" stroke-width="1.5"/><path d="M2 21c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/><circle cx="17" cy="9" r="2.5" stroke="currentColor" fill="none" stroke-width="1.5" opacity=".5"/><path d="M14 20c0-2 1.3-3.7 3-4.5" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" opacity=".5"/></symbol>
+  <symbol id="ico-balance" viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22" stroke="currentColor" stroke-width="1.5"/><line x1="5" y1="22" x2="19" y2="22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M5 6l-3 8h6" stroke="currentColor" fill="none" stroke-width="1.3"/><path d="M19 6l3 8h-6" stroke="currentColor" fill="none" stroke-width="1.3" opacity=".6"/></symbol>
+  <symbol id="ico-telescope" viewBox="0 0 24 24"><line x1="22" y1="2" x2="7" y2="17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="6" cy="18" r="3" stroke="currentColor" fill="none" stroke-width="1.5"/><line x1="20" y1="4" x2="14" y2="10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="ico-ghost" viewBox="0 0 24 24"><path d="M12 2a8 8 0 00-8 8v12l3.5-2.5L11 22l3.5-2.5L18 22V10a8 8 0 00-8-8z" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linejoin="round"/><circle cx="9" cy="11" r="1.2" fill="currentColor"/><circle cx="15" cy="11" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="ico-chart-down" viewBox="0 0 24 24"><polyline points="2,6 7,12 12,8 17,17 22,12" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ico-oracle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" fill="none" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" fill="none" stroke-width="1.5"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".6"/></symbol>
+  <symbol id="ico-lightning" viewBox="0 0 24 24"><polygon points="13,2 3,14 10,14 8,22 20,9 12,9 15,2" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="ico-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" fill="none" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" fill="none" stroke-width="1.5"/></symbol>
+  <symbol id="ico-thought" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 01-.4 2.7 8.5 8.5 0 01-7.9 6.2 8.38 8.38 0 01-2.7-.4L4 22l1.9-5.7A8.5 8.5 0 0112 3a8.5 8.5 0 019 8.5z" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="ico-pen" viewBox="0 0 24 24"><path d="M16 3l5 5-14 14H3v-4L17 3z" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linejoin="round"/><line x1="14" y1="11" x2="17" y2="14" stroke="currentColor" stroke-width="1.5"/></symbol>
+  <symbol id="ico-quote" viewBox="0 0 24 24"><path d="M4 6h4l-3 8h3l-4 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 6h4l-3 8h3l-4 8" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/></symbol>
+  <symbol id="ico-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" stroke="currentColor" fill="none" stroke-width="1.5"/><path d="M12 1l2.5 4.3L19 5l3 3-2.5 4.3L19 18l-4.5.7L12 23l-2.5-4.3L5 19l-3-3 2.5-4.3L5 5l4.5-.7z" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="ico-dna" viewBox="0 0 24 24"><path d="M4 2h16M4 22h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6 4c0 4.4 2.7 16 6 16s6-11.6 6-16" stroke="currentColor" fill="none" stroke-width="1.5"/></symbol>
+  <symbol id="ico-book" viewBox="0 0 24 24"><path d="M4 6h16v16H4z" stroke="currentColor" fill="none" stroke-width="1.5"/><line x1="4" y1="2" x2="4" y2="22" stroke="currentColor" stroke-width="1.5"/><path d="M12 6v16" stroke="currentColor" stroke-width="1" opacity=".4"/></symbol>
+  <symbol id="ico-document" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="currentColor" fill="none" stroke-width="1.5"/><polyline points="14,2 14,8 20,8" stroke="currentColor" fill="none" stroke-width="1.5"/><line x1="8" y1="13" x2="16" y2="13" stroke="currentColor" stroke-width="1.2" opacity=".6"/><line x1="8" y1="17" x2="13" y2="17" stroke="currentColor" stroke-width="1.2" opacity=".6"/></symbol>
+  <symbol id="ico-clipboard" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1" stroke="currentColor" fill="none" stroke-width="1.5"/><rect x="5" y="6" width="14" height="16" rx="2" stroke="currentColor" fill="none" stroke-width="1.5"/><line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.2" opacity=".6"/></symbol>
+  <symbol id="ico-tools" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3" stroke="currentColor" fill="none" stroke-width="1.5"/><path d="M8.5 8.5L22 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="18" cy="18" r="3" stroke="currentColor" fill="none" stroke-width="1.5" opacity=".6"/></symbol>
+  <symbol id="ico-export" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/><polyline points="7,10 12,15 17,10" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+  <symbol id="ico-arrow" viewBox="0 0 24 24"><polyline points="6,9 12,15 18,9" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ico-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="3" y1="12" x2="21" y2="12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><line x1="3" y1="18" x2="21" y2="18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="ico-star" viewBox="0 0 24 24"><polygon points="12,1 15,8 23,9 17,15 18,23 12,19 6,23 7,15 1,9 9,8" stroke="currentColor" fill="none" stroke-width="1.3" stroke-linejoin="round"/></symbol>
+  <symbol id="ico-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" fill="none" stroke-width="1.5"/><polygon points="12,3 15,10 12,13 9,10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><polygon points="12,21 9,14 12,11 15,14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></symbol>
+  <symbol id="ico-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" fill="none" stroke-width="1.5"/><path d="M9.5 9a3 3 0 014.5-2.4 3 3 0 01.5 4.9c-1 .7-1.5 1.5-1.5 2.5" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="18" r="1" fill="currentColor"/></symbol>
+</svg>
+<div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<canvas id="particles-canvas"></canvas>
+<nav id="sidebar" aria-label="Главное меню">
+  <div class="side-logo">
+    <h1 data-i18n="sidebar-title">Ленин-Бук</h1>
+    <div class="sub" data-i18n="sidebar-sub">Аналитический корпус &middot; 55 томов</div>
+    <button class="lang-toggle" id="lang-toggle-btn" onclick="I18N.switchLang()" data-i18n="lang-toggle" aria-label="Переключить язык">EN</button>
+  </div>
+  <div class="side-group" data-group="overview">
+    <div class="side-group-label" onclick="toggleGroup(this)"><span data-i18n="group-overview">ОБЗОР</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+    <div class="side-item active" data-tab="0" onclick="switchTab(0)"><svg class="side-icon"><use href="#ico-home"/></svg> <span data-i18n="nav-home">Главная</span></div>
+    <div class="side-item" data-tab="18" onclick="switchTab(18)"><svg class="side-icon"><use href="#ico-chart"/></svg> <span data-i18n="nav-dashboard">Дашборд</span></div>
+  </div>
+  <div class="side-group" data-group="analytics">
+    <div class="side-group-label" onclick="toggleGroup(this)"><span data-i18n="group-analytics">АНАЛИТИКА</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+    <div class="side-item" data-tab="1" onclick="switchTab(1)"><svg class="side-icon"><use href="#ico-search"/></svg> <span data-i18n="nav-search">Поиск</span></div>
+    <div class="side-item" data-tab="2" onclick="switchTab(2)"><svg class="side-icon"><use href="#ico-calendar"/></svg> <span data-i18n="nav-timeline">Таймлайн</span></div>
+    <div class="side-item" data-tab="6" onclick="switchTab(6)"><svg class="side-icon"><use href="#ico-graph"/></svg> <span data-i18n="nav-concepts">Граф концептов</span></div>
+    <div class="side-item" data-tab="3" onclick="switchTab(3)"><svg class="side-icon"><use href="#ico-rhetoric"/></svg> <span data-i18n="nav-rhetoric">Риторическая дуга</span></div>
+    <div class="side-item" data-tab="7" onclick="switchTab(7)"><svg class="side-icon"><use href="#ico-people"/></svg> <span data-i18n="nav-opponents">Оппоненты</span></div>
+    <div class="side-item" data-tab="8" onclick="switchTab(8)"><svg class="side-icon"><use href="#ico-balance"/></svg> <span data-i18n="nav-comparative">Сравн. анализ</span></div>
+    <div class="side-item" data-tab="9" onclick="switchTab(9)"><svg class="side-icon"><use href="#ico-telescope"/></svg> <span data-i18n="nav-tomography">Томография</span></div>
+    <div class="side-item" data-tab="10" onclick="switchTab(10)"><svg class="side-icon"><use href="#ico-ghost"/></svg> <span data-i18n="nav-phantoms">Фантомы</span></div>
+    <div class="side-item" data-tab="11" onclick="switchTab(11)"><svg class="side-icon"><use href="#ico-chart-down"/></svg> <span data-i18n="nav-entropy">Энтропия</span></div>
+  </div>
+  <div class="side-group" data-group="products">
+    <div class="side-group-label" onclick="toggleGroup(this)"><span data-i18n="group-products">ПРОДУКТЫ</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+    <div class="side-item" data-tab="12" onclick="switchTab(12)"><svg class="side-icon"><use href="#ico-oracle"/></svg> <span data-i18n="nav-oracle">Оракул</span></div>
+    <div class="side-item" data-tab="14" onclick="switchTab(14)"><svg class="side-icon"><use href="#ico-lightning"/></svg> <span data-i18n="nav-contradictions">Противоречия</span></div>
+    <div class="side-item" data-tab="15" onclick="switchTab(15)"><svg class="side-icon"><use href="#ico-eye"/></svg> <span data-i18n="nav-shadow">Тени</span></div>
+    <div class="side-item" data-tab="17" onclick="switchTab(17)"><svg class="side-icon"><use href="#ico-thought"/></svg> <span data-i18n="nav-twin">Двойник</span></div>
+    <div class="side-item" data-tab="21" onclick="switchTab(21)"><svg class="side-icon"><use href="#ico-pen"/></svg> <span data-i18n="nav-style">Стиль</span></div>
+    <div class="side-item side-item-book" data-tab="25" onclick="switchTab(25)"><svg class="side-icon"><use href="#ico-book"/></svg> <span data-i18n="nav-book">Книга</span> <span class="badge-dl">PDF</span></div>
+  </div>
+  <div class="side-group" data-group="generation">
+    <div class="side-group-label" onclick="toggleGroup(this)"><span data-i18n="group-export">ЭКСПОРТ</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+    <div class="side-item" data-tab="13" onclick="switchTab(13)"><svg class="side-icon"><use href="#ico-document"/></svg> <span data-i18n="nav-papers">White Paper</span></div>
+    <div class="side-item" data-tab="4" onclick="switchTab(4)"><svg class="side-icon"><use href="#ico-quote"/></svg> <span data-i18n="nav-quotes">Цитаты</span></div>
+    <div class="side-item" data-tab="5" onclick="switchTab(5)"><svg class="side-icon"><use href="#ico-gear"/></svg> <span data-i18n="nav-engines">Механики</span></div>
+  </div>
+  <div class="side-group" data-group="export">
+    <div class="side-group-label" onclick="toggleGroup(this)"><span data-i18n="group-help">СПРАВКА</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+    <div class="side-item" data-tab="16" onclick="switchTab(16)"><svg class="side-icon"><use href="#ico-dna"/></svg> <span data-i18n="nav-passport">Паспорт ДНК</span></div>
+    <div class="side-item" data-tab="19" onclick="switchTab(19)"><svg class="side-icon"><use href="#ico-balance"/></svg> <span data-i18n="nav-comparator">Сравнения</span></div>
+    <div class="side-item" data-tab="20" onclick="switchTab(20)"><svg class="side-icon"><use href="#ico-book"/></svg> <span data-i18n="nav-obsidian">Obsidian Plugin</span></div>
+    <div class="side-item" data-tab="22" onclick="switchTab(22)"><svg class="side-icon"><use href="#ico-help"/></svg> <span data-i18n="nav-instructions">Инструкция</span></div>
+    <div class="side-item" data-tab="23" onclick="switchTab(23)"><svg class="side-icon"><use href="#ico-star"/></svg> О проекте</div>
+    <div class="side-item" data-tab="24" onclick="switchTab(24)"><svg class="side-icon"><use href="#ico-compass"/></svg> Пути</div>
+  </div>
+</nav>
+<div id="main" role="main">
+  <header id="header">
+    <button class="menu-btn" onclick="toggleSidebar()" aria-label="Открыть меню"><svg width="20" height="20" viewBox="0 0 24 24"><use href="#ico-menu"/></svg></button>
+    <div id="global-search">
+      <input type="text" id="global-search-input" data-i18n-placeholder="search-placeholder" placeholder="Поиск по 55 томам Ленина..." onkeydown="if(event.key==='Enter')globalSearch()" aria-label="Глобальный поиск по корпусу">
+      <button onclick="globalSearch()"><svg width="15" height="15" viewBox="0 0 24 24"><use href="#ico-search"/></svg></button>
+    </div>
+    <div class="quick-links">
+      <button class="ql" onclick="switchTab(12)"><svg viewBox="0 0 24 24"><use href="#ico-oracle"/></svg> Оракул</button>
+      <button class="ql" onclick="switchTab(14)"><svg viewBox="0 0 24 24"><use href="#ico-lightning"/></svg> Противоречия</button>
+      <button class="ql" onclick="switchTab(18)"><svg viewBox="0 0 24 24"><use href="#ico-chart"/></svg> Дашборд</button>
+    </div>
+  </header>
+  <div id="content">
+<div class="tab-panel active" id="panel-0">
+  <div class="hero">
+    <div class="hero-orn">
+      <span class="line"></span><span class="dot"></span><span class="line"></span><span class="dot"></span><span class="line"></span>
+    </div>
+    <h2 data-i18n="hero-title">55 томов Ленина —<br>аналитический инструмент</h2>
+    <p class="hero-sub" data-i18n="hero-sub">169&thinsp;067 параграфов, 48 миллионов символов — от сырого текста к интерактивной лаборатории исследования и цитирования</p>
+    <div class="hero-grid">
+      <div class="hero-stat glow-pulse"><div class="hs-num">169K</div><div class="hs-label" data-i18n="stat-paragraphs">параграфов</div></div>
+      <div class="hero-stat tilt-card glass-glow reveal-scale reveal-d1"><div class="hs-num">9</div><div class="hs-label">движков анализа</div></div>
+      <div class="hero-stat tilt-card glass-glow reveal-scale reveal-d2"><div class="hs-num">22</div><div class="hs-label">инструмента</div></div>
+    </div>
+    <div class="hero-actions">
+      <button class="hero-btn" onclick="document.getElementById('search-input').focus();switchTab(1)" data-i18n="hero-explore">Начать поиск &rarr;</button>
+      <button class="hero-btn hero-btn-outline" onclick="switchTab(18)">Дашборд</button>
+      <button class="hero-btn hero-btn-outline" onclick="switchTab(12)">Оракул</button>
+    </div>
+  </div>
+
+  <!-- BLOCK 1: ЧТО ЭТО -->
+  <div class="iblock" style="margin-top:48px">
+    <h3>Что это</h3>
+    <p class="iblock-sub">Масштаб, метод и уникальность проекта</p>
+    <div class="divider"></div>
+    <div class="about-grid">
+      <div class="about-card tilt-card glass-glow reveal">
+        <div class="about-icon"><svg viewBox="0 0 24 24" width="32" height="32"><rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/><rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></div>
+        <div class="about-title">55 томов, 25 лет</div>
+        <div class="about-desc">169&thinsp;067 параграфов от 1893 до 1922. Полное собрание сочинений, оцифрованное и проиндексированное — 176&nbsp;MB базы данных</div>
+      </div>
+      <div class="about-card tilt-card glass-glow reveal">
+        <div class="about-icon"><svg viewBox="0 0 24 24" width="32" height="32"><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="17" cy="9" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/><circle cx="12" cy="17" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><line x1="8" y1="11" x2="12" y2="14" stroke="currentColor" stroke-width="1"/><line x1="12" y1="14" x2="17" y2="11" stroke="currentColor" stroke-width="1"/></svg></div>
+        <div class="about-title">9 движков анализа</div>
+        <div class="about-desc">Хронология, концепты, диалектика, оппоненты, риторика, томография, фантомы, энтропия, тени — каждая оптикс видит своё</div>
+      </div>
+      <div class="about-card tilt-card glass-glow reveal">
+        <div class="about-icon"><svg viewBox="0 0 24 24" width="32" height="32"><path d="M12 2L2 7l10 5 10-5L12 2z" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.5" fill="none"/></svg></div>
+        <div class="about-title">Digital Humanities</div>
+        <div class="about-desc">Метод на стыке филологии и data science: 93K семантических векторов, граф из 206 концептов, 1&thinsp;502 выявленных противоречия</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK 2: КАК ИССЛЕДОВАТЬ — PATHWAYS -->
+  <div class="iblock">
+    <h3>Как исследовать</h3>
+    <p class="iblock-sub">Три готовых маршрута — один клик вместо трёх вкладок</p>
+    <div class="divider"></div>
+    <div class="path-grid">
+      <!-- Pathway 1: Империализм -->
+      <div class="path-card glass-glow reveal" onclick="switchTab(2);setTimeout(function(){document.getElementById('year-1915')?.click?.();},300)">
+        <div class="path-label">Маршрут 1</div>
+        <div class="path-title">Эволюция империализма</div>
+        <div class="path-steps">
+          <div class="path-step"><span class="step-num">1</span> Хронология 1915–1917 — скачок лексики</div>
+          <div class="path-step"><span class="step-num">2</span> Граф концептов — кластер «империализм»</div>
+          <div class="path-step"><span class="step-num">3</span> Противоречия — 30 острых позиций</div>
+        </div>
+      </div>
+      <!-- Pathway 2: Революция -->
+      <div class="path-card glass-glow reveal" onclick="switchTab(2);setTimeout(function(){switchTab(3);},800)">
+        <div class="path-label">Маршрут 2</div>
+        <div class="path-title">Революционный 1917</div>
+        <div class="path-steps">
+          <div class="path-step"><span class="step-num">1</span> Таймлайн — 39&thinsp;727 параграфов за год</div>
+          <div class="path-step"><span class="step-num">2</span> Риторика — пик агрессии и сарказма</div>
+          <div class="path-step"><span class="step-num">3</span> Оппоненты — 9&thinsp;262 упоминаний врагов</div>
+        </div>
+      </div>
+      <!-- Pathway 3: Философия -->
+      <div class="path-card glass-glow reveal" onclick="switchTab(6);setTimeout(function(){switchTab(14);},1500)">
+        <div class="path-label">Маршрут 3</div>
+        <div class="path-title">Философские корни</div>
+        <div class="path-steps">
+          <div class="path-step"><span class="step-num">1</span> Граф концептов — кластер «философия»</div>
+          <div class="path-step"><span class="step-num">2</span> Противоречия — диалектические споры</div>
+          <div class="path-step"><span class="step-num">3</span> Поиск — все 9 движков по запросу</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCK 3: ЧТО НАШЛИ -->
+  <div class="iblock">
+    <h3>Что нашли</h3>
+    <p class="iblock-sub">Ключевые находки, добытые движками из корпуса</p>
+    <div class="divider"></div>
+    <div class="find-grid">
+      <div class="find-card glass-glow reveal" onclick="switchTab(3)">
+        <div class="find-num">89,5%</div>
+        <div class="find-title">Сарказм — доминанта</div>
+        <div class="find-desc">Глобальный риторический профиль: сарказм (0.895) и агрессия (0.736) подавляют аналитику (0.085). Ленин писал, чтобы разить, а не объяснять</div>
+      </div>
+      <div class="find-card glass-glow reveal" onclick="switchTab(14)">
+        <div class="find-num">1&thinsp;502</div>
+        <div class="find-title">Противоречия, 30 острых</div>
+        <div class="find-desc">Главный конфликт: «капитал» глазами Ленина 1893 года vs 1921 года. Две эпохи — два непримиримых взгляда внутри одного автора</div>
+      </div>
+      <div class="find-card glass-glow reveal" onclick="switchTab(9)">
+        <div class="find-num">149</div>
+        <div class="find-title">Воображаемых оппонентов</div>
+        <div class="find-desc">Фантомы: «нам говорят» (15), «кричат» (15), «уверяют, что» (15). Ленин спорил с теми, кого сам же и придумывал</div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-1">
+  <div class="panel-wrap">
+    <h2>Универсальный поиск</h2>
+    <p class="panel-desc">Все 9 движков одновременно: параграфы, позиции, цитаты, оппоненты, сравнения, триады</p>
+    <div class="divider"></div>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Например: диктатура пролетариата..." aria-label="Поиск по текстам">
+      <button id="search-btn" onclick="doSearch()" aria-label="Выполнить поиск">Найти</button>
+    </div>
+    <div id="search-results"></div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-2">
+  <div class="panel-wrap">
+    <h2>Таймлайн 1893&ndash;1922</h2>
+    <p class="panel-desc">Погодовой срез: параграфы, цитаты, позиции, тома. Сравнение любых двух лет</p>
+    <div class="divider"></div>
+    <div class="year-pills" id="year-pills"></div>
+    <div id="tl-detail"></div>
+    <div style="margin-top:30px;padding-top:22px;border-top:1px solid #1a1a22">
+      <h3 style="font-size:13px;color:var(--text-muted);text-align:center;margin-bottom:14px">Сравнить два года</h3>
+      <div style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap">
+        <select id="year-a" style="background:var(--bg-raised);border:1px solid var(--border-hover);color:var(--text-body);padding:7px 10px;border-radius:4px;font-size:12px"></select>
+        <span style="color:var(--text-dim)">vs</span>
+        <select id="year-b" style="background:var(--bg-raised);border:1px solid var(--border-hover);color:var(--text-body);padding:7px 10px;border-radius:4px;font-size:12px"></select>
+        <button onclick="compareYears()" style="background:#c44;color:#fff;border:none;padding:7px 15px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:500">Сравнить</button>
+      </div>
+      <div id="compare-result" style="margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-3">
+  <div class="panel-wrap">
+    <h2>Риторическая дуга</h2>
+    <p class="panel-desc">5 эмоциональных осей. Переход от сарказма к агрессии в 1918&ndash;1919</p>
+    <div class="divider"></div>
+    <div id="rhetoric-profile"></div>
+    <div class="mx-auto">
+      <svg id="arc-data" viewBox="0 0 660 280" class="w-full">
+        <defs><linearGradient id="gA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c44"/><stop offset="100%" stop-color="#c44" stop-opacity="0"/></linearGradient></defs>
+        <g id="arc-labels"></g>
+      </svg>
+      <div style="text-align:center;margin-top:6px" id="arc-legend"></div>
+      <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:12px;line-height:1.6" id="arc-insights"></div>
+    </div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-4">
+  <div class="panel-wrap">
+    <h2>Цитаты</h2>
+    <p class="panel-desc">5&thinsp;000 ярких цитат из 55 томов с рейтингом афористичности</p>
+    <div class="divider"></div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:18px">
+      <select id="q-year" style="background:var(--bg-raised);border:1px solid var(--border-hover);color:var(--text-body);padding:5px 8px;border-radius:4px;font-size:11px"><option value="">Все годы</option></select>
+      <select id="q-sort" style="background:var(--bg-raised);border:1px solid var(--border-hover);color:var(--text-body);padding:5px 8px;border-radius:4px;font-size:11px"><option value="random">Случайно</option><option value="score">По рейтингу</option><option value="year">По году</option></select>
+      <button onclick="loadQuotes()" style="background:#c44;color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:500">Обновить</button>
+    </div>
+    <div id="quote-feed"></div><div class="skeleton skeleton-card"  id="skel-quotes"></div>
+    <div style="text-align:center;margin-top:14px"><button onclick="loadQuotes(true)" style="background:#1a1a22;color:var(--text-secondary);border:1px solid #2a2a33;padding:7px 22px;border-radius:4px;cursor:pointer;font-size:11px">Больше цитат</button></div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-5">
+  <div class="panel-wrap">
+    <h2>Аналитические механики</h2>
+    <p class="panel-desc">9 движков &mdash; фундамент проекта. Кликните для деталей и метрик</p>
+    <div class="divider"></div>
+    <div class="cards-grid" id="engine-grid"></div><div id="skel-engines" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-6">
+  <div class="panel-wrap">
+    <h2>Граф концептов</h2>
+    <p class="panel-desc">206 концептов, 12&thinsp;735 рёбер, 8 кластеров. Перетаскивайте узлы, клик &rarr; поиск</p>
+    <div class="divider"></div>
+    <div id="concept-legend" style="text-align:center;margin-bottom:10px"></div>
+    <div id="concept-graph" style="position:relative;background:var(--bg-deep);border:1px solid var(--border-dim);border-radius:8px;width:100%;height:500px">
+      <canvas id="concept-canvas"></canvas>
+    </div>
+    <div id="concept-selected" style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;min-height:20px"></div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-7">
+  <div class="panel-wrap">
+    <h2>Карта оппонентов</h2>
+    <p class="panel-desc">29 оппонентов, 9&thinsp;262 упоминания, 887 споров</p>
+    <div class="divider"></div>
+    <div id="opp-grid"></div><div id="skel-opp" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div>
+    <div class="opp-detail" id="opp-detail"></div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-8">
+  <div class="panel-wrap">
+    <h2>Сравнительный анализ</h2>
+    <p class="panel-desc">Маркс / Энгельс &rarr; Ленин: эволюция 62 тем</p>
+    <div class="divider"></div>
+    <div id="comp-list"></div><div id="skel-comp" ><div class="skeleton skeleton-card" style="height:200px"></div></div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-9">
+  <div class="panel-wrap">
+    <h2>Томография корпуса</h2>
+    <p class="panel-desc">UMAP-проекция 9&thinsp;371 точки. Цвет = год. Наведите для контекста</p>
+    <div class="divider"></div>
+    <div id="tomo-legend" style="text-align:center;margin-bottom:8px"></div>
+    <div id="tomo-container" style="width:100%;height:500px;position:relative">
+      <canvas id="tomo-canvas" style="width:100%;height:100%"></canvas>
+      <div id="tomo-tooltip"></div>
+    </div>
+    <div id="skel-tomo" ><div class="skeleton" style="width:100%;height:500px;border-radius:8px"></div></div><div id="tomo-detail" style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:8px"></div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-10">
+  <div class="panel-wrap">
+    <h2>Фантомные оппоненты</h2>
+    <p class="panel-desc">149 случаев: Ленин спорит с неназванным противником &mdash; &laquo;нам возражают...&raquo;, &laquo;некоторые думают...&raquo;</p>
+    <div class="divider"></div>
+    <div class="year-pills" id="phantom-years"></div>
+    <div id="phantom-list"></div><div id="skel-phant" ><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:60%"></div><div class="skeleton skeleton-card" style="height:150px"></div></div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-11">
+  <div class="panel-wrap">
+    <h2>Энтропия концептов</h2>
+    <p class="panel-desc">Разнообразие тем по годам: Шеннон, max H, доминантный кластер</p>
+    <div class="divider"></div>
+    <div class="mx-auto">
+      <svg id="entropy-data" viewBox="0 0 700 290" class="w-full">
+        <defs><linearGradient id="gEnt" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c44"/><stop offset="100%" stop-color="#c44" stop-opacity="0"/></linearGradient></defs>
+        <g id="entropy-labels"></g>
+      </svg>
+      <div id="entropy-bars"></div>
+      <div id="skel-entr" ><div class="skeleton" style="width:100%;height:290px;border-radius:8px;margin-bottom:10px"></div><div class="skeleton skeleton-text"></div></div><div id="entropy-detail" style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px;line-height:1.6"></div>
+    </div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-12"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-oracle">Оракул</h2><p class="panel-desc" data-i18n="panel-oracle-desc">Семантический поиск по 93K векторам &rarr; подлинные цитаты, без иллюзий</p><div class="divider"></div><iframe class="product-iframe" src="/oracle/"></iframe></div></div>
+<div class="tab-panel" id="panel-13"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-papers">White Paper Generator</h2><p class="panel-desc" data-i18n="panel-papers-desc">518 концептов &rarr; A4-статья из 7 разделов</p><div class="divider"></div><iframe class="product-iframe" src="/papers/"></iframe></div></div>
+<div class="tab-panel" id="panel-14"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-contradictions">Противоречия</h2><p class="panel-desc" data-i18n="panel-contradictions-desc">30 противоречий из 1&thinsp;502 позиций: две цитаты &mdash; два взгляда</p><div class="divider"></div><iframe class="product-iframe" src="/contradictions/"></iframe></div></div>
+<div class="tab-panel" id="panel-15"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-shadow">Теневая структура</h2><p class="panel-desc" data-i18n="panel-shadow-desc">Дрейф частотности слов: что ушло, что пришло, что изменилось</p><div class="divider"></div><iframe class="product-iframe" src="/shadow/"></iframe></div></div>
+<div class="tab-panel" id="panel-16"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-passport">Стилометрический паспорт</h2><p class="panel-desc" data-i18n="panel-passport-desc">Текстовая ДНК Ленина: длина предложений, лексическое разнообразие, маркеры</p><div class="divider"></div><iframe class="product-iframe" src="/passport/"></iframe></div></div>
+<div class="tab-panel" id="panel-17"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-twin">Цифровой двойник</h2><p class="panel-desc" data-i18n="panel-twin-desc">Чат с Лениным: вопрос &rarr; 4&ndash;6 реальных цитат с атрибуцией</p><div class="divider"></div><iframe class="product-iframe" src="/twin/"></iframe></div></div>
+<div class="tab-panel" id="panel-18"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-dashboard">Dashboard</h2><p class="panel-desc" data-i18n="panel-dashboard-desc">Метрики всех 9 движков в реальном времени</p><div class="divider"></div><iframe class="product-iframe" src="/dashboard/"></iframe></div></div>
+<div class="tab-panel" id="panel-19"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-comparator">Идеологический компаратор</h2><p class="panel-desc" data-i18n="panel-comparator-desc">4 колонки: Маркс, Энгельс, Ленин, Ленинское развитие. 89 тем</p><div class="divider"></div><iframe class="product-iframe" src="/comparator/"></iframe></div></div>
+<div class="tab-panel" id="panel-20"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-obsidian">Obsidian Plugin</h2><p class="panel-desc" data-i18n="panel-obsidian-desc">Встрой Ленина в Obsidian: поиск, концепты, случайные цитаты</p><div class="divider"></div><iframe class="product-iframe" src="/obsidian/"></iframe></div></div>
+<div class="tab-panel" id="panel-21"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-style">Генератор стиля</h2><p class="panel-desc" data-i18n="panel-style-desc">Марковская модель n=3 + 6 риторических тонов. Пишет как Ленин</p><div class="divider"></div><iframe class="product-iframe" src="/style/"></iframe></div></div>
+<div class="tab-panel" id="panel-22">
+  <div class="panel-wrap" style="max-width:800px;padding:36px 24px">
+    <h2 data-i18n="instructions-title">Как пользоваться Ленин-Буком</h2>
+    <p class="panel-desc" data-i18n="instructions-intro">Полный путеводитель по платформе. Выбери свой уровень ниже.</p>
+    <div class="divider"></div>
+<style>
+/* --- Instruction tabs --- */
+.instr-tabs{display:flex;gap:6px;margin-bottom:28px;flex-wrap:wrap}
+.instr-tab{padding:9px 18px;border:1px solid #1e1e28;border-radius:5px;background:#0a0a12;color:var(--text-muted);cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.3px;transition:all .2s}
+.instr-tab:hover{color:var(--text-body);border-color:#3a3a4a}
+.instr-tab.active{background:#1a0f0f;border-color:#c4460;color:#e55;box-shadow:0 0 12px rgba(200,60,60,.15)}
+.instr-section{margin-bottom:32px}
+.instr-section h3{font-family:var(--font-display);font-size:18px;color:#d88;margin-bottom:6px;letter-spacing:.3px}
+.instr-section .subtitle{color:var(--text-muted);font-size:11px;margin-bottom:16px;line-height:1.6}
+.instr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-bottom:24px}
+.instr-card{background:#0e0e16;border:1px solid #1a1a25;border-radius:6px;padding:14px 16px;transition:all .2s;cursor:default}
+.instr-card:hover{border-color:#2a2a3a;background:#111118}
+.instr-card .num{display:inline-block;width:20px;height:20px;border-radius:3px;background:#1a0f0f;color:#c55;text-align:center;line-height:20px;font-size:10px;font-weight:700;margin-right:8px;flex-shrink:0}
+.instr-card .ic-title{color:#ccc;font-size:13px;font-weight:600;margin-bottom:4px;display:flex;align-items:center}
+.instr-card .ic-desc{color:var(--text-muted);font-size:11px;line-height:1.6}
+.instr-card .ic-action{color:#c44;font-size:10px;margin-top:8px;cursor:pointer;display:inline-block;opacity:0;transform:translateX(-6px);transition:all .25s}
+.instr-card:hover .ic-action{opacity:1;transform:translateX(0)}
+.instr-card .ic-action:hover{color:#e66}
+.instr-tip{background:linear-gradient(135deg,#111118,#0f0f17);border:1px solid #1e1e28;border-radius:8px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:flex-start;gap:10px}
+.instr-tip .icon-wrap{flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#1a0f0f;display:flex;align-items:center;justify-content:center}
+.instr-tip p{color:var(--text-secondary);font-size:12px;line-height:1.7;margin:0}
+.instr-flow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.instr-flow .step{background:#0e0e16;border:1px solid #1a1a25;border-radius:5px;padding:10px 14px;font-size:11px;color:#999;display:flex;align-items:center;gap:6px}
+.instr-flow .step .s-num{width:18px;height:18px;border-radius:50%;background:#c44;color:#fff;text-align:center;line-height:18px;font-size:10px;font-weight:700;flex-shrink:0}
+.instr-flow .arrow{color:var(--text-dim);font-size:14px;align-self:center}
+.api-table{width:100%;border-collapse:collapse;font-size:11px;margin:12px 0 20px}
+.api-table th{text-align:left;color:#888;padding:8px 10px;border-bottom:1px solid #1a1a25;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.api-table td{padding:8px 10px;border-bottom:1px solid #111118;color:var(--text-secondary)}
+.api-table code{background:#0e0e16;color:#c44;padding:2px 6px;border-radius:3px;font-size:10px}
+.api-table .method{color:#d4af37;font-weight:600;font-size:10px}
+</style>
+<div class="instr-tabs">
+  <button class="instr-tab active" onclick="switchInstrTab(this,'beginner')" data-i18n="instr-tab-beginner">Начинающий</button>
+  <button class="instr-tab" onclick="switchInstrTab(this,'advanced')" data-i18n="instr-tab-advanced">Исследователь</button>
+  <button class="instr-tab" onclick="switchInstrTab(this,'developer')" data-i18n="instr-tab-developer">Разработчик</button>
+</div>
+<div class="instr-section active" data-instr="beginner">
+  <h3 data-i18n="instr-b-title">За 5 минут: что здесь и как этим пользоваться</h3>
+  <p class="subtitle" data-i18n="instr-b-sub">Если ты впервые открыл Ленин-Бук — начни отсюда. Никакой теории, только практические действия.</p>
+  <div class="instr-tip">
+    <div class="icon-wrap"><svg width="14" height="14" viewBox="0 0 24 24"><polygon points="12,1 15,8 23,9 17,15 18,23 12,19 6,23 7,15 1,9 9,8" fill="#d4af37"/></svg></div>
+    <p><strong class="c-gold" data-i18n="instr-b-tip-title">Главное, что нужно знать:</strong> <span data-i18n="instr-b-tip-text">Нажми Ctrl+K — и введи любой запрос. Система мгновенно найдёт все упоминания по 55 томам. Это работает с любой страницы.</span></p>
+  </div>
+  <h4 class="desc-text" data-i18n="instr-b-flow-title">С чего начать — 3 простых шага:</h4>
+  <div class="instr-flow">
+    <div class="step"><span class="s-num">1</span> <span data-i18n="instr-b-step1">Открой «Поиск» в меню АНАЛИТИКА</span></div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><span class="s-num">2</span> <span data-i18n="instr-b-step2">Введи слово: «империализм», «революция», «партия»</span></div>
+    <div class="arrow">&rarr;</div>
+    <div class="step"><span class="s-num">3</span> <span data-i18n="instr-b-step3">Выбери год или том — читай цитаты</span></div>
+  </div>
+  <h4 class="desc-text" data-i18n="instr-b-popular-title">Самые полезные инструменты для начала:</h4>
+  <div class="instr-grid">
+    <div class="instr-card"><div class="ic-title"><span class="num">1</span> <span data-i18n="instr-b-card1-title">Оракул</span></div><div class="ic-desc" data-i18n="instr-b-card1-desc">Задай вопрос своими словами — получи ответ цитатами Ленина с указанием года и тома. Как ChatGPT, только без выдумок.</div><div class="ic-action" onclick="switchTab(12)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">2</span> <span data-i18n="instr-b-card2-title">Таймлайн</span></div><div class="ic-desc" data-i18n="instr-b-card2-desc">30 лет ленинского текста на одной странице. Кликни на год — увидишь параграфы, позиции, цитаты. Поймёшь, когда и о чём он писал.</div><div class="ic-action" onclick="switchTab(2)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">3</span> <span data-i18n="instr-b-card3-title">Цитаты</span></div><div class="ic-desc" data-i18n="instr-b-card3-desc">5000 цитат с сортировкой по «силе». Фильтруй по году, тому, ключевым словам. Идеально для статей и докладов.</div><div class="ic-action" onclick="switchTab(4)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">4</span> <span data-i18n="instr-b-card4-title">Двойник</span></div><div class="ic-desc" data-i18n="instr-b-card4-desc">Чат с Лениным. Спроси что угодно — получишь 4-6 реальных цитат с атрибуцией. Ни одной выдуманной фразы.</div><div class="ic-action" onclick="switchTab(17)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+  </div>
+  <h4 class="desc-text" data-i18n="instr-b-viz-title">Что посмотреть для наглядности:</h4>
+  <div class="instr-grid">
+    <div class="instr-card"><div class="ic-title"><span class="num">5</span> <span data-i18n="instr-b-card5-title">Риторическая дуга</span></div><div class="ic-desc" data-i18n="instr-b-card5-desc">Эмоции Ленина по годам: когда он был агрессивен, когда саркастичен, когда вдохновлял. Красивый график.</div><div class="ic-action" onclick="switchTab(3)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">6</span> <span data-i18n="instr-b-card6-title">Граф концептов</span></div><div class="ic-desc" data-i18n="instr-b-card6-desc">16 тематических кластеров. Перетаскивай узлы, смотри связи. «Империализм» связан с «капиталом», «войной» и «революцией».</div><div class="ic-action" onclick="switchTab(6)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">7</span> <span data-i18n="instr-b-card7-title">Оппоненты</span></div><div class="ic-desc" data-i18n="instr-b-card7-desc">С кем спорил Ленин? 10 оппонентов, график упоминаний по годам, пики активности. Каутский, Мартов, Плеханов...</div><div class="ic-action" onclick="switchTab(7)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+  </div>
+</div>
+<div class="instr-section" data-instr="advanced" class="hidden-c">
+  <h3 data-i18n="instr-a-title">Глубокое погружение: все 22 инструмента</h3>
+  <p class="subtitle" data-i18n="instr-a-sub">Ты уже освоил базу. Теперь — полный арсенал аналитика. Каждый инструмент, его точные возможности и сценарии использования.</p>
+  <div class="instr-tip">
+    <div class="icon-wrap"><svg width="14" height="14" viewBox="0 0 24 24"><polygon points="12,1 15,8 23,9 17,15 18,23 12,19 6,23 7,15 1,9 9,8" fill="#d4af37"/></svg></div>
+    <p><strong class="c-gold" data-i18n="instr-a-tip-title">Совет исследователя:</strong> <span data-i18n="instr-a-tip-text">Все инструменты работают на одних и тех же данных (169K абзацев, 93K векторов). Комбинируй их: нашёл цитату в Поиске → проверь контекст в Таймлайне → сравни с оппонентами → построй статью в White Paper.</span></p>
+  </div>
+  <h4 class="section-label" data-i18n="instr-a-analytics-title">Аналитические движки (9 инструментов)</h4>
+  <div class="instr-grid">
+    <div class="instr-card"><div class="ic-title"><span class="num">1</span>Поиск по корпусу</div><div class="ic-desc">Гибридный FTS5+FAISS по 93&thinsp;711 векторам. Фильтр: год (1893–1922), том (1–55), категория. Результат за &lt;100 мс.</div><div class="ic-action" onclick="switchTab(1)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">2</span>Таймлайн</div><div class="ic-desc">Хронологический срез: 30 лет. Клик по году → параграфы, позиции, цитаты, триады. Полоса прогресса — объём текста за год.</div><div class="ic-action" onclick="switchTab(2)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">3</span>Риторическая дуга</div><div class="ic-desc">5-осевой эмоциональный профиль: сарказм, агрессия, анализ, воодушевление, презрение. Временной график 1893–1922.</div><div class="ic-action" onclick="switchTab(3)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">4</span>Цитаты</div><div class="ic-desc">База 5&thinsp;000 цитат со скорингом (0–18). Пагинация по 50. Фильтр по году и ключевым словам. Сортировка по релевантности.</div><div class="ic-action" onclick="switchTab(4)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">5</span>Механики</div><div class="ic-desc">Обзор всех 9 аналитических движков: название, метрика, детали реализации. Что под капотом каждого инструмента.</div><div class="ic-action" onclick="switchTab(5)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">6</span>Граф концептов</div><div class="ic-desc">Интерактивный граф: 16 кластеров, перетаскивание узлов, клик → поиск. 206 концептов, 12&thinsp;735 рёбер.</div><div class="ic-action" onclick="switchTab(6)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">7</span>Оппоненты</div><div class="ic-desc">10 оппонентов: график упоминаний по годам, пик, ключевые темы. Каутский, Мартов, Плеханов, Струве, Чернов...</div><div class="ic-action" onclick="switchTab(7)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">8</span>Сравн. анализ</div><div class="ic-desc">Маркс vs Энгельс vs Ленин. Эволюция идей по темам: что взял, что развил, где отошёл.</div><div class="ic-action" onclick="switchTab(8)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">9</span>Томография</div><div class="ic-desc">UMAP-проекция 93&thinsp;711 точек в 2D. Цвет — десятилетие. Наведи — год и координаты. Видишь структуру корпуса.</div><div class="ic-action" onclick="switchTab(9)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">10</span>Фантомы</div><div class="ic-desc">Ненаписанные тексты: форки идей, альтернативные версии, ретронимы. Что Ленин мог бы написать, но не написал.</div><div class="ic-action" onclick="switchTab(10)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">11</span>Энтропия</div><div class="ic-desc">Тематическое разнообразие по годам. Где фокус (низкая энтропия), где распыление (высокая). Доминанты по периодам.</div><div class="ic-action" onclick="switchTab(11)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+  </div>
+  <h4 class="section-label" data-i18n="instr-a-products-title">Продукты на основе данных (10 инструментов)</h4>
+  <div class="instr-grid">
+    <div class="instr-card"><div class="ic-title"><span class="num">12</span>Оракул</div><div class="ic-desc">Семантический поиск по вопросу. FAISS+FTS5 → реальные цитаты с атрибуцией.</div><div class="ic-action" onclick="switchTab(12)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">13</span>White Paper</div><div class="ic-desc">Генератор A4-статей: 7 разделов, 518 концептов на выбор. Структура: тезис → цитаты → анализ → вывод.</div><div class="ic-action" onclick="switchTab(13)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">14</span>Противоречия</div><div class="ic-desc">30 противоречий из 1&thinsp;502 позиций. Две противоположные цитаты по одной теме — диалектика в действии.</div><div class="ic-action" onclick="switchTab(14)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">15</span>Тени</div><div class="ic-desc">Дрейф частотности: какие слова исчезли, какие появились. Лексическая эволюция за 30 лет.</div><div class="ic-action" onclick="switchTab(15)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">16</span>Паспорт ДНК</div><div class="ic-desc">Стилометрия: средняя длина предложения, лексическое разнообразие, частотные маркеры. Текстовая ДНК.</div><div class="ic-action" onclick="switchTab(16)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">17</span>Двойник</div><div class="ic-desc">Чат-интерфейс: вопрос → 4-6 цитат с годом и томом. FAISS по 93K векторам + FTS5 fallback.</div><div class="ic-action" onclick="switchTab(17)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">18</span>Dashboard</div><div class="ic-desc">Агрегатор метрик всех движков. Карточки: обзор, периоды, топ-темы, противоречия, риторика.</div><div class="ic-action" onclick="switchTab(18)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">19</span>Компаратор</div><div class="ic-desc">4 колонки: Маркс, Энгельс, Ленин, Ленинское развитие. 89 тем. Источники и цитаты.</div><div class="ic-action" onclick="switchTab(19)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">20</span>Obsidian Plugin</div><div class="ic-desc">Плагин для Obsidian: 3 команды (поиск, инфо о концепте, случайная цитата). Архив .zip.</div><div class="ic-action" onclick="switchTab(20)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">21</span>Генератор стиля</div><div class="ic-desc">Марковская модель n=3 на 6000 параграфах. 6 риторических тонов. Пишет как Ленин.</div><div class="ic-action" onclick="switchTab(21)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+  </div>
+</div>
+<div class="instr-section" data-instr="developer" class="hidden-c">
+  <h3 data-i18n="instr-d-title">API, экспорт и интеграция: для разработчиков</h3>
+  <p class="subtitle" data-i18n="instr-d-sub">Все публичные API-эндпоинты, форматы ответов, способы экспорта данных и встраивания в свои проекты.</p>
+    <div class="instr-tip">
+    <div class="icon-wrap"><svg width="14" height="14" viewBox="0 0 24 24"><polygon points="12,1 15,8 23,9 17,15 18,23 12,19 6,23 7,15 1,9 9,8" fill="#d4af37"/></svg></div>
+    <p><strong class="c-gold">Техническая справка:</strong> Бэкенд: Python/FastAPI + SQLite FTS5. Фронтенд: Vanilla JS, 0 зависимостей. Все API v1 требуют <code>X-API-Key</code> заголовок. Full OpenAPI 3.0 спецификация в <a href="/openapi.yaml" style="color:#c44">openapi.yaml</a>.</p>
+  </div>
+
+  <h4 class="section-label">🔑 Аутентификация</h4>
+  <div style="background:#0e0e16;border:1px solid #1a1a25;border-radius:6px;padding:16px 20px;font-size:11px;color:#888;line-height:2;margin-bottom:20px">
+    Все эндпоинты <code>/api/v1/*</code> требуют заголовок <strong style="color:#d4af37">X-API-Key</strong>.<br>
+    Получить бесплатный ключ (100 запросов/день):<br>
+    <code style="color:#c44;font-size:10px">curl -X POST "https://lenin-book.v2.site/api/v1/register?tier=free"</code><br><br>
+    <strong class="c-muted">Тарифы:</strong> free=100, basic=1&nbsp;000, pro=10&nbsp;000 запросов/сутки<br>
+    <strong class="c-muted">Ошибки:</strong> Все возвращают HTTP 200 + <code>{"error":true,"code":401,"detail":"..."}</code>
+  </div>
+
+  <h4 class="section-label" data-i18n="instr-d-api-title">REST API v1 — 15 эндпоинтов</h4>
+  <table class="api-table">
+    <tr><th>Метод</th><th>Эндпоинт</th><th>Параметры</th><th>Возвращает</th></tr>
+    <tr><td class="method">POST</td><td><code>/api/v1/register?tier=free</code></td><td>tier (free|basic|pro)</td><td>{api_key, tier, requests_per_day}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/health</code></td><td>—</td><td>{status, version, database:{total_paragraphs, year_range}, cache:{...}}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/stats</code></td><td>—</td><td>{total_paragraphs:169067, concepts:206, edges:12735, ...}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/search?q=...&limit=20&year=1917</code></td><td>q, limit (1-100), year (opt)</td><td>{query, total, results:[{paragraph_id, year, volume, snippet}]}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/timeline/{year}</code></td><td>year (1893–1922)</td><td>{year, total_paragraphs, top_volumes, samples}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/quotes?n=5&topic=...</code></td><td>n (1-50), topic (opt)</td><td>{count, quotes:[{text, year, volume_id}]}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/concepts</code></td><td>—</td><td>{nodes:206, links:100, clusters:8, stats:{nodes, edges_total, clusters}}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/concept/{name}</code></td><td>name (e.g. «революция»)</td><td>{concept, frequency, top_connections}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/compare?y1=1917&y2=1905</code></td><td>y1, y2 (разные, 1893–1922)</td><td>{year1:{paragraphs}, year2:{paragraphs}, ratio}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/rhetoric</code></td><td>—</td><td>{years_analyzed:25, total_paragraphs:169067, emotional_arc, periods}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/entropy</code></td><td>—</td><td>Тематическое разнообразие по годам</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/phantoms?year=1917</code></td><td>year (opt, 1893–1922)</td><td>Фантомные оппоненты</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/tomography?n=1000</code></td><td>n (100–9371)</td><td>{total_points, points:[{id, x, y, year}]} — 2D UMAP</td></tr>
+  </table>
+
+  <h4 class="section-label">🛡 Безопасность</h4>
+  <div style="background:#0e0e16;border:1px solid #1a1a25;border-radius:6px;padding:16px 20px;font-size:11px;color:#888;line-height:2;margin-bottom:20px">
+    • <strong class="c-muted">API-ключ</strong> — middleware проверяет на каждом эндпоинте v1<br>
+    • <strong class="c-muted">Rate limiting</strong> — 100/1&nbsp;000/10&nbsp;000 запросов/день (free/basic/pro)<br>
+    • <strong class="c-muted">CORS</strong> — только lenin-book.v2.site и localhost<br>
+    • <strong class="c-muted">FTS5 injection</strong> — спецсимволы и операторы вырезаются<br>
+    • <strong class="c-muted">Скрытие ошибок</strong> — «internal error», детали в лог сервера<br>
+    • <strong class="c-muted">Валидация</strong> — год 1893–1922, лимит 1–100, query не пустой
+  </div>
+
+<h4 class="section-label" data-i18n="instr-d-export-title">Экспорт и интеграция</h4>
+  <div class="instr-grid">
+    <div class="instr-card"><div class="ic-title"><span class="num">1</span>Obsidian Plugin (.zip)</div><div class="ic-desc">Скачай архив, распакуй в <code>.obsidian/plugins/</code>. 3 команды: поиск по Ленину, инфо о концепте, случайная цитата.</div><div class="ic-action" onclick="switchTab(20)" data-i18n="instr-action-open">Скачать &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">2</span>JSON API</div><div class="ic-desc">Все эндпоинты возвращают JSON. Делай <code>fetch()</code> из своего приложения. CORS открыт. Никаких API-ключей не требуется.</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">3</span>White Paper → PDF</div><div class="ic-desc">Сгенерируй статью в White Paper Generator, потом распечатай как PDF (Ctrl+P в браузере). 7 разделов, A4.</div><div class="ic-action" onclick="switchTab(13)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">4</span>SQLite (прямой доступ)</div><div class="ic-desc">169K абзацев в FTS5-индексе. 93K FAISS-векторов. Свяжись для получения дампа БД для своих проектов.</div></div>
+  </div>
+  <h4 class="section-label" data-i18n="instr-d-stack-title">Технологический стек</h4>
+  <div style="background:#0e0e16;border:1px solid #1a1a25;border-radius:6px;padding:16px 20px;font-size:11px;color:#888;line-height:2">
+    <strong class="c-muted">Бэкенд:</strong> Python 3 + FastAPI + Uvicorn (порт 9770)<br>
+    <strong class="c-muted">Поиск:</strong> SQLite FTS5 (полнотекстовый) + FAISS (семантический, 384-мерные эмбеддинги)<br>
+    <strong class="c-muted">Данные:</strong> 55 томов → 169&thinsp;067 параграфов → 93&thinsp;711 векторов → 5&thinsp;000 цитат<br>
+    <strong class="c-muted">Аналитика:</strong> 9 движков (engine_01...engine_09) + products (07_twin, 08_style, etc.)<br>
+    <strong class="c-muted">Фронтенд:</strong> Vanilla JS (0 фреймворков), CSS Grid + Flexbox, кастомные SVG-иконки<br>
+    <strong class="c-muted">Хостинг:</strong> v2.site платформа, авто-HTTPS, gzip<br>
+    <strong class="c-muted">Репозиторий:</strong> Git, коммиты с хешами для отслеживания версий
+  </div>
+</div>
+<div class="tab-panel" id="panel-23">
+  <div class="panel-wrap" style="max-width:700px;padding:40px 24px">
+    <h2>О проекте «Ленин-Бук»</h2>
+    <p class="panel-desc">Методология, архитектура и история создания</p>
+    <div class="divider"></div>
+    <h3 class="subheading">Зачем это нужно</h3>
+    <p class="body-text">
+      55 томов Ленина — это 169&thinsp;067 параграфов, 48 миллионов символов, 30 лет текста (1893–1922). 
+      Ни один человек не способен удержать этот объём в голове. Традиционные методы — чтение, 
+      конспектирование, индексация — не дают полноты картины и межтекстовых связей.
+    </p>
+    <p class="body-text">
+      Ленин-Бук решает эту проблему: машинный анализ всего корпуса, извлечение структуры, 
+      связей, противоречий и закономерностей. Это не замена чтению — это инструмент, 
+      который делает чтение осмысленным и навигацию мгновенной.
+    </p>
+    <h3 class="subheading">Методология</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:24px">
+      <div class="card"><div class="card-title">Парсинг корпуса</div><div class="card-meta">169K параграфов извлечены из 55 томов, размечены по годам, томам, позициям</div></div>
+      <div class="card"><div class="card-title">Векторизация</div><div class="card-meta">93&thinsp;711 эмбеддингов (384-мерные, FAISS). Каждый параграф — точка в семантическом пространстве</div></div>
+      <div class="card"><div class="card-title">9 движков анализа</div><div class="card-meta">Хронология, концепты, диалектика, оппоненты, риторика, позиции, цитаты, сравнения, тени</div></div>
+      <div class="card"><div class="card-title">FTS5 + FAISS</div><div class="card-meta">Гибридный поиск: полнотекстовый + семантический. Результат за &lt;100 мс</div></div>
+    </div>
+    <h3 class="subheading">Технологии</h3>
+    <div style="background:#0e0e16;border:1px solid #1a1a25;border-radius:6px;padding:16px 20px;font-size:11px;color:#888;line-height:2;margin-bottom:20px">
+      <strong class="c-muted">Бэкенд:</strong> Python 3 + FastAPI + Uvicorn<br>
+      <strong class="c-muted">Поиск:</strong> SQLite FTS5 (полнотекстовый) + FAISS (семантический)<br>
+      <strong class="c-muted">Векторы:</strong> 384-мерные эмбеддинги, 93&thinsp;711 точек<br>
+      <strong class="c-muted">Фронтенд:</strong> Vanilla JS, CSS Grid + Flexbox, SVG-иконки<br>
+      <strong class="c-muted">Хостинг:</strong> v2.site платформа, авто-HTTPS, gzip<br>
+      <strong class="c-muted">Данные:</strong> 55 томов В.И. Ленина, 5-е издание ПСС
+    </div>
+    <h3 class="subheading">Автор</h3>
+    <p class="body-text">
+      Проект создан <strong style="color:#d88">Антоном Коноваловым</strong> (@AnKocrypto) при участии AI-агента V2Bot.
+      Идея: превратить 55-томный корпус Ленина из мёртвого архива в живой аналитический инструмент,
+      доступный исследователям, студентам и всем, кто интересуется историей марксистской мысли.
+    </p>
+    <div class="instr-tip">
+      <div class="icon-wrap"><svg width="14" height="14" viewBox="0 0 24 24"><polygon points="12,1 15,8 23,9 17,15 18,23 12,19 6,23 7,15 1,9 9,8" fill="#d4af37"/></svg></div>
+      <p style="color:var(--text-secondary);font-size:12px;line-height:1.7;margin:0">Вопросы, предложения, баги: пиши в Telegram <a href="https://t.me/AnKocrypto" style="color:#c44;text-decoration:none" target="_blank">@AnKocrypto</a></p>
+    </div>
+  </div>
+</div>
+<div class="tab-panel" id="panel-24">
+  <div class="panel-wrap" style="max-width:820px;padding:36px 24px">
+    <h2>Исследовательские пути</h2>
+    <p class="panel-desc">Три готовых маршрута по корпусу — один клик вместо трёх вкладок</p>
+    <div class="divider"></div>
+    <div class="path-grid" style="margin-bottom:32px">
+      <div class="path-card glass-glow reveal" onclick="runPathway('imperialism')">
+        <div class="path-label">Маршрут 1</div>
+        <div class="path-title">Эволюция империализма 1915–1917</div>
+        <div class="path-steps">
+          <div class="path-step"><span class="step-num">1</span> Таймлайн 1915 — скачок лексики</div>
+          <div class="path-step"><span class="step-num">2</span> Граф концептов — кластер «экономика»</div>
+          <div class="path-step"><span class="step-num">3</span> Противоречия — 30 острых позиций</div>
+        </div>
+      </div>
+      <div class="path-card glass-glow reveal" onclick="runPathway('revolution')">
+        <div class="path-label">Маршрут 2</div>
+        <div class="path-title">Революционный 1917</div>
+        <div class="path-steps">
+          <div class="path-step"><span class="step-num">1</span> Таймлайн — 39&thinsp;727 параграфов</div>
+          <div class="path-step"><span class="step-num">2</span> Риторика — пик агрессии</div>
+          <div class="path-step"><span class="step-num">3</span> Оппоненты — 9&thinsp;262 упоминаний</div>
+        </div>
+      </div>
+      <div class="path-card glass-glow reveal" onclick="runPathway('philosophy')">
+        <div class="path-label">Маршрут 3</div>
+        <div class="path-title">Философские корни</div>
+        <div class="path-steps">
+          <div class="path-step"><span class="step-num">1</span> Граф концептов — кластер «философия»</div>
+          <div class="path-step"><span class="step-num">2</span> Противоречия — материализм vs эмпириокритицизм</div>
+          <div class="path-step"><span class="step-num">3</span> Поиск — все 9 движков по «материя»</div>
+        </div>
+      </div>
+    </div>
+    <div id="pathway-result" style="min-height:40px"></div>
+  </div>
+
+<div class="tab-panel" id="panel-25">
+  <div class="panel-wrap" style="max-width:820px;padding:36px 24px">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:6px">
+      <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(200,60,60,.15),rgba(200,60,60,.04));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+      </div>
+      <div>
+        <h2 style="margin:0;font-size:24px" data-i18n="book-title">Ленин. Архитектор распределённых систем</h2>
+        <p style="margin:4px 0 0;color:var(--text-muted);font-size:13px">v5.8.3 · PDF · 5.3 MB · 2026</p>
+      </div>
+    </div>
+    <div class="divider"></div>
+
+    <div class="book-hero" style="display:flex;gap:40px;align-items:stretch;flex-wrap:wrap;margin-bottom:32px">
+      <!-- Book Cover -->
+      <div class="book-cover glass-glow" style="flex:0 0 260px;background:linear-gradient(160deg,rgba(30,5,5,.95) 0%,rgba(10,5,25,.95) 100%);border:1px solid rgba(200,60,60,.25);border-radius:12px;padding:32px 24px;text-align:center;box-shadow:0 12px 48px rgba(200,40,40,.12);position:relative;overflow:hidden">
+        <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(200,60,60,.08) 0%,transparent 70%);pointer-events:none"></div>
+        <div style="position:relative;z-index:1">
+          <svg width="100" height="130" viewBox="0 0 100 130" style="margin:0 auto 20px;filter:drop-shadow(0 4px 16px rgba(200,40,40,.2))">
+            <defs><linearGradient id="bkGrad25" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#c44"/><stop offset="100%" stop-color="#e44"/></linearGradient></defs>
+            <rect x="14" y="6" width="72" height="118" rx="6" fill="rgba(10,0,0,.8)" stroke="url(#bkGrad25)" stroke-width="2"/>
+            <rect x="20" y="14" width="60" height="102" rx="2" fill="none" stroke="rgba(200,60,60,.4)" stroke-width="0.8"/>
+            <line x1="26" y1="34" x2="74" y2="34" stroke="rgba(200,60,60,.5)" stroke-width="1.2"/>
+            <line x1="26" y1="44" x2="68" y2="44" stroke="rgba(200,60,60,.35)" stroke-width="1"/>
+            <line x1="26" y1="54" x2="72" y2="54" stroke="rgba(200,60,60,.35)" stroke-width="1"/>
+            <line x1="26" y1="64" x2="60" y2="64" stroke="rgba(200,60,60,.35)" stroke-width="1"/>
+            <line x1="26" y1="74" x2="70" y2="74" stroke="rgba(200,60,60,.35)" stroke-width="1"/>
+            <line x1="26" y1="84" x2="56" y2="84" stroke="rgba(200,60,60,.35)" stroke-width="1"/>
+            <line x1="26" y1="94" x2="66" y2="94" stroke="rgba(200,60,60,.35)" stroke-width="1"/>
+            <line x1="26" y1="104" x2="50" y2="104" stroke="rgba(200,60,60,.25)" stroke-width="0.8"/>
+            <rect x="30" y="114" width="40" height="4" rx="1" fill="rgba(200,60,60,.4)"/>
+            <text x="50" y="126" text-anchor="middle" fill="var(--text-muted)" font-size="8" font-family="monospace">1893–1922</text>
+          </svg>
+          <div style="color:var(--red-bright);font-size:22px;font-weight:800;letter-spacing:2px;line-height:1.2">ЛЕНИН</div>
+          <div style="color:var(--text-muted);font-size:11px;margin-top:6px;line-height:1.5">Архитектор<br>распределённых<br>систем</div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px">
+            <span style="display:inline-block;width:20px;height:1px;background:var(--gold);opacity:.6"></span>
+            <span style="color:var(--gold);font-size:9px;letter-spacing:2px;font-weight:600">v5.8.3</span>
+            <span style="display:inline-block;width:20px;height:1px;background:var(--gold);opacity:.6"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Book Info -->
+      <div style="flex:1;min-width:300px;display:flex;flex-direction:column;justify-content:center">
+        <div class="book-features" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px">
+          <div class="book-feat glass-glow" style="background:var(--bg-card);border:1px solid #1e1e2a;border-radius:10px;padding:16px 14px;text-align:center;transition:all .2s">
+            <div style="font-size:26px;font-weight:800;color:var(--red-bright);margin-bottom:6px">5.3</div>
+            <div style="font-size:10px;color:var(--text-muted);line-height:1.4">MB<br>PDF</div>
+          </div>
+          <div class="book-feat glass-glow" style="background:var(--bg-card);border:1px solid #1e1e2a;border-radius:10px;padding:16px 14px;text-align:center;transition:all .2s">
+            <div style="font-size:26px;font-weight:800;color:var(--gold);margin-bottom:6px">169K</div>
+            <div style="font-size:10px;color:var(--text-muted);line-height:1.4">Параграфов<br>55 томов</div>
+          </div>
+          <div class="book-feat glass-glow" style="background:var(--bg-card);border:1px solid #1e1e2a;border-radius:10px;padding:16px 14px;text-align:center;transition:all .2s">
+            <div style="font-size:26px;font-weight:800;color:var(--red-glow);margin-bottom:6px">9</div>
+            <div style="font-size:10px;color:var(--text-muted);line-height:1.4">Движков<br>анализа</div>
+          </div>
+          <div class="book-feat glass-glow" style="background:var(--bg-card);border:1px solid #1e1e2a;border-radius:10px;padding:16px 14px;text-align:center;transition:all .2s">
+            <div style="font-size:26px;font-weight:800;color:var(--text-secondary);margin-bottom:6px">v5.8</div>
+            <div style="font-size:10px;color:var(--text-muted);line-height:1.4">Последняя<br>версия</div>
+          </div>
+        </div>
+
+        <p style="margin:0 0 12px;line-height:1.75;font-size:13px;color:var(--text-muted)" data-i18n="book-about">
+          Исследование Ленина как создателя первой в мире распределённой системы управления. Анализ 55 томов через призму организационной теории: партийные ячейки как узлы сети, съезды как консенсус-механизмы, резолюции как протоколы. 9 аналитических движков, 5&thinsp;000 цитат, концептуальный граф на 206 узлов.
+        </p>
+
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <a href="/lenin_book_v5.8.3.pdf" class="btn-download" target="_blank" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,var(--red),#a33);color:#fff;padding:16px 36px;border-radius:10px;font-size:16px;font-weight:700;text-decoration:none;transition:all .25s;box-shadow:0 6px 28px rgba(200,40,40,.3);letter-spacing:.5px" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 36px rgba(200,40,40,.5)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 28px rgba(200,40,40,.3)'">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span data-i18n="book-download">Скачать PDF</span>
+          </a>
+          <span style="font-size:11px;color:var(--text-muted)" data-i18n="book-dl-desc">Прямая ссылка · без регистрации · 5.3 MB</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="margin-top:32px">
+      <h3 style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;display:flex;align-items:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5"><polygon points="12,1 15,8 23,9 17,15 18,23 12,19 6,23 7,15 1,9 9,8"/></svg>
+        Что внутри книги
+      </h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:28px">
+        <div class="card glass-glow" style="padding:16px 18px">
+          <div style="font-weight:600;color:#ddd;font-size:13px;margin-bottom:6px">Сетевая модель партии</div>
+          <div style="font-size:11px;color:var(--text-muted);line-height:1.6">Как Ленин построил распределённую систему из 340&thinsp;000 узлов за 15 лет — без интернета, без серверов, без программистов.</div>
+        </div>
+        <div class="card glass-glow" style="padding:16px 18px">
+          <div style="font-weight:600;color:#ddd;font-size:13px;margin-bottom:6px">Консенсус-механизмы</div>
+          <div style="font-size:11px;color:var(--text-muted);line-height:1.6">Демократический централизм как протокол Byzantine Fault Tolerance. Съезды = блоки. Резолюции = хэши. Фракции = форки.</div>
+        </div>
+        <div class="card glass-glow" style="padding:16px 18px">
+          <div style="font-weight:600;color:#ddd;font-size:13px;margin-bottom:6px">Риторический анализ</div>
+          <div style="font-size:11px;color:var(--text-muted);line-height:1.6">Эмоциональная дуга 1893–1922: от сарказма к агрессии. 5 осей анализа. 25-летний профиль в 169&thinsp;067 точках.</div>
+        </div>
+        <div class="card glass-glow" style="padding:16px 18px">
+          <div style="font-weight:600;color:#ddd;font-size:13px;margin-bottom:6px">29 оппонентов</div>
+          <div style="font-size:11px;color:var(--text-muted);line-height:1.6">Карта идейных противников: Милюков, эсеры, Мах, Бернштейн, Плеханов, Каутский и другие. 9&thinsp;262 упоминания.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="instr-tip" style="margin-top:12px">
+      <div class="icon-wrap"><svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="var(--gold)" stroke-width="1.5"/><line x1="12" y1="7" x2="12" y2="13" stroke="var(--gold)" stroke-width="1.5"/><circle cx="12" cy="16.5" r="1.2" fill="var(--gold)"/></svg></div>
+      <div>
+        <p style="color:var(--text-secondary);font-size:12px;line-height:1.7;margin:0">Книга в формате PDF. Открывается в браузере, на планшете, телефоне. Можно распечатать. <strong style="color:var(--red-bright)">Последнее обновление: 23 июля 2026.</strong></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+  <footer id="site-footer" role="contentinfo">
+    <div class="footer-orn" style="justify-content:center;margin-bottom:20px"><span class="fline"></span><span class="fdot"></span><span class="fline" style="transform:scaleX(-1)"></span></div>
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>Ленин-Бук</h4>
+        <span>Аналитический корпус 55 томов</span>
+        <span>169&thinsp;067 параграфов</span>
+        <span>9 аналитических движков</span>
+        <span>22+ инструмента</span>
+      </div>
+      <div class="footer-col">
+        <h4>Навигация</h4>
+        <a href="#" onclick="switchTab(1);return false">Главная</a>
+        <a href="#" onclick="switchTab(3);return false">Поиск</a>
+        <a href="#" onclick="switchTab(4);return false">Таймлайн</a>
+        <a href="#" onclick="switchTab(11);return false">Дашборд</a>
+      </div>
+      <div class="footer-col">
+        <h4>Инструменты</h4>
+        <a href="#" onclick="switchTab(20);return false">Оракул</a>
+        <a href="#" onclick="switchTab(17);return false">Сравнитель</a>
+        <a href="#" onclick="switchTab(16);return false">Цитаты</a>
+        <a href="#" onclick="switchTab(13);return false">Граф</a>
+      </div>
+      <div class="footer-col">
+        <h4>Справка</h4>
+        <a href="#" onclick="switchTab(22);return false">Инструкция</a>
+        <a href="#" onclick="switchTab(23);return false">О проекте</a>
+        <a href="#" onclick="shareTelegram('Ленин-Бук — аналитический корпус 55 томов')">Поделиться</a>
+        <button onclick="toggleTheme()" id="theme-toggle-btn" aria-label="Переключить тему" style="background:none;border:1px solid var(--border-hover);border-radius:3px;color:var(--text-muted);padding:3px 8px;cursor:pointer;font-size:10px;margin-top:4px;transition:all .2s" onmouseover="this.style.borderColor='#d55';this.style.color='#ddd'" onmouseout="this.style.borderColor='var(--border-hover)';this.style.color='var(--text-muted)'">светлая тема</button>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>Lenin-Book v2.12 &copy; <script>document.write(new Date().getFullYear())</script> · Антон Коновалов · V2Bot</span>
+      <span id="visit-counter">посещений: ...</span>
+    </div>
+  </footer>
+</div>
+<script src="/data/rhetoric.js"></script>
+<script src="/data/concept_data.js"></script>
+<script>
+var API='/api';
+var YEARS=[1893,1895,1898,1899,1901,1902,1903,1905,1906,1907,1908,1909,1910,1911,1912,1913,1914,1915,1916,1917,1918,1919,1920,1921,1922];
+var engines=[{id:1,name:'Хроно-разметка',metric:'169 067 параграфов, 55 томов, 3 периода'},{id:2,name:'Концептуальный граф',metric:'206 концептов, 12 735 рёбер, 8 кластеров'},{id:3,name:'Диалектический парсер',metric:'24 781 триада, 11.5% с синтезом'},{id:4,name:'Карта оппонентов',metric:'29 оппонентов, 9 262 упоминания'},{id:5,name:'Машина времени',metric:'4 формата дат, 31 событие'},{id:6,name:'Риторический отпечаток',metric:'5 осей: сарказм → агрессия'},{id:7,name:'500 позиций Ленина',metric:'518 тем, 14 категорий'},{id:8,name:'Цитатомёт',metric:'5 000 цитат, скор до 18.0'},{id:9,name:'Сравнительный анализатор',metric:'62 темы: Маркс/Энгельс vs Ленин'}];
+var maxParagraphs=39727,OPP_DATA=null,CONCEPT_NODES=null,engineData=null;
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebar-overlay').classList.toggle('show')}
+function switchInstrTab(btn, level) {
+  document.querySelectorAll('.instr-tab').forEach(function(t){t.classList.remove('active')});
+  btn.classList.add('active');
+  document.querySelectorAll('.instr-section').forEach(function(s){s.style.display='none'});
+  var sec = document.querySelector('.instr-section[data-instr="'+level+'"]');
+  if(sec) sec.style.display='block';
+}
+
+function toggleGroup(el){el.parentElement.classList.toggle('collapsed')}
+function switchTab(id){
+  document.querySelectorAll('.side-item').forEach(function(s){s.classList.remove('active')});
+  var si=document.querySelector('.side-item[data-tab="'+id+'"]');if(si){si.classList.add('active');si.scrollIntoView({block:'nearest'})}
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active')});
+  var p=document.getElementById('panel-'+id);if(p){p.classList.add('active');p.scrollIntoView({behavior:'smooth',block:'start'})}
+  if(id===2&&!window._timelineInit)initTimeline();if(id===3&&!window._rhetoricInit)initRhetoric();
+  if(id===4&&!window._quotesInit){showPanelSkeleton(4);initQuotes()};if(id===5&&!window._enginesInit){showPanelSkeleton(5);initEngines()};
+  if(id===6&&!window._conceptsInit)initConcepts();if(id===7&&!window._opponentsInit){showPanelSkeleton(7);initOpponents()};
+  if(id===8&&!window._compInit)initComparative();if(id===9&&!window._tomoInit)initTomography();
+  if(id===10&&!window._phantomsInit){showPanelSkeleton(10);initPhantoms()};if(id===11&&!window._entropyInit){showPanelSkeleton(11);initEntropy()};
+  if(window.innerWidth<768){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('show')}
+
+function showPanelSkeleton(panelId){
+  var map={4:'skel-quotes',5:'skel-engines',7:'skel-opp',8:'skel-comp',9:'skel-tomo',10:'skel-phant',11:'skel-entr'};
+  var sid=map[panelId];if(sid){var el=document.getElementById(sid);if(el)el.style.display=''}
+}
+function hidePanelSkeleton(panelId){
+  var map={4:'skel-quotes',5:'skel-engines',7:'skel-opp',8:'skel-comp',9:'skel-tomo',10:'skel-phant',11:'skel-entr'};
+  var sid=map[panelId];if(sid){var el=document.getElementById(sid);if(el)el.style.display='none'}
+}}
+function globalSearch(){var q=document.getElementById('global-search-input').value.trim();if(!q){switchTab(1);return}switchTab(1);document.getElementById('search-input').value=q;setTimeout(function(){doSearch()},150)}
+async function fAPI(path){try{var r=await fetch(API+path);return r.json()}catch(e){return null}}
+function initSearch(){document.getElementById('search-btn').onclick=doSearch;document.getElementById('search-input').onkeydown=function(e){if(e.key==='Enter')doSearch()}}
+async function doSearch(){var q=document.getElementById('search-input').value.trim();if(!q)return;var btn=document.getElementById('search-btn'),res=document.getElementById('search-results');btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';res.innerHTML='';var data=await fAPI('/search?q='+encodeURIComponent(q));btn.disabled=false;btn.textContent='Найти';if(!data||!data.results){res.innerHTML='<p class="empty-state">Ошибка</p>';return}var labels={paragraphs:'Параграфы',positions:'Позиции',quotes:'Цитаты',opponents:'Оппоненты',comparative:'Сравнения',triads:'Триады'};var html='<div style="font-size:11px;color:var(--text-muted);text-align:center;margin-bottom:12px">Найдено в '+data.engines_hit+' движках по запросу &laquo;'+q+'&raquo;</div>';for(var e in data.results){var items=data.results[e];if(!items||!items.length)continue;html+='<div class="sr-block"><div class="sr-label">'+(labels[e]||e)+' ('+items.length+')</div>';for(var i=0;i<Math.min(items.length,5);i++){var item=items[i],year=item.year?'<span class="year">'+item.year+'</span>':'',score=item.score?' <span class="score">скор '+item.score+'</span>':'',topic=item.topic?'<strong class="c-accent">'+item.topic+'</strong>: ':'',text=(item.text||item.pattern||'').substring(0,200);html+='<div class="sr-item">'+year+topic+text+(text.length>=200?'...':'')+score+'</div>'}html+='</div>'}res.innerHTML=html||'<p class="empty-state">Ничего не найдено</p>'}
+function initTimeline(){window._timelineInit=true;renderYearPills();populateYearSelects();showTimeline(1917)}
+function renderYearPills(){var pills=document.getElementById('year-pills');var HISTORICAL={1905:'Революция 1905',1914:'Начало ПМВ',1917:'Февраль+Октябрь',1921:'НЭП'};YEARS.forEach(function(y){var cls='year-pill';if(HISTORICAL[y])cls+=' yr-historical';pills.innerHTML+='<span class="year-pill '+cls+'" data-year="'+y+'" onclick="showTimeline('+y+',this)" title="'+(HISTORICAL[y]||'')+'">'+y+'</span>'});if(!document.getElementById('hist-legend')){var leg=document.createElement('div');leg.id='hist-legend';leg.style.cssText='text-align:center;margin-top:8px;font-size:9px;color:var(--text-muted);display:flex;gap:10px;justify-content:center;flex-wrap:wrap';leg.innerHTML='<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c44;opacity:.7"></span> 1905 Революция &nbsp;<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d4af37;opacity:.7"></span> 1914 ПМВ &nbsp;<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c41e1e;opacity:.9"></span> 1917 Революция &nbsp;<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4a8;opacity:.7"></span> 1921 НЭП';pills.parentNode.insertBefore(leg,pills.nextSibling)}}
+async function showTimeline(year,el){if(el){document.querySelectorAll('#panel-2 .year-pill').forEach(function(p){p.classList.remove('active')});el.classList.add('active')}else{var d=document.querySelector('#panel-2 .year-pill[data-year="'+year+'"]');if(d)d.classList.add('active')}var detail=document.getElementById('tl-detail');detail.innerHTML='<p style="color:var(--text-muted);text-align:center"><span class="spinner"></span> Загрузка...</p>';var data=await fAPI('/timeline?year='+year);if(!data){detail.innerHTML='<p class="c-666">Ошибка</p>';return}var HIST={1905:'Первая русская революция. Кровавое воскресенье, восстание на Потёмкине, декабрьское вооружённое восстание в Москве',1914:'Начало Первой мировой войны. Крах II Интернационала. Ленин в эмиграции пишет о превращении войны империалистической в гражданскую',1917:'Февральская революция → Октябрьский переворот. 39&thinsp;727 параграфов — больше, чем за любые три других года вместе',1921:'Новая экономическая политика (НЭП). Кронштадтское восстание. X съезд РКП(б) — запрет фракций'};var hb=HIST[year]?'<div style="background:linear-gradient(135deg,rgba(200,60,60,.08),rgba(200,60,60,.02));border:1px solid rgba(200,60,60,.15);border-left:3px solid #c44;border-radius:4px;padding:10px 14px;margin-bottom:16px;font-size:11px;color:var(--text-secondary);line-height:1.6"><strong style="color:#d44">'+year+' год</strong> — '+HIST[year]+'</div>':'';var paras=data.paragraphs||0,barPct=Math.min(100,(paras/maxParagraphs)*100),qHtml='';if(data.top_quotes&&data.top_quotes.length){qHtml=data.top_quotes.map(function(q){var t=(q.text||'').substring(0,180);return'<div class="tl-quote">&laquo;'+t+(t.length>=180?'...':'')+'&raquo; <span style="color:var(--text-muted);font-size:10px">(скор '+(q.score||0)+')</span></div>'}).join('')}detail.innerHTML=hb+'<div class="tl-stats"><div class="tl-stat"><div class="tl-num">'+paras.toLocaleString()+'</div><div class="tl-label">Параграфов</div></div><div class="tl-stat"><div class="tl-num">'+(data.positions||0)+'</div><div class="tl-label">Позиций</div></div><div class="tl-stat"><div class="tl-num">'+(data.quotes||0)+'</div><div class="tl-label">Цитат</div></div><div class="tl-stat"><div class="tl-num">'+(data.triads||0)+'</div><div class="tl-label">Триад</div></div></div><div class="tl-chart"><div class="tl-bar" style="width:'+barPct+'%"></div></div>'+qHtml+'<div style="font-size:11px;color:var(--text-muted);margin-top:8px">Тома: '+(data.volumes||[]).join(', ')+'</div>'}
+function populateYearSelects(){var a=document.getElementById('year-a'),b=document.getElementById('year-b');YEARS.forEach(function(y,i){a.innerHTML+='<option value="'+y+'"'+(y===1905?' selected':'')+'>'+y+'</option>';b.innerHTML+='<option value="'+y+'"'+(y===1917?' selected':'')+'>'+y+'</option>'})}
+async function compareYears(){var ya=document.getElementById('year-a').value,yb=document.getElementById('year-b').value,res=document.getElementById('compare-result');res.innerHTML='<p class="tc"><span class="spinner"></span></p>';var[da,db]=await Promise.all([fAPI('/timeline?year='+ya),fAPI('/timeline?year='+yb)]);if(!da||!db){res.innerHTML='<p class="c-666">Ошибка</p>';return}function bw(v){return Math.min(100,(v/maxParagraphs)*100)}res.innerHTML='<div class="compare-grid"><div class="c-card"><h5>'+ya+'</h5><div class="c-stat"><div><div class="c-num">'+(da.paragraphs||0).toLocaleString()+'</div><div class="c-label">Параграфов</div></div><div><div class="c-num">'+(da.quotes||0)+'</div><div class="c-label">Цитат</div></div><div><div class="c-num">'+(da.triads||0)+'</div><div class="c-label">Триад</div></div></div><div class="tl-chart" style="margin:8px 0"><div class="tl-bar" style="width:'+bw(da.paragraphs||0)+'%"></div></div><div class="fs-xs">Тома: '+(da.volumes||[]).slice(0,5).join(', ')+'</div></div><div class="c-card"><h5>'+yb+'</h5><div class="c-stat"><div><div class="c-num">'+(db.paragraphs||0).toLocaleString()+'</div><div class="c-label">Параграфов</div></div><div><div class="c-num">'+(db.quotes||0)+'</div><div class="c-label">Цитат</div></div><div><div class="c-num">'+(db.triads||0)+'</div><div class="c-label">Триад</div></div></div><div class="tl-chart" style="margin:8px 0"><div class="tl-bar" style="width:'+bw(db.paragraphs||0)+'%"></div></div><div class="fs-xs">Тома: '+(db.volumes||[]).slice(0,5).join(', ')+'</div></div></div>';res.scrollIntoView({behavior:'smooth'})}
+function initRhetoric(){window._rhetoricInit=true;var p=RHETORIC.global_profile;document.getElementById('rhetoric-profile').innerHTML='<h4 style="text-align:center;margin-bottom:10px;color:var(--text-secondary);font-size:12px">Глобальный профиль (169 067 параграфов)</h4><div class="rhet-bars"><div class="bar-item"><div class="bar-fill"><div class="bar-inner" style="height:'+(p.sarcasm*100)+'%;background:linear-gradient(180deg,#d4af37,#b8960c)"></div></div><div class="fs-xs">Сарказм</div><div style="font-size:15px;color:#b8960c;font-weight:700">'+(p.sarcasm*100).toFixed(0)+'%</div></div><div class="bar-item"><div class="bar-fill"><div class="bar-inner" style="height:'+(p.aggression*100)+'%;background:linear-gradient(180deg,#c41e1e,#660000)"></div></div><div class="fs-xs">Агрессия</div><div style="font-size:15px;color:#c44;font-weight:700">'+(p.aggression*100).toFixed(0)+'%</div></div><div class="bar-item"><div class="bar-fill"><div class="bar-inner" style="height:'+(p.analytical*100)+'%;background:linear-gradient(180deg,#888,#666)"></div></div><div class="fs-xs">Анализ</div><div style="font-size:15px;color:#888;font-weight:700">'+(p.analytical*100).toFixed(0)+'%</div></div><div class="bar-item"><div class="bar-fill"><div class="bar-inner" style="height:'+(p.inspiration*100)+'%;background:linear-gradient(180deg,#4a8,#3a7)"></div></div><div class="fs-xs">Вдохн.</div><div style="font-size:15px;color:#4a8;font-weight:700">'+(p.inspiration*100).toFixed(0)+'%</div></div><div class="bar-item"><div class="bar-fill"><div class="bar-inner" style="height:'+(p.contempt*100)+'%;background:linear-gradient(180deg,#999,#777)"></div></div><div class="fs-xs">Презр.</div><div style="font-size:15px;color:var(--text-secondary);font-weight:700">'+(p.contempt*100).toFixed(1)+'%</div></div></div>';var svg=document.getElementById('arc-data'),arc=RHETORIC.emotional_arc;if(!arc.length)return;var stepX=560/(arc.length-1),maxD=Math.max.apply(null,arc.map(function(a){return a.density}));for(var i=0;i<=4;i++){var gy=20+200-(200*i/4);svg.innerHTML+='<line x1="50" y1="'+gy+'" x2="610" y2="'+gy+'" stroke="#1e1e28" stroke-width="0.5" stroke-dasharray="4,4"/>';svg.innerHTML+='<text x="45" y="'+(gy+3)+'" fill="#444" font-size="9" text-anchor="end">'+(maxD*i/4).toFixed(1)+'</text>'}var dPath='';arc.forEach(function(a,i){var sx=50+i*stepX,sy=20+200-(a.density/maxD)*200;dPath+=(i===0?'M':'L')+' '+sx.toFixed(0)+' '+sy.toFixed(0)});var areaPath=dPath+' L '+(50+(arc.length-1)*stepX).toFixed(0)+' 220 L 50 220 Z';svg.innerHTML+='<path d="'+areaPath+'" fill="url(#gA)" opacity="0.1"/><path d="'+dPath+'" fill="none" stroke="#c44" stroke-width="2.5"/>';var prevDom='';arc.forEach(function(a,i){var sx=50+i*stepX,sy=20+200-(a.density/maxD)*200,color=a.dominant==='sarcasm'?'#d4af37':'#c41e1e';svg.innerHTML+='<circle cx="'+sx.toFixed(0)+'" cy="'+sy.toFixed(0)+'" r="4" fill="'+color+'" opacity="0.8"/>';if(a.dominant!==prevDom&&prevDom!==''&&a.dominant==='aggression'){svg.innerHTML+='<line x1="'+sx.toFixed(0)+'" y1="20" x2="'+sx.toFixed(0)+'" y2="220" stroke="#c44" stroke-width="1" stroke-dasharray="6,3" opacity="0.3"/>'}prevDom=a.dominant});var labels=document.getElementById('arc-labels');[1893,1900,1905,1910,1915,1917,1919,1922].forEach(function(yr){var idx=arc.findIndex(function(a){return a.year===yr});if(idx>=0)labels.innerHTML+='<text x="'+(50+idx*stepX).toFixed(0)+'" y="238" fill="#555" font-size="10" text-anchor="middle">'+yr+'</text>'});document.getElementById('arc-legend').innerHTML='<span style="display:inline-block;width:10px;height:10px;background:#d4af37;border-radius:50%;margin-right:4px"></span><span style="color:var(--text-secondary);font-size:10px">Сарказм</span> <span style="display:inline-block;width:10px;height:10px;background:#c41e1e;border-radius:50%;margin-left:12px;margin-right:4px"></span><span style="color:var(--text-secondary);font-size:10px">Агрессия</span>';var sarcYears=arc.filter(function(a){return a.dominant==='sarcasm'}).length,aggYears=arc.filter(function(a){return a.dominant==='aggression'}).length,pivot=arc.find(function(a){return a.dominant==='aggression'});document.getElementById('arc-insights').innerHTML='<strong class="c-gold">1893&ndash;'+(pivot?pivot.year-1:1918)+':</strong> сарказм ('+sarcYears+' лет) &nbsp;|&nbsp; <strong class="c-accent">'+(pivot?pivot.year:1919)+'&ndash;1922:</strong> агрессия ('+aggYears+' года) | Пик: '+arc.reduce(function(a,b){return a.density>b.density?a:b}).year+' ('+maxD.toFixed(2)+')'}
+function initQuotes(){window._quotesInit=true;populateQuoteYears();loadQuotes()}
+function populateQuoteYears(){var sel=document.getElementById('q-year');YEARS.forEach(function(y){sel.innerHTML+='<option value="'+y+'">'+y+'</option>'})}
+var quotesPage=0,allQuotesCache=[];
+async function loadQuotes(more){if(!more){quotesPage=0;allQuotesCache=[]}var feed=document.getElementById('quote-feed');if(!more){showPanelSkeleton(4);feed.innerHTML='<p class="tc"><span class="spinner"></span> Загрузка...</p>';var seeds=['революция','партия','класс','диктатура','капитал','борьба','власть','демократия','социализм','государство'],q=seeds[quotesPage%seeds.length],data=await fAPI('/search?q='+encodeURIComponent(q));if(data&&data.results&&data.results.quotes){allQuotesCache=allQuotesCache.concat(data.results.quotes)}var yearFilter=document.getElementById('q-year').value,sort=document.getElementById('q-sort').value,filtered=allQuotesCache.slice();if(yearFilter)filtered=filtered.filter(function(q){return q.year==yearFilter});if(sort==='score')filtered.sort(function(a,b){return(b.score||0)-(a.score||0)});else if(sort==='year')filtered.sort(function(a,b){return(b.year||0)-(a.year||0)});else filtered.sort(function(){return Math.random()-0.5});var html='';filtered.slice(0,more?allQuotesCache.length:10).forEach(function(q){html+='<div class="q-item"><div class="q-text">&laquo;'+(q.text||'').substring(0,250)+((q.text||'').length>250?'...':'')+'&raquo;</div><div class="q-meta">'+q.year+' <span class="q-score">скор '+(q.score||0)+'</span></div></div>'});hidePanelSkeleton(4);feed.innerHTML=html||'<p style="color:var(--text-muted);text-align:center">Нет цитат по фильтру</p>';quotesPage++}}
+function initEngines(){window._enginesInit=true;var grid=document.getElementById('engine-grid');engines.forEach(function(e){hidePanelSkeleton(5);grid.innerHTML+='<div class="engine-card" id="ecard-'+e.id+'"><div class="e-id">Механика &numero;'+e.id+'</div><div class="e-name">'+e.name+'</div><div class="e-metric">'+e.metric+'</div><div class="e-more" id="emore-'+e.id+'"><span class="c-dim">Клик для деталей...</span></div></div>';document.getElementById('ecard-'+e.id).onclick=function(){toggleEngine(e.id)}})}
+async function toggleEngine(id){var card=document.getElementById('ecard-'+id),more=document.getElementById('emore-'+id);card.classList.toggle('expanded');if(card.classList.contains('expanded')&&more.textContent==='Клик для деталей...'){if(!engineData)engineData=await fAPI('/stats');if(engineData&&engineData.engines){var eKey=Object.keys(engineData.engines).find(function(k){return k.startsWith(id+'_')});if(eKey){var d=engineData.engines[eKey],html='';for(var k in d)html+='<div style="margin:3px 0"><span class="e-detail-key">'+k+':</span> '+(typeof d[k]==='number'?d[k].toLocaleString():d[k])+'</div>';more.innerHTML=html}else{more.innerHTML='<span class="c-dim">Нет данных</span>'}}}}
+function initConcepts(){window._conceptsInit=true;var legend=document.getElementById('concept-legend'),clusters=CONCEPT_DATA.legend,colors=['#c44','#b8960c','#4a8','#397339','#7b3294','#c66','#0aa','#e67e22','#777','#a44','#2c7','#69c','#a3c','#c96','#4a4','#678'];clusters.forEach(function(cl,i){legend.innerHTML+='<span class="cl-tag" style="color:'+colors[i%colors.length]+';border-color:'+colors[i%colors.length]+'33">'+cl.name+' ('+cl.count+')</span>'});CONCEPT_NODES=[];clusters.forEach(function(cl,ci){cl.concepts.forEach(function(c){CONCEPT_NODES.push({name:c,cluster:ci,clusterName:cl.name})})});drawConceptCanvas()}
+var draggedNode=null,hoveredNode=null;
+function drawConceptCanvas(){var container=document.getElementById('concept-graph'),canvas=document.getElementById('concept-canvas'),dpr=window.devicePixelRatio||1;canvas.width=container.offsetWidth*dpr;canvas.height=container.offsetHeight*dpr;canvas.style.width=container.offsetWidth+'px';canvas.style.height=container.offsetHeight+'px';var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);var W=container.offsetWidth,H=container.offsetHeight,colorsArr=['#c44','#b8960c','#4a8','#397339','#7b3294','#c66','#0aa','#e67e22'],positions=[],clusterGroups={};CONCEPT_NODES.forEach(function(n){if(!clusterGroups[n.cluster])clusterGroups[n.cluster]=[];clusterGroups[n.cluster].push(n)});var cKeys=Object.keys(clusterGroups),pad=60,cxCount=Math.ceil(Math.sqrt(cKeys.length)),cyCount=Math.ceil(cKeys.length/cxCount),cw=(W-2*pad)/cxCount,ch=(H-2*pad)/cyCount;cKeys.forEach(function(ck,ci){var cx=pad+(ci%cxCount)*cw,cy=pad+Math.floor(ci/cxCount)*ch,nodes=clusterGroups[ck],r=Math.min(cw,ch)/2-20;nodes.forEach(function(n,ni){var angle=(ni/nodes.length)*Math.PI*2,nx=cx+cw/2+Math.cos(angle)*r*0.7,ny=cy+ch/2+Math.sin(angle)*r*0.7;positions.push({node:n,x:nx,y:ny,cx:cx+cw/2,cy:cy+ch/2,color:colorsArr[parseInt(ck)%colorsArr.length]})})});var sel=document.getElementById('concept-selected');function draw(){ctx.clearRect(0,0,W,H);cKeys.forEach(function(ck,ci){var cx=pad+(ci%cxCount)*cw,cy=pad+Math.floor(ci/cxCount)*ch;ctx.beginPath();ctx.arc(cx+cw/2,cy+ch/2,Math.min(cw,ch)/2-8,0,Math.PI*2);ctx.fillStyle='rgba(200,200,200,0.03)';ctx.fill();ctx.fillStyle='#333';ctx.font='10px Inter';ctx.textAlign='center';var nm=(CONCEPT_DATA.legend[parseInt(ck)]||{}).name||'';ctx.fillText(nm.substring(nm.indexOf('.')+2),cx+cw/2,cy+8)});positions.forEach(function(p){var isHov=hoveredNode===p,r=isHov?8:5;ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);ctx.fillStyle=p.color;ctx.fill();if(isHov){ctx.strokeStyle='#ddd';ctx.lineWidth=1.5;ctx.stroke()}ctx.fillStyle='#777';ctx.font=(isHov?'bold ':'')+'10px Inter';ctx.textAlign='center';ctx.fillText(p.node.name,p.x,p.y-10)})}canvas.onmousemove=function(e){var rect=canvas.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top;hoveredNode=null;for(var i=0;i<positions.length;i++){var dx=mx-positions[i].x,dy=my-positions[i].y;if(dx*dx+dy*dy<100){hoveredNode=positions[i];break}}if(draggedNode){draggedNode.x=mx;draggedNode.y=my}canvas.style.cursor=hoveredNode?'pointer':'default';draw();sel.innerHTML=hoveredNode?'<strong>'+hoveredNode.node.name+'</strong> &mdash; '+hoveredNode.node.clusterName:''};canvas.onclick=function(e){if(hoveredNode)sel.innerHTML='<strong>'+hoveredNode.node.name+'</strong> &mdash; '+hoveredNode.node.clusterName+' <a href="#" onclick="document.getElementById(\'global-search-input\').value=\''+hoveredNode.node.name+'\';switchTab(1);doSearch();return false" class="c-accent">искать</a>'};canvas.onmousedown=function(e){if(hoveredNode)draggedNode=hoveredNode};canvas.onmouseup=function(){draggedNode=null};canvas.onmouseleave=function(){hoveredNode=null;draggedNode=null;draw()};canvas.ontouchstart=function(e){var touch=e.touches[0],rect=canvas.getBoundingClientRect(),mx=touch.clientX-rect.left,my=touch.clientY-rect.top;for(var i=0;i<positions.length;i++){var dx=mx-positions[i].x,dy=my-positions[i].y;if(dx*dx+dy*dy<200){draggedNode=positions[i];break}}};canvas.ontouchmove=function(e){if(draggedNode){var t=e.touches[0],r=canvas.getBoundingClientRect();draggedNode.x=t.clientX-r.left;draggedNode.y=t.clientY-r.top;draw();e.preventDefault()}};canvas.ontouchend=function(){draggedNode=null};draw()}
+async function initOpponents(){window._opponentsInit=true;var grid=document.getElementById('opp-grid');if(!OPP_DATA){OPP_DATA=await fAPI('/opponents');if(!OPP_DATA||!OPP_DATA.opponents){OPP_DATA={opponents:[{key:'milyukov',full_name:'Павел Милюков',camp:'кадеты',total_mentions:4168,peak_year:1908,top_topics:'конституция, война, демократия'},{key:'esers',full_name:'Партия эсеров',camp:'эсеры',total_mentions:2525,peak_year:1918,top_topics:'террор, аграрный вопрос, Учредительное собрание'},{key:'mach',full_name:'Эрнст Мах',camp:'махизм',total_mentions:775,peak_year:1911,top_topics:'эмпириокритицизм, ощущение, материя'},{key:'bernstein',full_name:'Эдуард Бернштейн',camp:'ревизионизм',total_mentions:669,peak_year:1917,top_topics:'реформы, социализм, демократия'},{key:'plekhanov',full_name:'Георгий Плеханов',camp:'меньшевики',total_mentions:249,peak_year:1917,top_topics:'марксизм, диалектика, война'},{key:'mensheviks',full_name:'Меньшевики',camp:'меньшевики',total_mentions:220,peak_year:1917,top_topics:'коалиция, советы, выборы'},{key:'kautsky',full_name:'Карл Каутский',camp:'центризм',total_mentions:180,peak_year:1918,top_topics:'диктатура, демократия, империализм'},{key:'liberals',full_name:'Либералы (кадеты)',camp:'кадеты',total_mentions:160,peak_year:1907,top_topics:'Дума, конституция, свобода'},{key:'anarchists',full_name:'Анархисты',camp:'анархизм',total_mentions:95,peak_year:1918,top_topics:'государство, власть, самоуправление'},{key:'trotsky',full_name:'Лев Троцкий',camp:'большевики',total_mentions:85,peak_year:1918,top_topics:'армия, мир, бюрократия'}],links:[],disputes:[]}}}var opps=OPP_DATA.opponents||[],maxM=Math.max.apply(null,opps.map(function(o){return o.total_mentions||0}));grid.innerHTML='';opps.forEach(function(o){var sz=11+((o.total_mentions||0)/maxM)*9;grid.innerHTML+='<div class="opp-node" onclick="showOpponent(\''+o.key+'\')" style="border-left:3px solid hsl('+((o.total_mentions/maxM)*20)+',60%,35%)"><div class="o-name" style="font-size:'+sz+'px">'+o.full_name+'</div><div class="o-mentions">'+(o.total_mentions||0).toLocaleString()+' упоминаний &middot; пик '+o.peak_year+'</div><div class="o-camp">'+o.camp+'</div></div>'})}
+function showOpponent(key){var o=(OPP_DATA.opponents||[]).find(function(x){return x.key===key});if(!o)return;var d=document.getElementById('opp-detail');d.innerHTML='<div style="text-align:right;cursor:pointer;color:var(--text-muted)" onclick="this.parentElement.classList.remove(\'show\')">&times;</div><div class="od-name">'+o.full_name+'</div><div class="od-stats"><strong>Лагерь:</strong> '+o.camp+'<br><strong>Упоминаний:</strong> '+(o.total_mentions||0).toLocaleString()+'<br><strong>Пик:</strong> '+o.peak_year+'<br><strong>Темы:</strong> '+o.top_topics+'</div>';d.classList.add('show');d.scrollIntoView({behavior:'smooth'})}
+async function initComparative(){window._compInit=true;var list=document.getElementById('comp-list');list.innerHTML='<p class="tc"><span class="spinner"></span> Загрузка...</p>';var data=await fAPI('/search?q=диктатура%20революция%20государство%20класс%20партия'),items=data&&data.results&&data.results.comparative?data.results.comparative:[];if(!items.length){list.innerHTML='<p class="tc">Используйте поиск для сравнений Маркс/Энгельс vs Ленин.</p>';return}var html='';items.forEach(function(item){html+='<div class="comp-item" onclick="this.classList.toggle(\'open\')"><div class="comp-topic">'+item.topic+'</div><div class="comp-body"><div class="comp-col"><strong>Эволюция:</strong> '+(item.evolution||'От Маркса и Энгельса к Ленину.')+'</div></div></div>'});list.innerHTML=html}
+function initTomography(){window._tomoInit=true;function yearColor(y){var idx=YEARS.indexOf(y);if(idx<0)return'#555';var t=idx/(YEARS.length-1),r=Math.round(40+t*200),g=Math.round(80+(1-Math.abs(t-0.5)*2)*150),b=Math.round(200-t*180);return'rgb('+r+','+g+','+b+')'}var legend=document.getElementById('tomo-legend');for(var i=0;i<YEARS.length;i+=2){legend.innerHTML+='<span style="display:inline-block;width:14px;height:14px;background:'+yearColor(YEARS[i])+';border-radius:2px;margin:0 1px" title="'+YEARS[i]+'"></span>'}legend.innerHTML+=' <span style="font-size:9px;color:var(--text-muted);margin-left:4px">1893</span>';for(var i=YEARS.length-2;i<YEARS.length;i++){legend.innerHTML+='<span style="display:inline-block;width:14px;height:14px;background:'+yearColor(YEARS[i])+';border-radius:2px;margin:0 1px" title="'+YEARS[i]+'"></span>'}legend.innerHTML+=' <span style="font-size:9px;color:var(--text-muted);margin-left:4px">1922</span>';var container=document.getElementById('tomo-container'),canvas=document.getElementById('tomo-canvas'),tooltip=document.getElementById('tomo-tooltip'),detail=document.getElementById('tomo-detail'),dpr=window.devicePixelRatio||1,cw=container.offsetWidth,ch=container.offsetHeight;canvas.width=cw*dpr;canvas.height=ch*dpr;canvas.style.width=cw+'px';canvas.style.height=ch+'px';var ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);var allPoints=null,hoverPoint=null;function draw(){if(!allPoints)return;ctx.clearRect(0,0,cw,ch);ctx.fillStyle='#0d0d0d';ctx.fillRect(0,0,cw,ch);for(var i=0;i<allPoints.length;i++){var p=allPoints[i],px=p[0],py=p[1],yr=p[2];ctx.fillStyle=yearColor(yr);ctx.globalAlpha=0.35;ctx.fillRect(px-1.5,py-1.5,3,3)}ctx.globalAlpha=1;if(hoverPoint){ctx.fillStyle='#fff';ctx.globalAlpha=0.9;ctx.beginPath();ctx.arc(hoverPoint[0],hoverPoint[1],6,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();ctx.globalAlpha=1}ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='10px Inter';ctx.textAlign='center';ctx.fillText('1893',30,ch-10);ctx.fillText('1922',cw-30,ch-10)}fetch('/tomography_compact.json').then(function(r){return r.json()}).then(function(data){allPoints=data;var xs=[],ys=[];for(var i=0;i<Math.min(data.length,500);i++){xs.push(data[i][0]);ys.push(data[i][1])}var xmin=Math.min.apply(null,xs),xmax=Math.max.apply(null,xs),ymin=Math.min.apply(null,ys),ymax=Math.max.apply(null,ys),xr=(xmax-xmin)||1,yr=(ymax-ymin)||1,pad=30;for(var i=0;i<data.length;i++){data[i][0]=pad+((data[i][0]-xmin)/xr)*(cw-2*pad);data[i][1]=pad+((data[i][1]-ymin)/yr)*(ch-2*pad)}draw()}).catch(function(){detail.innerHTML='<span class="c-dim">Данные загружаются... (файл ~160 KB)</span>'});canvas.onmousemove=function(e){if(!allPoints)return;var rect=canvas.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top;hoverPoint=null;var minD=25;for(var i=0;i<allPoints.length;i++){var dx=mx-allPoints[i][0],dy=my-allPoints[i][1];if(dx*dx+dy*dy<minD){hoverPoint=allPoints[i];minD=dx*dx+dy*dy}}if(hoverPoint){tooltip.style.opacity='1';tooltip.style.left=(mx+12)+'px';tooltip.style.top=(my-20)+'px';tooltip.textContent='Год: '+hoverPoint[2];detail.innerHTML='<span class="c-accent">'+hoverPoint[2]+' год</span>'}else{tooltip.style.opacity='0';detail.innerHTML=''}draw()}}
+function initPhantoms(){window._phantomsInit=true;var data=null;fetch('/api/phantoms').then(function(r){return r.json()}).then(function(d){if(!d||!d.by_year)return;data=d;var pills=document.getElementById('phantom-years'),years=Object.keys(d.by_year).sort(function(a,b){return a-b});years.forEach(function(y){pills.innerHTML+='<span class="year-pill" data-year="'+y+'" onclick="showPhantoms(\''+y+'\',this)">'+y+' ('+d.by_year[y].length+')</span>'});if(years.length>0){var first=document.querySelector('#phantom-years .year-pill');if(first)showPhantoms(years[0],first)}}).catch(function(){document.getElementById('phantom-list').innerHTML='<p style=\"color:#c44;text-align:center;padding:20px\">API временно недоступен. Попробуйте позже.</p>'});window.showPhantoms=function(year,el){if(!data)return;document.querySelectorAll('#phantom-years .year-pill').forEach(function(p){p.classList.remove('active')});if(el)el.classList.add('active');var items=data.by_year[year]||[],list=document.getElementById('phantom-list'),html='';items.forEach(function(item,i){var marker=item.marker.replace('...','').replace(',','');html+='<div class="comp-item" onclick="this.classList.toggle(\'open\')"><div class="comp-topic">&numero;'+(i+1)+' &laquo;'+marker+'&raquo; &mdash; том '+item.volume+'</div><div class="comp-body"><div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">Глава: '+(item.chapter||'&mdash;')+'</div><div class="comp-col"><strong>Аргумент фантома:</strong> '+(item.phantom_argument||'')+'</div><div class="comp-col" style="margin-top:8px"><strong>Контекст:</strong> ...'+(item.context||'')+'...</div></div></div>'});list.innerHTML=html||'<p class="empty-state">Нет данных</p>';var sk=document.getElementById('skel-phant');if(sk)sk.style.display='none'}}
+function initEntropy(){window._entropyInit=true;var svgData=document.getElementById('entropy-data'),svgLabels=document.getElementById('entropy-labels'),svgBars=document.getElementById('entropy-bars'),detail=document.getElementById('entropy-detail');fetch('/api/entropy').then(function(r){return r.json()}).then(function(d){if(!d||!d.data)return;var data=d.data,maxE=d.data.reduce(function(a,b){return Math.max(a,b.entropy)},0),minE=d.data.reduce(function(a,b){return Math.min(a,b.entropy)},999),maxM=d.data.reduce(function(a,b){return Math.max(a,b.max_entropy)},0),stepX=640/(data.length-1);for(var i=0;i<=4;i++){var gy=20+240-(240*i/4);svgData.innerHTML+='<line x1="60" y1="'+gy+'" x2="700" y2="'+gy+'" stroke="#1e1e28" stroke-width="0.5" stroke-dasharray="4,4"/>';svgData.innerHTML+='<text x="55" y="'+(gy+4)+'" fill="#444" font-size="9" text-anchor="end">'+(minE+(maxE-minE)*i/4).toFixed(2)+'</text>'}var maxPath='';data.forEach(function(d,i){var sx=60+i*stepX,sy=20+240-((d.max_entropy-minE)/(maxE-minE+0.01))*240;maxPath+=(i===0?'M':'L')+' '+sx.toFixed(0)+' '+sy.toFixed(0)});svgData.innerHTML+='<path d="'+maxPath+'" fill="none" stroke="#2a2a33" stroke-width="1" stroke-dasharray="8,4" opacity="0.5"/>';var ePath='';data.forEach(function(d,i){var sx=60+i*stepX,sy=20+240-((d.entropy-minE)/(maxE-minE+0.01))*240;ePath+=(i===0?'M':'L')+' '+sx.toFixed(0)+' '+sy.toFixed(0)});var areaPath=ePath+' L '+(60+(data.length-1)*stepX).toFixed(0)+' 260 L 60 260 Z';svgData.innerHTML+='<path d="'+areaPath+'" fill="url(#gEnt)" opacity="0.12"/><path d="'+ePath+'" fill="none" stroke="#c44" stroke-width="2.5"/>';[1893,1900,1905,1910,1915,1917,1919,1922].forEach(function(yr){var idx=data.findIndex(function(d){return d.year===yr});if(idx>=0)svgLabels.innerHTML+='<text x="'+(60+idx*stepX).toFixed(0)+'" y="275" fill="#555" font-size="10" text-anchor="middle">'+yr+'</text>'});data.forEach(function(d,i){var sx=60+i*stepX,bh=(d.entropy/maxE)*240,color=d.entropy>5.4?'#c44':d.entropy>5.1?'#e67e22':'#4a8';svgBars.innerHTML+='<div style="flex:1;min-width:0;display:flex;align-items:flex-end;justify-content:center"><div style="width:65%;height:'+bh+'px;background:'+color+';opacity:0.5;border-radius:2px 2px 0 0;min-height:2px;transition:height .3s" title="'+d.year+': '+d.entropy.toFixed(3)+'"></div></div>'});var hi=data.reduce(function(a,b){return a.entropy>b.entropy?a:b}),lo=data.reduce(function(a,b){return a.entropy<b.entropy?a:b});detail.innerHTML='<strong class="c-accent">Макс. энтропия:</strong> '+hi.year+' ('+hi.entropy.toFixed(3)+') &mdash; разнообразие тем | <strong style="color:#4a8">Мин.:</strong> '+lo.year+' ('+lo.entropy.toFixed(3)+') &mdash; фокус на '+(lo.dominant_cluster||'одной теме')+' | <strong>1911:</strong> '+data.find(function(d){return d.year===1911}).entropy.toFixed(3)+' &mdash; провал (&laquo;Материализм и эмпириокритицизм&raquo;)'}).catch(function(){var sk2=document.getElementById('skel-entr');if(sk2)sk2.style.display='none';detail.innerHTML='<span style=\"color:#c44\">API временно недоступен</span>'})}
+// ═══ I18N INIT ═══
+I18N.init();
+// ═══ PATHWAY RUNNER ═══
+function runPathway(type){
+  var steps={
+    imperialism:[{tab:2,delay:300,action:function(){var y=document.querySelector('#panel-2 .year-pill[data-year="1915"]');if(y)y.click()}},{tab:6,delay:1500},{tab:14,delay:3000}],
+    revolution:[{tab:2,delay:300,action:function(){var y=document.querySelector('#panel-2 .year-pill[data-year="1917"]');if(y)y.click()}},{tab:3,delay:2000},{tab:4,delay:3500}],
+    philosophy:[{tab:6,delay:300},{tab:14,delay:2000},{tab:1,delay:3500,action:function(){var inp=document.getElementById('search-input');if(inp){inp.value='материя';doSearch()}}}]
+  };
+  var s=steps[type];if(!s)return;
+  var res=document.getElementById('pathway-result');
+  res.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-secondary)"><span class="spinner"></span> Запуск маршрута...</div>';
+  s.forEach(function(step,i){
+    setTimeout(function(){
+      switchTab(step.tab);
+      setTimeout(function(){if(step.action)step.action()},400);
+      if(i===s.length-1)res.innerHTML='<div style="text-align:center;padding:20px;color:#4a8;font-size:13px">Маршрут завершён. Исследуйте дальше!</div>'
+    },step.delay)
+  })
+}
+initSearch();fAPI('/stats').then(function(d){if(d)engineData=d});fAPI('/opponents').then(function(d){if(d&&d.opponents)OPP_DATA=d}).catch(function(){console.log('Opponents API unavailable')});
+// ═══ THEME TOGGLE ═══
+(function(){
+  var saved=localStorage.getItem('lenin-theme')||'dark';
+  function applyTheme(t){
+    var html=document.documentElement;
+    if(t==='light'){
+      html.style.setProperty('--bg','#f0f0f0');
+      html.style.setProperty('--card-bg','#fff');
+      html.style.setProperty('--text','#222');
+      html.style.setProperty('--muted','#666');
+      document.body.style.background='#f4f4f6';
+      document.body.style.color='#222';
+      var btn=document.getElementById('theme-toggle-btn');
+      if(btn)btn.textContent='тёмная тема';
+    } else {
+      document.body.style.background='';
+      document.body.style.color='';
+      var btn=document.getElementById('theme-toggle-btn');
+      if(btn)btn.textContent='светлая тема';
+    }
+    localStorage.setItem('lenin-theme',t);
+  }
+  window.toggleTheme=function(){
+    var cur=localStorage.getItem('lenin-theme')||'dark';
+    applyTheme(cur==='dark'?'light':'dark');
+  };
+  applyTheme(saved);
+})();
+// ═══ VISITOR COUNTER ═══
+(function(){
+  var key='lenin-visits-'+(new Date()).toISOString().slice(0,7);
+  var total=parseInt(localStorage.getItem('lenin-total-visits')||'0');
+  if(!localStorage.getItem('lenin-visit-'+key)){
+    total+=1;
+    localStorage.setItem('lenin-total-visits',String(total));
+    localStorage.setItem('lenin-visit-'+key,'1');
+  }
+  var el=document.getElementById('visit-counter');
+  if(el)el.textContent='посещений: '+total;
+})();
+document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();document.getElementById('global-search-input').focus()}});
+// ═══ PARTICLES BACKGROUND ═══
+(function(){
+  var c=document.getElementById('particles-canvas'),ctx=c.getContext('2d');
+  var W,H,dots=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight}
+  resize();window.addEventListener('resize',resize);
+  for(var i=0;i<50;i++)dots.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.5+.5,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,o:Math.random()*.4+.1});
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<dots.length;i++){
+      var d=dots[i];d.x+=d.vx;d.y+=d.vy;
+      if(d.x<0)d.x=W;if(d.x>W)d.x=0;if(d.y<0)d.y=H;if(d.y>H)d.y=0;
+      ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(200,60,60,'+d.o+')';ctx.fill();
+    }
+    for(var i=0;i<dots.length;i++){
+      for(var j=i+1;j<dots.length;j++){
+        var dx=dots[i].x-dots[j].x,dy=dots[i].y-dots[j].y,dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<120){ctx.beginPath();ctx.moveTo(dots[i].x,dots[i].y);ctx.lineTo(dots[j].x,dots[j].y);ctx.strokeStyle='rgba(200,60,60,'+(.04*(1-dist/120))+')';ctx.stroke()}
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+// ═══ CARD MOUSE TRACKING ═══
+(function(){
+  document.querySelectorAll('.card,.path-card').forEach(function(card){
+    card.addEventListener('mousemove',function(e){
+      var r=card.getBoundingClientRect();
+      card.style.setProperty('--mx',(e.clientX-r.left)+'px');
+      card.style.setProperty('--my',(e.clientY-r.top)+'px');
+    });
+  });
+})();
+// ═══ SOCIAL SHARE ═══
+function copySectionLink(panelId){
+  var url=location.origin+location.pathname+'#'+(panelId||'');
+  navigator.clipboard.writeText(url).then(function(){
+    var el=document.querySelector('.section-link-btn');if(el){el.textContent='Copied!';el.classList.add('copied');setTimeout(function(){el.textContent='Copy link';el.classList.remove('copied')},1500)}
+  }).catch(function(){prompt('Copy:',url)});
+}
+function shareTwitter(text){window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text||'Lenin-Book: аналитический корпус 55 томов Ленина'),'share','width=550,height=420')}
+function shareTelegram(text){window.open('https://t.me/share/url?url='+encodeURIComponent(location.href)+'&text='+encodeURIComponent(text||'Lenin-Book — аналитический корпус'),'share','width=550,height=420')}
+// ═══ ADD SHARE BAR TO PANEL WRAPPERS ═══
+(function(){
+  var shareHTML='<div class="share-bar"><button class="share-btn" onclick="copySectionLink()"><svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1" stroke="currentColor" fill="none" stroke-width="1.5"/><rect x="5" y="8" width="14" height="14" rx="2" stroke="currentColor" fill="none" stroke-width="1.5"/></svg> Copy link</button><button class="share-btn" onclick="shareTwitter()"><svg viewBox="0 0 24 24"><path d="M22 4s-2 1.2-4 2c-1-1-2.5-1.8-4.2-1.8-3.2 0-5.8 2.6-5.8 5.8v1.3c-4.5-.2-7.5-3.3-9-4.8 0 0-1.5 5 3 8.5-1.5 1-4 1.5-5.5 1.5 2 2 5 3 8 3 9 0 13.5-7.5 13.5-13.5v-.6c.9-.7 1.7-1.5 2.3-2.5z" stroke="currentColor" fill="none" stroke-width="1.5"/></svg> Twitter</button><button class="share-btn" onclick="shareTelegram()"><svg viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linejoin="round"/></svg> Telegram</button></div>';
+  document.querySelectorAll('.panel-wrap').forEach(function(wrap){
+    if(!wrap.querySelector('.share-bar')){var div=document.createElement('div');div.innerHTML=shareHTML;wrap.appendChild(div.firstElementChild)}
+  });
+})();
+// ═══ SCROLL REVEAL (IntersectionObserver) ═══
+(function(){
+  var observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('revealed');observer.unobserve(e.target)}
+    });
+  },{threshold:.12,rootMargin:'0px 0px -30px 0px'});
+  document.querySelectorAll('.reveal,.reveal-scale').forEach(function(el){observer.observe(el)});
+  var origSwitch = window.switchTab;
+  window.switchTab = function(){
+    origSwitch && origSwitch.apply(this,arguments);
+    setTimeout(function(){
+      document.querySelectorAll('.reveal:not(.revealed),.reveal-scale:not(.revealed)').forEach(function(el){observer.observe(el)});
+    },200);
+  };
+})();
+// ═══ 3D TILT EFFECT ═══
+(function(){
+  document.querySelectorAll('.tilt-card').forEach(function(card){
+    card.addEventListener('mousemove',function(e){
+      var rect=card.getBoundingClientRect();
+      var x=(e.clientX-rect.left)/rect.width-.5;
+      var y=(e.clientY-rect.top)/rect.height-.5;
+      card.style.transform='perspective(800px) rotateY('+(x*8)+'deg) rotateX('+(-y*6)+'deg)';
+      var inner=card.querySelector('.tilt-inner');
+      if(inner) inner.style.transform='translateZ(15px)';
+    });
+    card.addEventListener('mouseleave',function(){
+      card.style.transform='perspective(800px) rotateY(0) rotateX(0)';
+      var inner=card.querySelector('.tilt-inner');
+      if(inner) inner.style.transform='translateZ(0)';
+    });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# API
+api_keys.json
+test_api_key.txt
+api_errors.log
+api_v2.log
+backend.log
+
+# DB (don't commit binary DB)
+*.db
+
+# Backups
+*.backup
+
+# Test artifacts
+test_report.json
+
+# IDE
+.vscode/
+.idea/
