@@ -154,7 +154,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     PROTECTED_PREFIXES = ["/api/v1/"]
     PUBLIC_V1_PATHS = {"/api/v1/register", "/api/v1/health", "/api/v1/stats", "/api/v1/docs"}
-    PUBLIC_LEGACY_PATHS = {"/api/health", "/api/stats", "/api/summary", "/api/search", "/api/timeline",
+    PUBLIC_LEGACY_PATHS = {"/api/health", "/api/analytics/summary", "/api/stats", "/api/summary", "/api/search", "/api/timeline",
                            "/api/rhetoric", "/api/concepts", "/api/opponents", "/api/entropy",
                            "/api/phantoms", "/api/tomography", "/api/legend", "/api/quote",
                            "/api/oracle/search", "/api/oracle/random", "/api/oracle/stats",
@@ -394,6 +394,12 @@ def api_quote():
 def api_health():
     return {"status": "ok", "service": "lenin-book-api", "version": "2.0"}
 
+@app.get("/api/analytics/summary")
+def api_analytics_summary():
+    """Public analytics summary for site dashboard."""
+    import analytics
+    return analytics.get_summary()
+
 # ===== V1 COMMERCIAL ENDPOINTS =====
 
 @app.get("/api/v1/health")
@@ -448,6 +454,29 @@ def v1_stats(x_api_key: str = Depends(verify_api_key)):
         "faiss_embeddings": 93711,
         "scored_quotes": 5000,
         "date_range": "1893–1922",
+    }
+
+@app.get("/api/v1/analytics")
+def v1_analytics(days: int = Query(30, ge=1, le=90), x_api_key: str = Depends(verify_api_key)):
+    """Visitor analytics: unique IPs, top paths, daily trends (admin only)."""
+    import analytics
+    return analytics.parse_log(days)
+
+@app.post("/api/v1/rotate-key")
+def v1_rotate_key(x_api_key: str = Depends(verify_api_key)):
+    """Rotate API key — old key invalidated, new key issued. Same tier."""
+    old_key = x_api_key
+    old_data = api_keys.get(old_key, {})
+    if not old_data:
+        return {"error": True, "code": 404, "detail": "Key not found"}
+    tier = old_data.get("tier", "free")
+    new_key = generate_key(tier)
+    del api_keys[old_key]
+    save_api_keys()
+    return {
+        "new_api_key": new_key, "tier": tier,
+        "daily_limit": RATE_LIMITS[tier],
+        "old_key_invalidated": True
     }
 
 @app.get("/api/v1/search")
