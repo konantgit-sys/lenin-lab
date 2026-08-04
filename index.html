@@ -895,7 +895,7 @@ html{scroll-behavior:smooth}
     <strong class="c-muted">Ошибки:</strong> Все возвращают HTTP 200 + <code>{"error":true,"code":401,"detail":"..."}</code>
   </div>
 
-  <h4 class="section-label" data-i18n="instr-d-api-title">REST API v1 — 15 эндпоинтов</h4>
+  <h4 class="section-label" data-i18n="instr-d-api-title">REST API v1 — 18 эндпоинтов</h4>
   <table class="api-table">
     <tr><th>Метод</th><th>Эндпоинт</th><th>Параметры</th><th>Возвращает</th></tr>
     <tr><td class="method">POST</td><td><code>/api/v1/register?tier=free</code></td><td>tier (free|basic|pro)</td><td>{api_key, tier, requests_per_day}</td></tr>
@@ -911,12 +911,18 @@ html{scroll-behavior:smooth}
     <tr><td class="method">GET</td><td><code>/api/v1/entropy</code></td><td>—</td><td>Тематическое разнообразие по годам</td></tr>
     <tr><td class="method">GET</td><td><code>/api/v1/phantoms?year=1917</code></td><td>year (opt, 1893–1922)</td><td>Фантомные оппоненты</td></tr>
     <tr><td class="method">GET</td><td><code>/api/v1/tomography?n=1000</code></td><td>n (100–9371)</td><td>{total_points, points:[{id, x, y, year}]} — 2D UMAP</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/v1/analytics?days=30</code></td><td>days (1-90)</td><td>{total_requests, unique_ips, daily:{...}, top_api_paths}</td></tr>
+    <tr><td class="method">POST</td><td><code>/api/v1/rotate-key</code></td><td>—</td><td>{new_api_key, tier, old_key_invalidated:true}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/positions</code></td><td>—</td><td>{count:518, positions:[{category, statement, year_range}]}</td></tr>
+    <tr><td class="method">GET</td><td><code>/api/analytics/summary</code></td><td>—</td><td>{total_requests_all_time, today_requests, today_unique_ips}</td></tr>
   </table>
 
   <h4 class="section-label">🛡 Безопасность</h4>
   <div style="background:#0e0e16;border:1px solid #1a1a25;border-radius:6px;padding:16px 20px;font-size:11px;color:#888;line-height:2;margin-bottom:20px">
-    • <strong class="c-muted">API-ключ</strong> — middleware проверяет на каждом эндпоинте v1<br>
-    • <strong class="c-muted">Rate limiting</strong> — 100/1&nbsp;000/10&nbsp;000 запросов/день (free/basic/pro)<br>
+    • <strong class="c-muted">API-ключ</strong> — middleware на всех v1 (401 missing, 403 invalid)<br>
+    • <strong class="c-muted">Rate limiting (API-key)</strong> — 100/1&nbsp;000/10&nbsp;000/день (free/basic/pro)<br>
+    • <strong class="c-muted">Rate limiting (IP)</strong> — 10/день на register, 500/день на legacy /api/* <br>
+    • <strong class="c-muted">Ротация ключей</strong> — POST /api/v1/rotate-key, старый инвалидируется<br>
     • <strong class="c-muted">CORS</strong> — только lenin-book.v2.site и localhost<br>
     • <strong class="c-muted">FTS5 injection</strong> — спецсимволы и операторы вырезаются<br>
     • <strong class="c-muted">Скрытие ошибок</strong> — «internal error», детали в лог сервера<br>
@@ -926,7 +932,7 @@ html{scroll-behavior:smooth}
 <h4 class="section-label" data-i18n="instr-d-export-title">Экспорт и интеграция</h4>
   <div class="instr-grid">
     <div class="instr-card"><div class="ic-title"><span class="num">1</span>Obsidian Plugin (.zip)</div><div class="ic-desc">Скачай архив, распакуй в <code>.obsidian/plugins/</code>. 3 команды: поиск по Ленину, инфо о концепте, случайная цитата.</div><div class="ic-action" onclick="switchTab(20)" data-i18n="instr-action-open">Скачать &rarr;</div></div>
-    <div class="instr-card"><div class="ic-title"><span class="num">2</span>JSON API</div><div class="ic-desc">Все эндпоинты возвращают JSON. Делай <code>fetch()</code> из своего приложения. CORS открыт. Никаких API-ключей не требуется.</div></div>
+    <div class="instr-card"><div class="ic-title"><span class="num">2</span>JSON API</div><div class="ic-desc">18 v1 эндпоинтов (X-API-Key) + 6 публичных. JSON. CORS: lenin-book.v2.site + localhost. Подключай из своего приложения.</div></div>
     <div class="instr-card"><div class="ic-title"><span class="num">3</span>White Paper → PDF</div><div class="ic-desc">Сгенерируй статью в White Paper Generator, потом распечатай как PDF (Ctrl+P в браузере). 7 разделов, A4.</div><div class="ic-action" onclick="switchTab(13)" data-i18n="instr-action-open">Открыть &rarr;</div></div>
     <div class="instr-card"><div class="ic-title"><span class="num">4</span>SQLite (прямой доступ)</div><div class="ic-desc">169K абзацев в FTS5-индексе. 93K FAISS-векторов. Свяжись для получения дампа БД для своих проектов.</div></div>
   </div>
