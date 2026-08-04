@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from typing import List
 
 # Config
-MISTRAL_KEY = "MISTRAL_KEY_FALLBACK_PLACEHOLDER"
+MISTRAL_KEY = "YOUR_MISTRAL_API_KEY"
 MISTRAL_URL = "https://api.mistral.ai/v1/embeddings"
 MODEL = "mistral-embed"
 EMBEDDING_DIM = 1024

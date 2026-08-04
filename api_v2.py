@@ -17,8 +17,30 @@ import logging
 import traceback as tb_module
 from pathlib import Path
 from collections import defaultdict
+import signal
+from functools import wraps
+import concurrent.futures
+import asyncio
+import threading
 
 SITE_DIR = Path(__file__).parent
+
+# ==== TIMEOUT WRAPPER ====
+# Generative endpoints (papers, style, twin) can hang on heavy computation.
+# Default 15s hard timeout for any generative endpoint.
+_GENERATIVE_TIMEOUT = 15
+
+def with_timeout(seconds: int = _GENERATIVE_TIMEOUT):
+    """Async decorator: hard timeout for FastAPI handlers. Returns 504 on timeout."""
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            try:
+                return await asyncio.wait_for(func(*args, **kwargs), timeout=seconds)
+            except asyncio.TimeoutError:
+                return {"error": True, "code": 504, "detail": f"Request timed out after {seconds}s"}
+        return wrapper
+    return decorator
 
 # ==== CONFIG (no hardcoded paths) ====
 # Primary DB: check env var → site-local (if >1MB) → known fallback
@@ -75,6 +97,7 @@ ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "lenin-book.v2.site").split(
 
 api_keys: dict = {}
 rate_counter: dict = defaultdict(list)
+_rate_lock = threading.Lock()  # thread-safe burst rate counter access
 
 def load_api_keys():
     global api_keys
@@ -163,9 +186,21 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                            "/api/dashboard", "/api/comparator/topics", "/api/comparator/compare",
                            "/api/style/generate", "/api/style/tones", "/api/comparative", "/api/quotes"}
 
-    # IP-based limits for public endpoints (per day)
+    # IP-based limits for public endpoints (per day + burst)
     LEGACY_IP_LIMIT = 500      # requests/day per IP for legacy API
     REGISTER_IP_LIMIT = 10     # key registrations/day per IP
+    BURST_LIMIT = 30           # max requests per minute per IP (burst protection)
+    BURST_WINDOW = 60          # sliding window seconds for burst check
+
+    # HTTP methods allowed on public GET-only endpoints
+    ALLOWED_PUBLIC_METHODS = {"GET", "HEAD", "OPTIONS"}
+
+    # Localhost IPs (exempt from burst rate limiting for test pipelines)
+    # SAFE: in this container, 127.0.0.1/::1 can ONLY be reached by internal
+    # processes (agent pod + nginx proxy). External traffic always has a real
+    # IP in X-Forwarded-For, never localhost. The exemption exists solely so
+    # the local test_pipeline.py can run 68+ sequential API calls.
+    LOCALHOST_IPS = {"127.0.0.1", "::1"}
 
     async def _get_client_ip(self, request: Request) -> str:
         """Extract client IP from headers or connection."""
@@ -189,6 +224,19 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         rate_counter[key].append(now)
         return True, 0
 
+    async def _check_burst_rate(self, ip: str) -> tuple[bool, float]:
+        """Check per-minute burst rate limit. Returns (allowed, retry_after_seconds).
+        Thread-safe: uses _rate_lock for concurrent access."""
+        now = time.time()
+        key = f"burst:{ip}"
+        with _rate_lock:
+            rate_counter[key] = [t for t in rate_counter.get(key, []) if now - t < self.BURST_WINDOW]
+            if len(rate_counter[key]) >= self.BURST_LIMIT:
+                retry_after = round(self.BURST_WINDOW - (now - rate_counter[key][0]), 1)
+                return False, retry_after
+            rate_counter[key].append(now)
+        return True, 0.0
+
     async def dispatch(self, request: Request, call_next):
         path = request.url.path
         client_ip = await self._get_client_ip(request)
@@ -197,6 +245,17 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Skip for docs/openapi/static
         if path.startswith("/api/docs") or path.startswith("/api/redoc") or path.startswith("/api/openapi"):
             return await call_next(request)
+
+        # ==== Block dangerous HTTP methods on public API ====
+        if (path.startswith("/api/") and
+            method not in self.ALLOWED_PUBLIC_METHODS and
+            not path.startswith("/api/v1/register")):
+            access_logger.info(f"[METHOD-BLOCK] {client_ip} {method} {path} → 405")
+            return JSONResponse(status_code=200, content={
+                "error": True, "code": 405,
+                "detail": f"Method {method} not allowed. Use GET.",
+                "allowed_methods": list(self.ALLOWED_PUBLIC_METHODS)
+            })
 
         # ==== /register: strict IP rate limit against spam ====
         if path == "/api/v1/register":
@@ -211,8 +270,19 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             access_logger.info(f"[PUBLIC] {client_ip} POST {path}")
             return await call_next(request)
 
-        # ==== Legacy API: IP rate limited but no auth ====
+        # ==== Legacy API: IP rate limited + burst protection, no auth ====
         if path in self.PUBLIC_LEGACY_PATHS:
+            # Skip burst rate for localhost (internal test pipelines)
+            if client_ip not in self.LOCALHOST_IPS:
+                burst_ok, burst_retry = await self._check_burst_rate(client_ip)
+                if not burst_ok:
+                    access_logger.info(f"[BURST] {client_ip} {method} {path} → 429 burst")
+                    return JSONResponse(status_code=200, content={
+                        "error": True, "code": 429,
+                        "detail": f"Too many requests. Limit: {self.BURST_LIMIT}/min. Retry after {burst_retry}s",
+                        "retry_after_seconds": burst_retry
+                    })
+            # Daily rate check (500/day per IP)
             allowed, retry = await self._check_ip_rate(client_ip, self.LEGACY_IP_LIMIT)
             if not allowed:
                 access_logger.info(f"[RATE-LIMIT] {client_ip} {method} {path} → 429 legacy")
@@ -349,12 +419,25 @@ def api_summary():
     return master_engines_summary()
 
 @app.get("/api/search")
-def api_search(q: str = Query("")):
-    return master_search(q) if q else {"error": "Missing q parameter"}
+def api_search(q: str = Query(""), limit: str = Query("100")):
+    # Validate limit parameter (security hardening)
+    try:
+        lim = int(limit)
+        if lim < 1 or lim > 100:
+            return {"error": True, "code": 400, "detail": f"Limit must be between 1 and 100, got {lim}"}
+    except ValueError:
+        return {"error": True, "code": 400, "detail": f"Invalid limit value: {limit}"}
+    from engines.engine_10_master import master_search as ms
+    return ms(q) if q else {"error": "Missing q parameter"}
 
 @app.get("/api/timeline")
 def api_timeline(year: str = Query("")):
-    return master_timeline(int(year)) if year.isdigit() else {"error": "Invalid year"}
+    if not year.isdigit():
+        return {"error": "Invalid year"}
+    y = int(year)
+    if y < 1893 or y > 1922:
+        return {"error": True, "code": 400, "detail": f"Year must be between 1893 and 1922, got {y}"}
+    return master_timeline(y)
 
 @app.get("/api/rhetoric")
 def api_rhetoric():
@@ -665,9 +748,12 @@ async def twin_index():
     return FileResponse("twin/index.html")
 
 @app.get("/api/oracle/search")
+@with_timeout(10)
 async def oracle_search(q: str = ""):
     if len(q) < 2:
         return {"error": "Query too short"}
+    if len(q) > 500:
+        return {"error": True, "code": 400, "detail": f"Query too long (max 500 chars, got {len(q)})"}
     try:
         import importlib.util
         engine_path = Path(__file__).parent / "products" / "02_lenin_oracle" / "oracle_engine.py"
@@ -727,9 +813,12 @@ async def papers_concepts():
         logger.error(f"[concepts] {e}"); return {"error": "internal error", "concepts": []}
 
 @app.get("/api/papers/generate")
+@with_timeout(15)
 async def papers_generate(topic: str):
     if len(topic) < 2:
         return {"error": "Topic too short"}
+    if len(topic) > 200:
+        return {"error": True, "code": 400, "detail": f"Topic too long (max 200 chars, got {len(topic)})"}
     try:
         import sys
         engine_dir = str(Path(__file__).parent / "products" / "05_white_paper")
@@ -821,15 +910,20 @@ async def digital_twin(q: str = ""):
     """Цифровой двойник Ленина — ответ ТОЛЬКО реальными цитатами."""
     if not q or len(q.strip()) < 3:
         return {"error": "Задайте вопрос (минимум 3 символа)"}
+    if len(q) > 500:
+        return {"error": True, "code": 400, "detail": f"Query too long (max 500 chars, got {len(q)})"}
     quotes = twin_search(q.strip())
     response = assemble_response(q.strip(), quotes)
     return response
 
 # ===== DIGITAL TWIN (Product #7) =====
 @app.get("/api/twin/ask")
+@with_timeout(10)
 async def twin_ask(q: str = ""):
     if len(q) < 3:
         return {"error": "Слишком короткий вопрос (минимум 3 символа)"}
+    if len(q) > 500:
+        return {"error": True, "code": 400, "detail": f"Query too long (max 500 chars, got {len(q)})"}
     try:
         sys.path.insert(0, str(SITE_DIR / "products" / "07_digital_twin"))
         from twin_engine import twin_search, assemble_response
@@ -984,7 +1078,18 @@ async def style_index():
     return FileResponse("style/index.html")
 
 @app.get("/api/style/generate")
+@with_timeout(15)
 async def style_generate(topic: str = "революция", tone: str = "mixed", length: int = 400):
+    # Validate tone
+    VALID_TONES = {"mixed", "aggression", "sarcasm", "inspiration", "analytical", "contempt"}
+    if tone not in VALID_TONES:
+        return {"error": True, "code": 400, "detail": f"Invalid tone: {tone}. Allowed: {', '.join(sorted(VALID_TONES))}"}
+    # Validate length
+    if not (1 <= length <= 2000):
+        return {"error": True, "code": 400, "detail": f"Length must be between 1 and 2000, got {length}"}
+    # Validate topic max length
+    if len(topic) > 200:
+        return {"error": True, "code": 400, "detail": f"Topic too long (max 200 chars, got {len(topic)})"}
     try:
         import importlib.util
         engine_path = Path(__file__).parent / "products" / "08_style_mimic" / "style_engine.py"
@@ -1066,6 +1171,8 @@ async def comparator_topics():
 async def comparator_compare(topic: str = ""):
     """Compare Marx, Engels, Lenin on a topic."""
     if not topic: return {"error": "topic required"}
+    if len(topic) > 200:
+        return {"error": True, "code": 400, "detail": f"Topic too long (max 200 chars, got {len(topic)})"}
     try:
         sys.path.insert(0, str(SITE_DIR / "engines"))
         from engine_09_comparative import MARXIST_BASIS
@@ -1112,10 +1219,13 @@ def api_quotes(year: int = Query(None, ge=1893, le=1922), limit: int = Query(50,
 
 # ===== API /api/comparative — Marx/Engels/Lenin comparison =====
 @app.get("/api/comparative")
+@with_timeout(10)
 async def api_comparative(topic: str = Query(...)):
     """Compare Marx, Engels, Lenin positions on a topic."""
     if not topic:
         return {"error": "topic required"}
+    if len(topic) > 200:
+        return {"error": True, "code": 400, "detail": f"Topic too long (max 200 chars, got {len(topic)})"}
     try:
         sys.path.insert(0, str(SITE_DIR / "engines"))
         from engine_09_comparative import MARXIST_BASIS

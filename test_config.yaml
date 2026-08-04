@@ -1,0 +1,244 @@
+# Lenin Book — Test Pipeline Configuration v2.7
+# Generated: 2026-07-31
+# Framework: pytest-like declarative spec
+
+pipeline:
+  name: "lenin-book-e2e"
+  version: "2.7"
+  timeout: 15
+  base_url: "https://lenin-book.v2.site"
+  backend_port: 9770
+
+# ═══════════════════════════════════════════
+# PHASE 1 — BACKEND HEALTH
+# ═══════════════════════════════════════════
+backend:
+  - name: "process_running"
+    check: pidof_python_api_v2
+    critical: true
+  - name: "port_listening"
+    check: port_open 9770
+    critical: true
+  - name: "startup_script"
+    check: file_exists /home/agent/data/sites/lenin-book/start.sh
+    critical: true
+
+# ═══════════════════════════════════════════
+# PHASE 2 — API ENDPOINTS (27 total)
+# ═══════════════════════════════════════════
+api:
+  core:
+    - path: "/api/health"
+      method: GET
+      expect: { status: 200, json_key: "status", json_value: "ok" }
+    - path: "/api/stats"
+      method: GET
+      expect: { status: 200, json_key: "total_engines", json_value: 9 }
+    - path: "/api/summary"
+      method: GET
+      expect: { status: 200, json_has: ["engines"] }
+    - path: "/api/search?q=революция"
+      method: GET
+      expect: { status: 200, json_key_gt: ["engines_hit", 0] }
+    - path: "/api/timeline?year=1917"
+      method: GET
+      expect: { status: 200, json_has_any: [["events", "paragraphs"]] }
+    - path: "/api/rhetoric"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/concepts"
+      method: GET
+      expect: { status: 200, json_has: ["nodes"] }
+    - path: "/api/opponents"
+      method: GET
+      expect: { status: 200, json_has_any: [["opponents", "total"]] }
+    - path: "/api/entropy"
+      method: GET
+      expect: { status: 200, json_key_gt: ["total", 0] }
+    - path: "/api/phantoms"
+      method: GET
+      expect: { status: 200, json_key_gt: ["total", 1000] }
+    - path: "/api/tomography"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/legend"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/quote"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/dashboard"
+      method: GET
+      expect: { status: 200, json_key: "engines_count", json_value: 9 }
+
+  oracle:
+    - path: "/api/oracle/stats"
+      method: GET
+      expect: { status: 200, json_has: ["total_paragraphs"] }
+    - path: "/api/oracle/search?q=imperialism"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/oracle/random"
+      method: GET
+      expect: { status: 200, json_has_any: [["text", "quote"]] }
+
+  products:
+    - path: "/api/papers/concepts"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/comparator/topics"
+      method: GET
+      expect: { status: 200, json_is_array: true }
+    - path: "/api/comparator/compare?topic=империализм"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/contradictions"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/shadow"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/twin"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/style/tones"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+    - path: "/api/passport"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+
+  legacy:
+    - path: "/api/v1/health"
+      method: GET
+      expect: { status: 200, json_key: "status", json_value: "ok" }
+    - path: "/api/v1/stats"
+      method: GET
+      expect: { status: 200, json_not_null: true }
+
+# ═══════════════════════════════════════════
+# PHASE 3 — STATIC PAGES (12 pages)
+# ═══════════════════════════════════════════
+pages:
+  - path: "/"
+    name: "Главная"
+    expect: { status: 200, content_type: "text/html", has_doctype: true, min_size: 50000 }
+  - path: "/dashboard/"
+    name: "Dashboard Pro"
+    expect: { status: 200, content_type: "text/html", has_doctype: true }
+  - path: "/oracle/"
+    name: "Oracle"
+    expect: { status: 200, content_type: "text/html", has_doctype: true }
+  - path: "/twin/"
+    name: "Digital Twin"
+    expect: { status: 200, content_type: "text/html", has_doctype: true }
+  - path: "/papers/"
+    name: "White Papers"
+    expect: { status: 200, content_type: "text/html", has_doctype: true }
+  - path: "/contradictions/"
+    name: "Contradictions"
+    expect: { status: 200, content_type: "text/html", has_doctype: true }
+  - path: "/shadow/"
+    name: "Shadow Analysis"
+    expect: { status: 200, content_type: "text/html", has_doctype: true }
+  - path: "/graph/"
+    name: "Knowledge Graph"
+    expect: { status: 200, content_type: "text/html", has_doctype: true }
+  - path: "/comparator/"
+    name: "Comparator"
+    expect: { status: 200, content_type: "text/html", has_doctype: true }
+  - path: "/style/"
+    name: "Style Mimic"
+    expect: { status: 200, content_type: "text/html", has_doctype: true }
+  - path: "/obsidian/"
+    name: "Obsidian Plugin"
+    expect: { status: 200, content_type: "text/html", has_doctype: true }
+
+# ═══════════════════════════════════════════
+# PHASE 4 — FRONTEND FEATURES
+# ═══════════════════════════════════════════
+frontend:
+  html_structure:
+    - name: "tab_panels"
+      check: "count_elements id^=panel-"
+      expect: { min: 20 }
+    - name: "svg_icons"
+      check: "count_elements <svg"
+      expect: { min: 25 }
+    - name: "i18n_keys"
+      check: "count_elements data-i18n="
+      expect: { min: 60 }
+    - name: "css_classes"
+      check: "has_string .c-muted"
+      expect: true
+    - name: "aria_labels"
+      check: "has_string aria-label="
+      expect: true
+    - name: "skip_link"
+      check: "has_string skip-link"
+      expect: true
+
+  interactive:
+    - name: "language_toggle"
+      check: "has_string lang-toggle"
+      expect: true
+    - name: "theme_toggle"
+      check: "has_string data-theme"
+      expect: true
+    - name: "search_input"
+      check: "has_string search-input"
+      expect: true
+    - name: "tab_system"
+      check: "has_string switchTab"
+      expect: true
+
+  seo_meta:
+    - name: "og_tags"
+      check: "has_string og:"
+      expect: true
+    - name: "favicon"
+      check: "has_string favicon"
+      expect: true
+    - name: "footer"
+      check: "has_string <footer"
+      expect: true
+
+  mobile:
+    - name: "breakpoint_1024"
+      check: "has_string @media.*1024"
+      expect: true
+    - name: "breakpoint_768"
+      check: "has_string @media.*768"
+      expect: true
+    - name: "breakpoint_480"
+      check: "has_string @media.*480"
+      expect: true
+
+# ═══════════════════════════════════════════
+# PHASE 5 — PERFORMANCE & SECURITY
+# ═══════════════════════════════════════════
+ops:
+  - name: "response_time"
+    check: "ttfb_ms"
+    expect: { max: 500 }
+  - name: "page_size_kb"
+    check: "content_length_kb"
+    expect: { max: 150 }
+  - name: "gzip_enabled"
+    check: "header content-encoding"
+    expect: "gzip"
+  - name: "tls_version"
+    check: "tls_protocol"
+    expect: "TLSv1.3"
+  - name: "tls_expiry_days"
+    check: "cert_days_left"
+    expect: { min: 14, warn_below: 30 }
+  - name: "x_frame_options"
+    check: "header x-frame-options"
+    expect: "SAMEORIGIN"
+  - name: "content_type_options"
+    check: "header x-content-type-options"
+    expect: "nosniff"
+  - name: "referrer_policy"
+    check: "header referrer-policy"
+    expect_not_empty: true

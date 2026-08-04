@@ -1,24 +1,43 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
+# Validation artifacts (internal)
+ab_test_results.json
+concept_cache_before_rerun.json
+concept_cache_v229_backup.json
+concept_cache_v231_backup.json
+correction_report_v230.txt
+final_validation_report_v231.txt
+phase2_master_report.txt
+stability_test_report.txt
+stability_test_results.json
+validation_data_50.json
+validation_data_50_annotated.json
+validation_form_50_concepts.txt
+validation_results_annotated.txt
+validation_triangulation_report.txt
 
-# API
-api_keys.json
+# Backup caches
+*_backup.json
+*before_rerun*
+
+# Secrets
 test_api_key.txt
-api_errors.log
-api_v2.log
-backend.log
+*.key
+.env
 
-# DB (don't commit binary DB)
+# Server config
+port.txt
+
+# Build artifacts
+build_premium_book.py
+editorial_engine.py
+part*.html
+full*.html
+premium_book.html
+
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Database (too large, regeneratable)
+lenin.db
 *.db
-
-# Backups
-*.backup
-
-# Test artifacts
-test_report.json
-
-# IDE
-.vscode/
-.idea/
