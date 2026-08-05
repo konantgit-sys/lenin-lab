@@ -6,7 +6,7 @@
 <title>Ленин-Бук — аналитический корпус 55 томов</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <meta property="og:title" content="Ленин-Бук — аналитический корпус 55 томов">
-<meta property="og:description" content="169 067 параграфов, 48 млн символов, 9 движков анализа, 22 инструмента. Весь Ленин в одном сайте.">
+<meta property="og:description" content="169 067 параграфов, 48 млн символов, 9 движков анализа, 28 панелей. Весь Ленин в одном сайте.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://lenin-book.v2.site/">
 <meta property="og:image" content="https://lenin-book.v2.site/favicon.svg">
@@ -16,7 +16,7 @@
 <meta name="twitter:title" content="Ленин-Бук — 55 томов в одном инструменте">
 <meta name="twitter:description" content="Поиск, таймлайн, риторика, граф концептов, оракул, цифровой двойник — весь Ленин.">
 <meta name="twitter:image" content="https://lenin-book.v2.site/favicon.svg">
-<meta name="description" content="Аналитическая платформа по 55 томам Ленина: поиск, таймлайн, риторика, граф концептов, оракул, цифровой двойник и ещё 16 инструментов.">
+<meta name="description" content="Аналитическая платформа по 55 томам Ленина: поиск, таймлайн, риторика, граф концептов, оракул, цифровой двойник и ещё 13 продуктов.">
 <script src="/i18n.js"></script>
 <style>
 	/* ═══ CSS CUSTOM PROPERTIES ═══ */
@@ -457,6 +457,7 @@ html{scroll-behavior:smooth}
   <symbol id="ico-star" viewBox="0 0 24 24"><polygon points="12,1 15,8 23,9 17,15 18,23 12,19 6,23 7,15 1,9 9,8" stroke="currentColor" fill="none" stroke-width="1.3" stroke-linejoin="round"/></symbol>
   <symbol id="ico-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" fill="none" stroke-width="1.5"/><polygon points="12,3 15,10 12,13 9,10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/><polygon points="12,21 9,14 12,11 15,14" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></symbol>
   <symbol id="ico-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" fill="none" stroke-width="1.5"/><path d="M9.5 9a3 3 0 014.5-2.4 3 3 0 01.5 4.9c-1 .7-1.5 1.5-1.5 2.5" stroke="currentColor" fill="none" stroke-width="1.5" stroke-linecap="round"/><circle cx="12" cy="18" r="1" fill="currentColor"/></symbol>
+  <symbol id="ico-sparkle" viewBox="0 0 24 24"><path d="M12 2l1.5 5.5L19 6l-3 4.5 4.5 3-5.5 1.5L15 20l-3-4.5-3 4.5.5-5L4 15l4.5-3L5 7.5l5.5 1.5z" stroke="currentColor" fill="none" stroke-width="1.3" stroke-linejoin="round"/></symbol>
 </svg>
 <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
 <canvas id="particles-canvas"></canvas>
@@ -484,25 +485,27 @@ html{scroll-behavior:smooth}
     <div class="side-item" data-tab="11" onclick="switchTab(11)"><svg class="side-icon"><use href="#ico-chart-down"/></svg> <span data-i18n="nav-entropy">Энтропия</span></div>
   </div>
   <div class="side-group" data-group="products">
-    <div class="side-group-label" onclick="toggleGroup(this)"><span data-i18n="group-products">ПРОДУКТЫ</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+    <div class="side-group-label" onclick="toggleGroup(this)"><span>ПРОДУКТЫ (13)</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
     <div class="side-item" data-tab="12" onclick="switchTab(12)"><svg class="side-icon"><use href="#ico-oracle"/></svg> <span data-i18n="nav-oracle">Оракул</span></div>
+    <div class="side-item" data-tab="13" onclick="switchTab(13)"><svg class="side-icon"><use href="#ico-document"/></svg> <span data-i18n="nav-papers">White Paper</span></div>
     <div class="side-item" data-tab="14" onclick="switchTab(14)"><svg class="side-icon"><use href="#ico-lightning"/></svg> <span data-i18n="nav-contradictions">Противоречия</span></div>
     <div class="side-item" data-tab="15" onclick="switchTab(15)"><svg class="side-icon"><use href="#ico-eye"/></svg> <span data-i18n="nav-shadow">Тени</span></div>
     <div class="side-item" data-tab="17" onclick="switchTab(17)"><svg class="side-icon"><use href="#ico-thought"/></svg> <span data-i18n="nav-twin">Двойник</span></div>
     <div class="side-item" data-tab="21" onclick="switchTab(21)"><svg class="side-icon"><use href="#ico-pen"/></svg> <span data-i18n="nav-style">Стиль</span></div>
+    <div class="side-item" data-tab="26" onclick="switchTab(26)"><svg class="side-icon"><use href="#ico-sparkle"/></svg> <span>GenArt</span></div>
+    <div class="side-item" data-tab="16" onclick="switchTab(16)"><svg class="side-icon"><use href="#ico-dna"/></svg> <span data-i18n="nav-passport">Паспорт ДНК</span></div>
+    <div class="side-item" data-tab="19" onclick="switchTab(19)"><svg class="side-icon"><use href="#ico-balance"/></svg> <span data-i18n="nav-comparator">Сравнения</span></div>
+    <div class="side-item" data-tab="20" onclick="switchTab(20)"><svg class="side-icon"><use href="#ico-book"/></svg> <span data-i18n="nav-obsidian">Obsidian</span></div>
+    <div class="side-item" data-tab="27" onclick="switchTab(27)"><svg class="side-icon"><use href="#ico-graph"/></svg> <span>Граф знаний</span></div>
     <div class="side-item side-item-book" data-tab="25" onclick="switchTab(25)"><svg class="side-icon"><use href="#ico-book"/></svg> <span data-i18n="nav-book">Книга</span> <span class="badge-dl">PDF</span></div>
   </div>
-  <div class="side-group" data-group="generation">
-    <div class="side-group-label" onclick="toggleGroup(this)"><span data-i18n="group-export">ЭКСПОРТ</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
-    <div class="side-item" data-tab="13" onclick="switchTab(13)"><svg class="side-icon"><use href="#ico-document"/></svg> <span data-i18n="nav-papers">White Paper</span></div>
+  <div class="side-group" data-group="tools">
+    <div class="side-group-label" onclick="toggleGroup(this)"><span>ИНСТРУМЕНТЫ</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
     <div class="side-item" data-tab="4" onclick="switchTab(4)"><svg class="side-icon"><use href="#ico-quote"/></svg> <span data-i18n="nav-quotes">Цитаты</span></div>
     <div class="side-item" data-tab="5" onclick="switchTab(5)"><svg class="side-icon"><use href="#ico-gear"/></svg> <span data-i18n="nav-engines">Механики</span></div>
   </div>
-  <div class="side-group" data-group="export">
-    <div class="side-group-label" onclick="toggleGroup(this)"><span data-i18n="group-help">СПРАВКА</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
-    <div class="side-item" data-tab="16" onclick="switchTab(16)"><svg class="side-icon"><use href="#ico-dna"/></svg> <span data-i18n="nav-passport">Паспорт ДНК</span></div>
-    <div class="side-item" data-tab="19" onclick="switchTab(19)"><svg class="side-icon"><use href="#ico-balance"/></svg> <span data-i18n="nav-comparator">Сравнения</span></div>
-    <div class="side-item" data-tab="20" onclick="switchTab(20)"><svg class="side-icon"><use href="#ico-book"/></svg> <span data-i18n="nav-obsidian">Obsidian Plugin</span></div>
+  <div class="side-group" data-group="info">
+    <div class="side-group-label" onclick="toggleGroup(this)"><span>СПРАВКА</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
     <div class="side-item" data-tab="22" onclick="switchTab(22)"><svg class="side-icon"><use href="#ico-help"/></svg> <span data-i18n="nav-instructions">Инструкция</span></div>
     <div class="side-item" data-tab="23" onclick="switchTab(23)"><svg class="side-icon"><use href="#ico-star"/></svg> О проекте</div>
     <div class="side-item" data-tab="24" onclick="switchTab(24)"><svg class="side-icon"><use href="#ico-compass"/></svg> Пути</div>
@@ -772,8 +775,9 @@ html{scroll-behavior:smooth}
 <div class="tab-panel" id="panel-18"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-dashboard">Dashboard</h2><p class="panel-desc" data-i18n="panel-dashboard-desc">Метрики всех 9 движков в реальном времени</p><div class="divider"></div><iframe class="product-iframe" src="/products/03_dashboard_pro/"></iframe></div></div>
 <div class="tab-panel" id="panel-19"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-comparator">Идеологический компаратор</h2><p class="panel-desc" data-i18n="panel-comparator-desc">4 колонки: Маркс, Энгельс, Ленин, Ленинское развитие. 89 тем</p><div class="divider"></div><iframe class="product-iframe" src="/products/04_ideology_comparator/?v=2.32"></iframe></div></div>
 <div class="tab-panel" id="panel-20"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-obsidian">Obsidian Plugin</h2><p class="panel-desc" data-i18n="panel-obsidian-desc">Встрой Ленина в Obsidian: поиск, концепты, случайные цитаты</p><div class="divider"></div><iframe class="product-iframe" src="/products/06_obsidian_plugin/"></iframe></div></div>
-<div class="tab-panel" id="panel-21"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-style">Генератор стиля</h2><p class="panel-desc" data-i18n="panel-style-desc">Марковская модель n=3 + 6 риторических тонов. Пишет как Ленин</p><div class="divider"></div><iframe class="product-iframe" src="/products/08_style_mimic/"
-            <iframe src="/products/10_generative_art/"></iframe>></iframe></div></div>
+<div class="tab-panel" id="panel-21"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-style">Генератор стиля</h2><p class="panel-desc" data-i18n="panel-style-desc">Марковская модель n=3 + 6 риторических тонов. Пишет как Ленин</p><div class="divider"></div><iframe class="product-iframe" src="/products/08_style_mimic/"></iframe></div></div>
+<div class="tab-panel" id="panel-26"><div class="panel-wrap" class="padded-full"><h2>Generative Art</h2><p class="panel-desc">Canvas-частицы: 4 режима (Flow, Burst, Orbit, Drift). Визуализация текстовых данных</p><div class="divider"></div><iframe class="product-iframe" src="/products/10_generative_art/"></iframe></div></div>
+<div class="tab-panel" id="panel-27"><div class="panel-wrap" class="padded-full"><h2>Knowledge Graph</h2><p class="panel-desc">Граф знаний: 206 концептов, 8 кластеров. Интерактивная визуализация связей</p><div class="divider"></div><iframe class="product-iframe" src="/products/09_knowledge_graph/"></iframe></div></div>
 <div class="tab-panel" id="panel-22">
   <div class="panel-wrap" style="max-width:800px;padding:36px 24px">
     <h2 data-i18n="instructions-title">Как пользоваться Ленин-Буком</h2>
@@ -858,7 +862,7 @@ html{scroll-behavior:smooth}
   </div>
 </div>
 <div class="instr-section" data-instr="advanced" class="hidden-c">
-  <h3 data-i18n="instr-a-title">Глубокое погружение: все 22 инструмента</h3>
+  <h3 data-i18n="instr-a-title">Глубокое погружение: все 28 панелей</h3>
   <p class="subtitle" data-i18n="instr-a-sub">Ты уже освоил базу. Теперь — полный арсенал аналитика. Каждый инструмент, его точные возможности и сценарии использования.</p>
   <div class="instr-tip">
     <div class="icon-wrap"><svg width="14" height="14" viewBox="0 0 24 24"><polygon points="12,1 15,8 23,9 17,15 18,23 12,19 6,23 7,15 1,9 9,8" fill="#d4af37"/></svg></div>
