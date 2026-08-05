@@ -79,7 +79,7 @@ sys.path.insert(0, str(SITE_DIR / "products" / "07_digital_twin"))
 
 from engines.engine_10_master import master_stats, master_search, master_timeline, master_engines_summary
 from engines.engine_08_quotes import search_quotes as quotes_search
-from shared.lenin_core import fts5_search, get_paragraph, get_stats, load_cache, random_quote
+# shared module — not used directly; all logic is inline
 
 from fastapi import FastAPI, Query, HTTPException, Request, Header, Depends
 from fastapi.exception_handlers import http_exception_handler
@@ -1180,76 +1180,6 @@ async def obsidian_index():
 @app.get("/plugins/lenin-search.zip")
 async def download_plugin():
     return FileResponse("products/06_obsidian_plugin/plugins/lenin-search.zip", media_type="application/zip")
-
-# ===== IDEOLOGY COMPARATOR (Product #4) =====
-@app.get("/comparator")
-@app.get("/comparator/")
-async def comparator_index():
-    return FileResponse("products/04_ideology_comparator/index.html")
-
-@app.get("/api/comparator/topics")
-async def comparator_topics():
-    """Return list of 62 comparison topics with Marxist basis."""
-    import importlib.util
-    engine_dir = str(Path(__file__).parent / "products" / "04_ideology_comparator")
-    try:
-        # Try loading spec-based data
-        spec_path = Path(engine_dir) / "SPEC.md"
-        if spec_path.exists():
-            content = spec_path.read_text()
-            # Parse topics from SPEC
-            topics = []
-            for line in content.split('\n'):
-                if line.startswith('## ') and not line.startswith('## '):
-                    pass
-                if '|' in line and not line.startswith('|--'):
-                    parts = [p.strip() for p in line.split('|') if p.strip()]
-                    if len(parts) >= 3 and parts[0].isdigit():
-                        topics.append({"id": int(parts[0]), "topic": parts[1], "marx": parts[2] if len(parts)>2 else ""})
-            if topics:
-                return topics
-    except Exception:
-        logger.warning("Failed to parse SPEC.md for comparative topics, falling back to engine_09")
-
-    # Fallback: load from engine_09 data
-    try:
-        sys.path.insert(0, str(SITE_DIR / "engines"))
-        from engine_09_comparative import MARXIST_BASIS
-        return [{"topic": topic, "marx": data.get("marx", ""), "engels": data.get("engels", "")}
-                for topic, data in MARXIST_BASIS.items()]
-    except Exception:
-        logger.warning("Failed to import engine_09_comparative, using hardcoded fallback")
-
-    # Last fallback
-    return [{"topic": "диктатура пролетариата", "marx": "Политическое господство рабочего класса", "engels": "Пролетариат берёт государственную власть"},
-            {"topic": "государство", "marx": "Машина классового господства", "engels": "Государство есть продукт общества"}]
-
-@app.get("/api/comparator/compare")
-async def comparator_compare(topic: str = ""):
-    """Compare Marx, Engels, Lenin on a topic."""
-    if not topic: return {"error": "topic required"}
-    if len(topic) > 200:
-        return {"error": True, "code": 400, "detail": f"Topic too long (max 200 chars, got {len(topic)})"}
-    try:
-        sys.path.insert(0, str(SITE_DIR / "engines"))
-        from engine_09_comparative import MARXIST_BASIS
-        basis = MARXIST_BASIS.get(topic, {})
-        # Search Lenin quotes for this topic
-        import sqlite3
-        db_path = Path(DB_PATH)
-        conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row
-        cur = conn.execute("SELECT text_clean, year, volume FROM paragraphs WHERE text_clean LIKE ? ORDER BY year LIMIT 3", (f"%{topic}%",))
-        quotes = [{"text": row["text_clean"][:300], "year": row["year"], "volume": row["volume"]} for row in cur.fetchall()]
-        conn.close()
-        return {
-            "topic": topic,
-            "marx": basis.get("marx", "Неизвестно"),
-            "engels": basis.get("engels", "Неизвестно"),
-            "lenin_quotes": quotes
-        }
-    except Exception as e:
-        logger.error(f"[comparator/compare] {e}"); return {"error": "internal error", "topic": topic, "marx": "", "engels": "", "lenin_quotes": []}
 
 # ===== API /api/quotes — direct quote access =====
 @app.get("/api/quotes")

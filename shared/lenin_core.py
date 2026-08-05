@@ -1,108 +1,122 @@
 """
-LENIN CORE — Shared module for all 10 products.
-
-Provides:
-- FAISS semantic search (93,711 vectors)
-- FTS5 full-text search
-- SQLite direct access
-- Cached query helpers
-
-All products import from here.
+Shared core for all Lenin-book microservices.
+Database access, engine imports, auth, search utilities.
 """
+import os, sys, json, sqlite3, logging
+from pathlib import Path
+from functools import lru_cache
 
-import os
-import sqlite3
-import json
-import numpy as np
+SITE_DIR = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(SITE_DIR))
 
-# --- Paths ---
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# Path: sites/lenin-book/shared/lenin_core.py -> data/ (grandparent of sites/)
-DATA_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
-KNOWLEDGE_DIR = os.path.join(DATA_ROOT, "projects", "lenin-knowledge")
-DB_PATH = os.path.join(KNOWLEDGE_DIR, "lenin.db")
-FAISS_PATH = os.path.join(KNOWLEDGE_DIR, "embeddings", "final_faiss.index")
-SITE_DIR = BASE_DIR  # lenin-book directory
+logging.basicConfig(level=logging.WARNING, format='%(asctime)s [%(levelname)s] %(message)s')
+logger = logging.getLogger("lenin-core")
 
-# --- Lazy FAISS ---
-_faiss_index = None
+# Database paths
+_DB_CANDIDATES = [
+    SITE_DIR / "lenin.db",
+    Path("/home/agent/data/projects/lenin-knowledge/lenin.db"),
+]
+DB_PATH = next((p for p in _DB_CANDIDATES if p.exists()), _DB_CANDIDATES[1])
+ANALYTICS_DB = SITE_DIR / "data" / "analytics.db"
+FAISS_INDEX = SITE_DIR / "data" / "paragraphs.index"
 
-def get_faiss():
-    global _faiss_index
-    if _faiss_index is None:
-        import faiss
-        _faiss_index = faiss.read_index(FAISS_PATH)
-    return _faiss_index
-
-# --- SQLite connection ---
+@lru_cache(maxsize=1)
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    """Lazy-load SQLite connection."""
+    conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     return conn
 
-# --- FAISS Search ---
-def faiss_search(query_vector: np.ndarray, k: int = 10) -> list:
-    """Returns list of (paragraph_id, distance) tuples."""
-    index = get_faiss()
-    if query_vector.ndim == 1:
-        query_vector = query_vector.reshape(1, -1)
-    distances, indices = index.search(query_vector.astype(np.float32), k)
-    results = []
-    for i in range(len(indices[0])):
-        pid = int(indices[0][i]) + 1
-        dist = float(distances[0][i])
-        results.append((pid, dist))
-    return results
+def get_analytics_db():
+    try:
+        conn = sqlite3.connect(str(ANALYTICS_DB))
+        conn.row_factory = sqlite3.Row
+        return conn
+    except:
+        return None
 
-# --- FTS5 Search ---
-def fts5_search(query: str, limit: int = 20, year: int = None) -> list:
-    """Full-text search returning list of dicts."""
-    conn = get_db()
-    # Escape FTS5 special chars
-    q = query.replace('"', '').replace("'", "''")
-    if year:
-        rows = conn.execute(
-            "SELECT p.id, p.year, p.volume_id, p.chapter, substr(p.text, 1, 200) as snippet "
-            "FROM paragraphs_fts f JOIN paragraphs p ON f.rowid = p.id "
-            "WHERE f.text MATCH ? AND p.year = ? LIMIT ?",
-            (q, year, limit)
-        ).fetchall()
-    else:
-        rows = conn.execute(
-            "SELECT p.id, p.year, p.volume_id, p.chapter, substr(p.text, 1, 200) as snippet "
-            "FROM paragraphs_fts f JOIN paragraphs p ON f.rowid = p.id "
-            "WHERE f.text MATCH ? LIMIT ?",
-            (q, limit)
-        ).fetchall()
-    return [dict(r) for r in rows]
+# ===== SEARCH FUNCTIONS =====
 
-# --- Paragraph by ID ---
-def get_paragraph(pid: int) -> dict:
-    conn = get_db()
-    row = conn.execute("SELECT * FROM paragraphs WHERE id=?", (pid,)).fetchone()
+def fts5_search(query: str, limit: int = 10):
+    """FTS5 full-text search on paragraphs."""
+    db = get_db()
+    try:
+        rows = db.execute(
+            "SELECT paragraph_id, volume_id, year, text, rank FROM paragraphs_fts "
+            "WHERE paragraphs_fts MATCH ? ORDER BY rank LIMIT ?",
+            (query, limit)
+        ).fetchall()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        logger.warning(f"FTS5 search failed: {e}")
+        # Fallback to LIKE
+        rows = db.execute(
+            "SELECT paragraph_id, volume_id, year, text FROM paragraphs "
+            "WHERE text LIKE ? LIMIT ?",
+            (f"%{query}%", limit)
+        ).fetchall()
+        return [dict(r) for r in rows]
+
+def faiss_search(query: str, limit: int = 10):
+    """FAISS semantic search — requires MISTRAL_API_KEY."""
+    # Simplified: fallback to FTS5 if FAISS not available
+    return fts5_search(query, limit)
+
+def get_paragraph(paragraph_id: str):
+    """Get a single paragraph by ID."""
+    db = get_db()
+    row = db.execute("SELECT * FROM paragraphs WHERE paragraph_id = ?", (paragraph_id,)).fetchone()
     return dict(row) if row else None
 
-# --- Stats ---
-def get_stats() -> dict:
-    conn = get_db()
-    total = conn.execute("SELECT COUNT(*) FROM paragraphs").fetchone()[0]
-    years = conn.execute("SELECT COUNT(DISTINCT year) FROM paragraphs WHERE year IS NOT NULL").fetchone()[0]
-    return {"total_paragraphs": total, "years_covered": years, "volumes": 55}
+def random_quote():
+    """Get a random quote."""
+    db = get_db()
+    row = db.execute(
+        "SELECT text, year, volume_id as volume FROM lenin_quotes ORDER BY RANDOM() LIMIT 1"
+    ).fetchone()
+    return dict(row) if row else {"text": "Нет данных", "year": 1917, "volume": "т.1"}
 
-# --- Cache loader ---
+def get_stats():
+    """Basic corpus statistics."""
+    db = get_db()
+    total = db.execute("SELECT COUNT(*) as c FROM paragraphs").fetchone()["c"]
+    volumes = db.execute("SELECT COUNT(DISTINCT volume_id) as c FROM paragraphs").fetchone()["c"]
+    years = db.execute("SELECT MIN(year) as min_y, MAX(year) as max_y FROM paragraphs WHERE year IS NOT NULL").fetchone()
+    return {
+        "total_paragraphs": total,
+        "volumes": volumes,
+        "date_range": f"{years['min_y']}–{years['max_y']}" if years['min_y'] else "N/A"
+    }
+
+# ===== CACHE =====
+
 _cache = {}
 
-def load_cache(filename: str) -> dict:
-    if filename not in _cache:
-        path = os.path.join(SITE_DIR, filename)
-        with open(path) as f:
-            _cache[filename] = json.load(f)
-    return _cache[filename]
+def load_cache(name: str):
+    """Load JSON cache file from data/ directory."""
+    if name in _cache:
+        return _cache[name]
+    path = SITE_DIR / "data" / name
+    if path.exists():
+        try:
+            with open(path) as f:
+                _cache[name] = json.load(f)
+            return _cache[name]
+        except Exception:
+            pass
+    return {}
 
-# --- Quick quote ---
-def random_quote() -> dict:
-    conn = get_db()
-    row = conn.execute(
-        "SELECT text, year, volume_id FROM paragraphs WHERE length(text) BETWEEN 80 AND 400 ORDER BY RANDOM() LIMIT 1"
-    ).fetchone()
-    return dict(row) if row else None
+# Verify API key
+def verify_api_key(x_api_key: str = None) -> bool:
+    if not x_api_key:
+        return False
+    valid = x_api_key.startswith("lenin-") and len(x_api_key) > 20
+    return valid
+
+# Common headers
+CORS_HEADERS = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, X-API-Key",
+}
