@@ -309,6 +309,7 @@ html{scroll-behavior:smooth}
 #tomo-tooltip{position:absolute;pointer-events:none;background:rgba(10,10,15,.92);color:var(--text-body);padding:5px 10px;border-radius:3px;font-size:10px;opacity:0;transition:opacity .12s;border:1px solid #333}
 /* ============ IFRAME ============ */
 .product-iframe{width:100%;height:82vh;border:none;border-radius:6px;background:var(--bg-deep)}
+.product-iframe[data-src]{background:var(--bg-card);opacity:.6;transition:opacity .3s var(--ease-out)}
 /* ============ COMPARE ============ */
 .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 .c-card{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:18px;transition:border-color .2s}
@@ -769,18 +770,18 @@ html{scroll-behavior:smooth}
     </div>
   </div>
 </div>
-<div class="tab-panel" id="panel-12"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-oracle">Оракул</h2><p class="panel-desc" data-i18n="panel-oracle-desc">Семантический поиск по 93K векторам &rarr; подлинные цитаты, без иллюзий</p><div class="divider"></div><iframe class="product-iframe" src="/products/02_lenin_oracle/"></iframe></div></div>
-<div class="tab-panel" id="panel-13"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-papers">White Paper Generator</h2><p class="panel-desc" data-i18n="panel-papers-desc">518 концептов &rarr; A4-статья из 7 разделов</p><div class="divider"></div><iframe class="product-iframe" src="/products/05_white_paper/"></iframe></div></div>
-<div class="tab-panel" id="panel-14"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-contradictions">Противоречия</h2><p class="panel-desc" data-i18n="panel-contradictions-desc">30 противоречий из 1&thinsp;502 позиций: две цитаты &mdash; два взгляда</p><div class="divider"></div><iframe class="product-iframe" src="/products/06_contradictions/"></iframe></div></div>
-<div class="tab-panel" id="panel-15"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-shadow">Теневая структура</h2><p class="panel-desc" data-i18n="panel-shadow-desc">Дрейф частотности слов: что ушло, что пришло, что изменилось</p><div class="divider"></div><iframe class="product-iframe" src="/products/11_shadow/"></iframe></div></div>
-<div class="tab-panel" id="panel-16"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-passport">Стилометрический паспорт</h2><p class="panel-desc" data-i18n="panel-passport-desc">Текстовая ДНК Ленина: длина предложений, лексическое разнообразие, маркеры</p><div class="divider"></div><iframe class="product-iframe" src="/products/12_passport/"></iframe></div></div>
-<div class="tab-panel" id="panel-17"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-twin">Цифровой двойник</h2><p class="panel-desc" data-i18n="panel-twin-desc">Чат с Лениным: вопрос &rarr; 4&ndash;6 реальных цитат с атрибуцией</p><div class="divider"></div><iframe class="product-iframe" src="/products/07_digital_twin/"></iframe></div></div>
-<div class="tab-panel" id="panel-18"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-dashboard">Dashboard</h2><p class="panel-desc" data-i18n="panel-dashboard-desc">Метрики всех 9 движков в реальном времени</p><div class="divider"></div><iframe class="product-iframe" src="/products/03_dashboard_pro/"></iframe></div></div>
-<div class="tab-panel" id="panel-19"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-comparator">Идеологический компаратор</h2><p class="panel-desc" data-i18n="panel-comparator-desc">4 колонки: Маркс, Энгельс, Ленин, Ленинское развитие. 89 тем</p><div class="divider"></div><iframe class="product-iframe" src="/products/04_ideology_comparator/?v=2.32"></iframe></div></div>
-<div class="tab-panel" id="panel-20"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-obsidian">Obsidian Plugin</h2><p class="panel-desc" data-i18n="panel-obsidian-desc">Встрой Ленина в Obsidian: поиск, концепты, случайные цитаты</p><div class="divider"></div><iframe class="product-iframe" src="/products/06_obsidian_plugin/"></iframe></div></div>
-<div class="tab-panel" id="panel-21"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-style">Генератор стиля</h2><p class="panel-desc" data-i18n="panel-style-desc">Марковская модель n=3 + 6 риторических тонов. Пишет как Ленин</p><div class="divider"></div><iframe class="product-iframe" src="/products/08_style_mimic/"></iframe></div></div>
-<div class="tab-panel" id="panel-26"><div class="panel-wrap" class="padded-full"><h2>Generative Art</h2><p class="panel-desc">Canvas-частицы: 4 режима (Flow, Burst, Orbit, Drift). Визуализация текстовых данных</p><div class="divider"></div><iframe class="product-iframe" src="/products/10_generative_art/"></iframe></div></div>
-<div class="tab-panel" id="panel-27"><div class="panel-wrap" class="padded-full"><h2>Knowledge Graph</h2><p class="panel-desc">Граф знаний: 206 концептов, 8 кластеров. Интерактивная визуализация связей</p><div class="divider"></div><iframe class="product-iframe" src="/products/09_knowledge_graph/"></iframe></div></div>
+<div class="tab-panel" id="panel-12"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-oracle">Оракул</h2><p class="panel-desc" data-i18n="panel-oracle-desc">Семантический поиск по 93K векторам &rarr; подлинные цитаты, без иллюзий</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/02_lenin_oracle/"></iframe></div></div>
+<div class="tab-panel" id="panel-13"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-papers">White Paper Generator</h2><p class="panel-desc" data-i18n="panel-papers-desc">518 концептов &rarr; A4-статья из 7 разделов</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/05_white_paper/"></iframe></div></div>
+<div class="tab-panel" id="panel-14"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-contradictions">Противоречия</h2><p class="panel-desc" data-i18n="panel-contradictions-desc">30 противоречий из 1&thinsp;502 позиций: две цитаты &mdash; два взгляда</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/06_contradictions/"></iframe></div></div>
+<div class="tab-panel" id="panel-15"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-shadow">Теневая структура</h2><p class="panel-desc" data-i18n="panel-shadow-desc">Дрейф частотности слов: что ушло, что пришло, что изменилось</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/11_shadow/"></iframe></div></div>
+<div class="tab-panel" id="panel-16"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-passport">Стилометрический паспорт</h2><p class="panel-desc" data-i18n="panel-passport-desc">Текстовая ДНК Ленина: длина предложений, лексическое разнообразие, маркеры</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/12_passport/"></iframe></div></div>
+<div class="tab-panel" id="panel-17"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-twin">Цифровой двойник</h2><p class="panel-desc" data-i18n="panel-twin-desc">Чат с Лениным: вопрос &rarr; 4&ndash;6 реальных цитат с атрибуцией</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/07_digital_twin/"></iframe></div></div>
+<div class="tab-panel" id="panel-18"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-dashboard">Dashboard</h2><p class="panel-desc" data-i18n="panel-dashboard-desc">Метрики всех 9 движков в реальном времени</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/03_dashboard_pro/"></iframe></div></div>
+<div class="tab-panel" id="panel-19"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-comparator">Идеологический компаратор</h2><p class="panel-desc" data-i18n="panel-comparator-desc">4 колонки: Маркс, Энгельс, Ленин, Ленинское развитие. 89 тем</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/04_ideology_comparator/?v=2.32"></iframe></div></div>
+<div class="tab-panel" id="panel-20"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-obsidian">Obsidian Plugin</h2><p class="panel-desc" data-i18n="panel-obsidian-desc">Встрой Ленина в Obsidian: поиск, концепты, случайные цитаты</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/06_obsidian_plugin/"></iframe></div></div>
+<div class="tab-panel" id="panel-21"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-style">Генератор стиля</h2><p class="panel-desc" data-i18n="panel-style-desc">Марковская модель n=3 + 6 риторических тонов. Пишет как Ленин</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/08_style_mimic/"></iframe></div></div>
+<div class="tab-panel" id="panel-26"><div class="panel-wrap" class="padded-full"><h2>Generative Art</h2><p class="panel-desc">Canvas-частицы: 4 режима (Flow, Burst, Orbit, Drift). Визуализация текстовых данных</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/10_generative_art/"></iframe></div></div>
+<div class="tab-panel" id="panel-27"><div class="panel-wrap" class="padded-full"><h2>Knowledge Graph</h2><p class="panel-desc">Граф знаний: 206 концептов, 8 кластеров. Интерактивная визуализация связей</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/09_knowledge_graph/"></iframe></div></div>
 <div class="tab-panel" id="panel-22">
   <div class="panel-wrap" style="max-width:800px;padding:36px 24px">
     <h2 data-i18n="instructions-title">Как пользоваться Ленин-Буком</h2>
@@ -1283,13 +1284,13 @@ function switchTab(id){
   if(!si) return;
   si.classList.add('active');
   
-  // 3. Expand parent group if collapsed (fix: prevent scroll into hidden element)
+  // 3. Expand parent group if collapsed
   var group=si.closest('.side-group');
   if(group && group.classList.contains('collapsed')){
     group.classList.remove('collapsed');
   }
   
-  // 4. Scroll sidebar item into view (after group expanded)
+  // 4. Scroll sidebar item into view
   requestAnimationFrame(function(){
     si.scrollIntoView({block:'nearest',behavior:'instant'});
   });
@@ -1298,9 +1299,14 @@ function switchTab(id){
   var p=document.getElementById('panel-'+id);
   if(p){
     p.classList.add('active');
-    // Only scroll on mobile where panels are stacked vertically
     if(window.innerWidth < 768){
       setTimeout(function(){ p.scrollIntoView({behavior:'smooth',block:'start'}); }, 100);
+    }
+    // Lazy-load iframe: set src from data-src on first activation
+    var ifr=p.querySelector('iframe[data-src]');
+    if(ifr && !ifr.src){
+      ifr.src=ifr.getAttribute('data-src');
+      ifr.removeAttribute('data-src');
     }
   }
   if(id===2&&!window._timelineInit)initTimeline();if(id===3&&!window._rhetoricInit)initRhetoric();
