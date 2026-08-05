@@ -152,7 +152,8 @@ html{scroll-behavior:smooth}
 .reveal-d5.revealed{animation-delay:.25s}
 .reveal-d6.revealed{animation-delay:.3s}
 /* ============ HERO ============ */
-.hero{max-width:800px;margin:0 auto;padding:56px 24px 40px;text-align:center;position:relative;z-index:1}
+.hero{max-width:800px;margin:0 auto;padding:56px 24px 40px;text-align:center;position:relative;z-index:1;overflow:hidden}
+#hero-canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.6}
 .hero::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;height:400px;background:radial-gradient(circle,rgba(200,50,50,.07),transparent 60%);pointer-events:none;animation:heroGlow 4s ease-in-out infinite}
 @keyframes heroGlow{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}}
 .hero-orn{display:flex;gap:16px;align-items:center;justify-content:center;margin-bottom:20px}
@@ -531,6 +532,7 @@ html{scroll-behavior:smooth}
   <div id="content">
 <section class="tab-panel active" id="panel-0">
   <div class="hero">
+  <canvas id="hero-canvas" aria-hidden="true"></canvas>
     <div class="hero-orn">
       <span class="line"></span><span class="dot"></span><span class="line"></span><span class="dot"></span><span class="line"></span>
     </div>
@@ -1497,6 +1499,113 @@ function shareTelegram(text){window.open('https://t.me/share/url?url='+encodeURI
       if(inner) inner.style.transform='translateZ(0)';
     });
   });
+})();
+
+// ═══ Hero particle canvas ═══
+(function(){
+  var canvas=document.getElementById('hero-canvas');
+  if(!canvas) return;
+  var ctx=canvas.getContext('2d');
+  var hero=canvas.parentElement;
+  var W,H,particles=[],mouse={x:-999,y:-999},animId;
+
+  var TOPICS=[
+    'Империализм','Диктатура пролетариата','Революция','Капитал','Социализм',
+    'Государство','Партия','Классовая борьба','Демократия','Материализм',
+    'Эмпириокритицизм','Диалектика','НЭП','Советы','Интернационал',
+    'Гегель','Махизм','Аграрный вопрос','Национальный вопрос','Буржуазия',
+    'Маркс','Энгельс','Плеханов','Каутский','Бернштейн',
+    'Фейербах','Крестьянство','Кооперация','Электрификация','Бюрократия',
+    'Милитаризм','Колониализм','Самоопределение','Гегемония','Ревизионизм',
+    'Оппортунизм','Меньшевики','Большевики','Пролетариат','Синдикализм'
+  ];
+
+  var colors=['rgb(220,70,70)','rgb(200,150,50)','rgb(160,60,60)','rgb(200,100,60)','rgb(180,60,80)']
+
+  function resize(){
+    W=hero.offsetWidth; H=hero.offsetHeight;
+    canvas.width=W; canvas.height=H;
+  }
+
+  function Particle(txt){
+    this.txt=txt;
+    this.x=Math.random()*W;
+    this.y=Math.random()*H;
+    this.vx=(Math.random()-.5)*.5;
+    this.vy=(Math.random()-.5)*.5;
+    this.size=13+Math.random()*14;
+    this.baseColor=colors[Math.floor(Math.random()*colors.length)];
+    this.opacity=0.5;
+    this.targetOpacity=0.65+Math.random()*.25;
+  }
+  Particle.prototype.update=function(){
+    var dx=mouse.x-this.x, dy=mouse.y-this.y, dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<120&&dist>0){var f=(120-dist)/120;this.vx-=dx/dist*f*.3;this.vy-=dy/dist*f*.3}
+    this.vx*=0.995; this.vy*=0.995;
+    this.x+=this.vx; this.y+=this.vy;
+    if(this.x<-50) this.x=W+50; if(this.x>W+50) this.x=-50;
+    if(this.y<-50) this.y=H+50; if(this.y>H+50) this.y=-50;
+    this.opacity+=(this.targetOpacity-this.opacity)*.02;
+  };
+  Particle.prototype.draw=function(){
+    ctx.save();
+    ctx.globalAlpha=this.opacity;
+    ctx.fillStyle=this.baseColor;
+    ctx.font='600 '+this.size+'px Inter,-apple-system,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(this.txt,this.x,this.y);
+    ctx.restore();
+  };
+
+  function init(){
+    resize();
+    particles=TOPICS.map(function(t){return new Particle(t)});
+    // Also add numeric particles
+    [169067,89,55,48,1917,30].forEach(function(n){
+      var p=new Particle(n.toLocaleString());
+      p.size=18+Math.random()*12;
+      p.targetOpacity=.75;
+      p.baseColor='rgb(200,60,60)';
+      particles.push(p);
+    });
+    animId=requestAnimationFrame(loop);
+  }
+
+  function loop(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<particles.length;i++){
+      var p=particles[i];
+      p.update(); p.draw();
+      // Draw connections
+      for(var j=i+1;j<particles.length;j++){
+        var p2=particles[j],dx=p2.x-p.x,dy=p2.y-p.y,dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<90){
+          ctx.strokeStyle='rgba(200,60,60,'+(.03*(1-dist/90))+')';
+          ctx.lineWidth=.5;
+          ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p2.x,p2.y); ctx.stroke();
+        }
+      }
+    }
+    animId=requestAnimationFrame(loop);
+  }
+
+  hero.addEventListener('mousemove',function(e){
+    var r=hero.getBoundingClientRect();
+    mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top;
+  });
+  hero.addEventListener('mouseleave',function(){mouse.x=-999;mouse.y=-999});
+
+  var ro=new ResizeObserver(function(){resize()});
+  ro.observe(hero);
+
+  // Start when panel-0 is active
+  if(document.getElementById('panel-0').classList.contains('active')) init();
+  // Also start on tab switch
+  var origSwitchTab=switchTab;
+  switchTab=function(id){
+    origSwitchTab(id);
+    if(id===0&&!animId) init();
+  };
 })();
 </script>
 </body>
