@@ -470,13 +470,13 @@ html{scroll-behavior:smooth}
     <div class="sub" data-i18n="sidebar-sub">Аналитический корпус &middot; 55 томов</div>
     <button class="lang-toggle" id="lang-toggle-btn" onclick="I18N.switchLang()" data-i18n="lang-toggle" aria-label="Переключить язык">EN</button>
   </div>
-  <div class="side-group" data-group="overview">
-    <div class="side-group-label" onclick="toggleGroup(this)"><span data-i18n="group-overview">ОБЗОР</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
-    <div class="side-item active" data-tab="0" onclick="switchTab(0)"><svg class="side-icon"><use href="#ico-home"/></svg> <span data-i18n="nav-home">Главная</span></div>
+  <div class="side-group" role="group" aria-label="Обзор" data-group="overview">
+    <div class="side-group-label" onclick="toggleGroup(this)" aria-expanded="true" role="button" tabindex="0"><span data-i18n="group-overview">ОБЗОР</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+    <div class="side-item active" data-tab="0" onclick="switchTab(0)" aria-current="page"><svg class="side-icon"><use href="#ico-home"/></svg> <span data-i18n="nav-home">Главная</span></div>
     <div class="side-item" data-tab="18" onclick="switchTab(18)"><svg class="side-icon"><use href="#ico-chart"/></svg> <span data-i18n="nav-dashboard">Дашборд</span></div>
   </div>
-  <div class="side-group" data-group="analytics">
-    <div class="side-group-label" onclick="toggleGroup(this)"><span data-i18n="group-analytics">АНАЛИТИКА</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+  <div class="side-group" role="group" aria-label="Аналитика" data-group="analytics">
+    <div class="side-group-label" onclick="toggleGroup(this)" aria-expanded="true" role="button" tabindex="0"><span data-i18n="group-analytics">АНАЛИТИКА</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
     <div class="side-item" data-tab="1" onclick="switchTab(1)"><svg class="side-icon"><use href="#ico-search"/></svg> <span data-i18n="nav-search">Поиск</span></div>
     <div class="side-item" data-tab="2" onclick="switchTab(2)"><svg class="side-icon"><use href="#ico-calendar"/></svg> <span data-i18n="nav-timeline">Таймлайн</span></div>
     <div class="side-item" data-tab="6" onclick="switchTab(6)"><svg class="side-icon"><use href="#ico-graph"/></svg> <span data-i18n="nav-concepts">Граф концептов</span></div>
@@ -487,8 +487,8 @@ html{scroll-behavior:smooth}
     <div class="side-item" data-tab="10" onclick="switchTab(10)"><svg class="side-icon"><use href="#ico-ghost"/></svg> <span data-i18n="nav-phantoms">Фантомы</span></div>
     <div class="side-item" data-tab="11" onclick="switchTab(11)"><svg class="side-icon"><use href="#ico-chart-down"/></svg> <span data-i18n="nav-entropy">Энтропия</span></div>
   </div>
-  <div class="side-group" data-group="products">
-    <div class="side-group-label" onclick="toggleGroup(this)"><span>ПРОДУКТЫ (13)</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+  <div class="side-group" role="group" aria-label="Продукты" data-group="products">
+    <div class="side-group-label" onclick="toggleGroup(this)" aria-expanded="true" role="button" tabindex="0"><span>ПРОДУКТЫ (13)</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
     <div class="side-item" data-tab="12" onclick="switchTab(12)"><svg class="side-icon"><use href="#ico-oracle"/></svg> <span data-i18n="nav-oracle">Оракул</span></div>
     <div class="side-item" data-tab="13" onclick="switchTab(13)"><svg class="side-icon"><use href="#ico-document"/></svg> <span data-i18n="nav-papers">White Paper</span></div>
     <div class="side-item" data-tab="14" onclick="switchTab(14)"><svg class="side-icon"><use href="#ico-lightning"/></svg> <span data-i18n="nav-contradictions">Противоречия</span></div>
@@ -502,13 +502,13 @@ html{scroll-behavior:smooth}
     <div class="side-item" data-tab="27" onclick="switchTab(27)"><svg class="side-icon"><use href="#ico-graph"/></svg> <span>Граф знаний</span></div>
     <div class="side-item side-item-book" data-tab="25" onclick="switchTab(25)"><svg class="side-icon"><use href="#ico-book"/></svg> <span data-i18n="nav-book">Книга</span> <span class="badge-dl">PDF</span></div>
   </div>
-  <div class="side-group" data-group="tools">
-    <div class="side-group-label" onclick="toggleGroup(this)"><span>ИНСТРУМЕНТЫ</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+  <div class="side-group" role="group" aria-label="Инструменты" data-group="tools">
+    <div class="side-group-label" onclick="toggleGroup(this)" aria-expanded="true" role="button" tabindex="0"><span>ИНСТРУМЕНТЫ</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
     <div class="side-item" data-tab="4" onclick="switchTab(4)"><svg class="side-icon"><use href="#ico-quote"/></svg> <span data-i18n="nav-quotes">Цитаты</span></div>
     <div class="side-item" data-tab="5" onclick="switchTab(5)"><svg class="side-icon"><use href="#ico-gear"/></svg> <span data-i18n="nav-engines">Механики</span></div>
   </div>
-  <div class="side-group" data-group="info">
-    <div class="side-group-label" onclick="toggleGroup(this)"><span>СПРАВКА</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
+  <div class="side-group" role="group" aria-label="Справка" data-group="info">
+    <div class="side-group-label" onclick="toggleGroup(this)" aria-expanded="true" role="button" tabindex="0"><span>СПРАВКА</span> <svg class="arrow" viewBox="0 0 24 24"><use href="#ico-arrow"/></svg></div>
     <div class="side-item" data-tab="22" onclick="switchTab(22)"><svg class="side-icon"><use href="#ico-help"/></svg> <span data-i18n="nav-instructions">Инструкция</span></div>
     <div class="side-item" data-tab="23" onclick="switchTab(23)"><svg class="side-icon"><use href="#ico-star"/></svg> О проекте</div>
     <div class="side-item" data-tab="24" onclick="switchTab(24)"><svg class="side-icon"><use href="#ico-compass"/></svg> Пути</div>
@@ -529,7 +529,7 @@ html{scroll-behavior:smooth}
     </div>
   </header>
   <div id="content">
-<div class="tab-panel active" id="panel-0">
+<section class="tab-panel active" id="panel-0">
   <div class="hero">
     <div class="hero-orn">
       <span class="line"></span><span class="dot"></span><span class="line"></span><span class="dot"></span><span class="line"></span>
@@ -634,8 +634,8 @@ html{scroll-behavior:smooth}
       </div>
     </div>
   </div>
-</div>
-<div class="tab-panel" id="panel-1">
+</section>
+<section class="tab-panel" id="panel-1">
   <div class="panel-wrap">
     <h2>Универсальный поиск</h2>
     <p class="panel-desc">Все 9 движков одновременно: параграфы, позиции, цитаты, оппоненты, сравнения, триады</p>
@@ -646,8 +646,8 @@ html{scroll-behavior:smooth}
     </div>
     <div id="search-results"></div>
   </div>
-</div>
-<div class="tab-panel" id="panel-2">
+</section>
+<section class="tab-panel" id="panel-2">
   <div class="panel-wrap">
     <h2>Таймлайн 1893&ndash;1922</h2>
     <p class="panel-desc">Погодовой срез: параграфы, цитаты, позиции, тома. Сравнение любых двух лет</p>
@@ -665,8 +665,8 @@ html{scroll-behavior:smooth}
       <div id="compare-result" style="margin-top:16px"></div>
     </div>
   </div>
-</div>
-<div class="tab-panel" id="panel-3">
+</section>
+<section class="tab-panel" id="panel-3">
   <div class="panel-wrap">
     <h2>Риторическая дуга</h2>
     <p class="panel-desc">5 эмоциональных осей. Переход от сарказма к агрессии в 1918&ndash;1919</p>
@@ -681,8 +681,8 @@ html{scroll-behavior:smooth}
       <div style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:12px;line-height:1.6" id="arc-insights"></div>
     </div>
   </div>
-</div>
-<div class="tab-panel" id="panel-4">
+</section>
+<section class="tab-panel" id="panel-4">
   <div class="panel-wrap">
     <h2>Цитаты</h2>
     <p class="panel-desc">5&thinsp;000 ярких цитат из 55 томов с рейтингом афористичности</p>
@@ -695,16 +695,16 @@ html{scroll-behavior:smooth}
     <div id="quote-feed"></div><div class="skeleton skeleton-card"  id="skel-quotes"></div>
     <div style="text-align:center;margin-top:14px"><button onclick="loadQuotes(true)" style="background:#1a1a22;color:var(--text-secondary);border:1px solid #2a2a33;padding:7px 22px;border-radius:4px;cursor:pointer;font-size:11px">Больше цитат</button></div>
   </div>
-</div>
-<div class="tab-panel" id="panel-5">
+</section>
+<section class="tab-panel" id="panel-5">
   <div class="panel-wrap">
     <h2>Аналитические механики</h2>
     <p class="panel-desc">9 движков &mdash; фундамент проекта. Кликните для деталей и метрик</p>
     <div class="divider"></div>
     <div class="cards-grid" id="engine-grid"></div><div id="skel-engines" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div>
   </div>
-</div>
-<div class="tab-panel" id="panel-6">
+</section>
+<section class="tab-panel" id="panel-6">
   <div class="panel-wrap">
     <h2>Граф концептов</h2>
     <p class="panel-desc">206 концептов, 12&thinsp;735 рёбер, 8 кластеров. Перетаскивайте узлы, клик &rarr; поиск</p>
@@ -715,8 +715,8 @@ html{scroll-behavior:smooth}
     </div>
     <div id="concept-selected" style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;min-height:20px"></div>
   </div>
-</div>
-<div class="tab-panel" id="panel-7">
+</section>
+<section class="tab-panel" id="panel-7">
   <div class="panel-wrap">
     <h2>Карта оппонентов</h2>
     <p class="panel-desc">29 оппонентов, 9&thinsp;262 упоминания, 887 споров</p>
@@ -724,16 +724,16 @@ html{scroll-behavior:smooth}
     <div id="opp-grid"></div><div id="skel-opp" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-card"></div></div>
     <div class="opp-detail" id="opp-detail"></div>
   </div>
-</div>
-<div class="tab-panel" id="panel-8">
+</section>
+<section class="tab-panel" id="panel-8">
   <div class="panel-wrap">
     <h2>Сравнительный анализ</h2>
     <p class="panel-desc">Маркс / Энгельс &rarr; Ленин: эволюция 62 тем</p>
     <div class="divider"></div>
     <div id="comp-list"></div><div id="skel-comp" ><div class="skeleton skeleton-card" style="height:200px"></div></div>
   </div>
-</div>
-<div class="tab-panel" id="panel-9">
+</section>
+<section class="tab-panel" id="panel-9">
   <div class="panel-wrap">
     <h2>Томография корпуса</h2>
     <p class="panel-desc">UMAP-проекция 9&thinsp;371 точки. Цвет = год. Наведите для контекста</p>
@@ -745,8 +745,8 @@ html{scroll-behavior:smooth}
     </div>
     <div id="skel-tomo" ><div class="skeleton" style="width:100%;height:500px;border-radius:8px"></div></div><div id="tomo-detail" style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:8px"></div>
   </div>
-</div>
-<div class="tab-panel" id="panel-10">
+</section>
+<section class="tab-panel" id="panel-10">
   <div class="panel-wrap">
     <h2>Фантомные оппоненты</h2>
     <p class="panel-desc">149 случаев: Ленин спорит с неназванным противником &mdash; &laquo;нам возражают...&raquo;, &laquo;некоторые думают...&raquo;</p>
@@ -754,8 +754,8 @@ html{scroll-behavior:smooth}
     <div class="year-pills" id="phantom-years"></div>
     <div id="phantom-list"></div><div id="skel-phant" ><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:60%"></div><div class="skeleton skeleton-card" style="height:150px"></div></div>
   </div>
-</div>
-<div class="tab-panel" id="panel-11">
+</section>
+<section class="tab-panel" id="panel-11">
   <div class="panel-wrap">
     <h2>Энтропия концептов</h2>
     <p class="panel-desc">Разнообразие тем по годам: Шеннон, max H, доминантный кластер</p>
@@ -769,20 +769,20 @@ html{scroll-behavior:smooth}
       <div id="skel-entr" ><div class="skeleton" style="width:100%;height:290px;border-radius:8px;margin-bottom:10px"></div><div class="skeleton skeleton-text"></div></div><div id="entropy-detail" style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:10px;line-height:1.6"></div>
     </div>
   </div>
-</div>
-<div class="tab-panel" id="panel-12"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-oracle">Оракул</h2><p class="panel-desc" data-i18n="panel-oracle-desc">Семантический поиск по 93K векторам &rarr; подлинные цитаты, без иллюзий</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/02_lenin_oracle/"></iframe></div></div>
-<div class="tab-panel" id="panel-13"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-papers">White Paper Generator</h2><p class="panel-desc" data-i18n="panel-papers-desc">518 концептов &rarr; A4-статья из 7 разделов</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/05_white_paper/"></iframe></div></div>
-<div class="tab-panel" id="panel-14"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-contradictions">Противоречия</h2><p class="panel-desc" data-i18n="panel-contradictions-desc">30 противоречий из 1&thinsp;502 позиций: две цитаты &mdash; два взгляда</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/06_contradictions/"></iframe></div></div>
-<div class="tab-panel" id="panel-15"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-shadow">Теневая структура</h2><p class="panel-desc" data-i18n="panel-shadow-desc">Дрейф частотности слов: что ушло, что пришло, что изменилось</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/11_shadow/"></iframe></div></div>
-<div class="tab-panel" id="panel-16"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-passport">Стилометрический паспорт</h2><p class="panel-desc" data-i18n="panel-passport-desc">Текстовая ДНК Ленина: длина предложений, лексическое разнообразие, маркеры</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/12_passport/"></iframe></div></div>
-<div class="tab-panel" id="panel-17"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-twin">Цифровой двойник</h2><p class="panel-desc" data-i18n="panel-twin-desc">Чат с Лениным: вопрос &rarr; 4&ndash;6 реальных цитат с атрибуцией</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/07_digital_twin/"></iframe></div></div>
-<div class="tab-panel" id="panel-18"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-dashboard">Dashboard</h2><p class="panel-desc" data-i18n="panel-dashboard-desc">Метрики всех 9 движков в реальном времени</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/03_dashboard_pro/"></iframe></div></div>
-<div class="tab-panel" id="panel-19"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-comparator">Идеологический компаратор</h2><p class="panel-desc" data-i18n="panel-comparator-desc">4 колонки: Маркс, Энгельс, Ленин, Ленинское развитие. 89 тем</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/04_ideology_comparator/?v=2.32"></iframe></div></div>
-<div class="tab-panel" id="panel-20"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-obsidian">Obsidian Plugin</h2><p class="panel-desc" data-i18n="panel-obsidian-desc">Встрой Ленина в Obsidian: поиск, концепты, случайные цитаты</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/06_obsidian_plugin/"></iframe></div></div>
-<div class="tab-panel" id="panel-21"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-style">Генератор стиля</h2><p class="panel-desc" data-i18n="panel-style-desc">Марковская модель n=3 + 6 риторических тонов. Пишет как Ленин</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/08_style_mimic/"></iframe></div></div>
-<div class="tab-panel" id="panel-26"><div class="panel-wrap" class="padded-full"><h2>Generative Art</h2><p class="panel-desc">Canvas-частицы: 4 режима (Flow, Burst, Orbit, Drift). Визуализация текстовых данных</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/10_generative_art/"></iframe></div></div>
-<div class="tab-panel" id="panel-27"><div class="panel-wrap" class="padded-full"><h2>Knowledge Graph</h2><p class="panel-desc">Граф знаний: 206 концептов, 8 кластеров. Интерактивная визуализация связей</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/09_knowledge_graph/"></iframe></div></div>
-<div class="tab-panel" id="panel-22">
+</section>
+<section class="tab-panel" id="panel-12"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-oracle">Оракул</h2><p class="panel-desc" data-i18n="panel-oracle-desc">Семантический поиск по 93K векторам &rarr; подлинные цитаты, без иллюзий</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/02_lenin_oracle/"></iframe></div></section>
+<section class="tab-panel" id="panel-13"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-papers">White Paper Generator</h2><p class="panel-desc" data-i18n="panel-papers-desc">518 концептов &rarr; A4-статья из 7 разделов</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/05_white_paper/"></iframe></div></section>
+<section class="tab-panel" id="panel-14"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-contradictions">Противоречия</h2><p class="panel-desc" data-i18n="panel-contradictions-desc">30 противоречий из 1&thinsp;502 позиций: две цитаты &mdash; два взгляда</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/06_contradictions/"></iframe></div></section>
+<section class="tab-panel" id="panel-15"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-shadow">Теневая структура</h2><p class="panel-desc" data-i18n="panel-shadow-desc">Дрейф частотности слов: что ушло, что пришло, что изменилось</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/11_shadow/"></iframe></div></section>
+<section class="tab-panel" id="panel-16"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-passport">Стилометрический паспорт</h2><p class="panel-desc" data-i18n="panel-passport-desc">Текстовая ДНК Ленина: длина предложений, лексическое разнообразие, маркеры</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/12_passport/"></iframe></div></section>
+<section class="tab-panel" id="panel-17"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-twin">Цифровой двойник</h2><p class="panel-desc" data-i18n="panel-twin-desc">Чат с Лениным: вопрос &rarr; 4&ndash;6 реальных цитат с атрибуцией</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/07_digital_twin/"></iframe></div></section>
+<section class="tab-panel" id="panel-18"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-dashboard">Dashboard</h2><p class="panel-desc" data-i18n="panel-dashboard-desc">Метрики всех 9 движков в реальном времени</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/03_dashboard_pro/"></iframe></div></section>
+<section class="tab-panel" id="panel-19"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-comparator">Идеологический компаратор</h2><p class="panel-desc" data-i18n="panel-comparator-desc">4 колонки: Маркс, Энгельс, Ленин, Ленинское развитие. 89 тем</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/04_ideology_comparator/?v=2.32"></iframe></div></section>
+<section class="tab-panel" id="panel-20"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-obsidian">Obsidian Plugin</h2><p class="panel-desc" data-i18n="panel-obsidian-desc">Встрой Ленина в Obsidian: поиск, концепты, случайные цитаты</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/06_obsidian_plugin/"></iframe></div></section>
+<section class="tab-panel" id="panel-21"><div class="panel-wrap" class="padded-full"><h2 data-i18n="panel-style">Генератор стиля</h2><p class="panel-desc" data-i18n="panel-style-desc">Марковская модель n=3 + 6 риторических тонов. Пишет как Ленин</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/08_style_mimic/"></iframe></div></section>
+<section class="tab-panel" id="panel-26"><div class="panel-wrap" class="padded-full"><h2>Generative Art</h2><p class="panel-desc">Canvas-частицы: 4 режима (Flow, Burst, Orbit, Drift). Визуализация текстовых данных</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/10_generative_art/"></iframe></div></section>
+<section class="tab-panel" id="panel-27"><div class="panel-wrap" class="padded-full"><h2>Knowledge Graph</h2><p class="panel-desc">Граф знаний: 206 концептов, 8 кластеров. Интерактивная визуализация связей</p><div class="divider"></div><iframe class="product-iframe" data-src="/products/09_knowledge_graph/"></iframe></div></section>
+<section class="tab-panel" id="panel-22">
   <div class="panel-wrap" style="max-width:800px;padding:36px 24px">
     <h2 data-i18n="instructions-title">Как пользоваться Ленин-Буком</h2>
     <p class="panel-desc" data-i18n="instructions-intro">Полный путеводитель по платформе. Выбери свой уровень ниже.</p>
@@ -968,8 +968,8 @@ html{scroll-behavior:smooth}
     <strong class="c-muted">Хостинг:</strong> v2.site платформа, авто-HTTPS, gzip<br>
     <strong class="c-muted">Репозиторий:</strong> Git, коммиты с хешами для отслеживания версий
   </div>
-</div>
-<div class="tab-panel" id="panel-23">
+</section>
+<section class="tab-panel" id="panel-23">
   <div class="panel-wrap" style="max-width:700px;padding:40px 24px">
     <h2>О проекте «Ленин-Бук»</h2>
     <p class="panel-desc">Методология, архитектура и история создания</p>
@@ -1066,8 +1066,8 @@ html{scroll-behavior:smooth}
       <p style="color:var(--text-secondary);font-size:12px;line-height:1.7;margin:0">Вопросы, предложения, баги: пиши в Telegram <a href="https://t.me/AnKocrypto" style="color:#c44;text-decoration:none" target="_blank">@AnKocrypto</a></p>
     </div>
   </div>
-</div>
-<div class="tab-panel" id="panel-24">
+</section>
+<section class="tab-panel" id="panel-24">
   <div class="panel-wrap" style="max-width:820px;padding:36px 24px">
     <h2>Исследовательские пути</h2>
     <p class="panel-desc">Три готовых маршрута по корпусу — один клик вместо трёх вкладок</p>
@@ -1102,9 +1102,9 @@ html{scroll-behavior:smooth}
       </div>
     </div>
     <div id="pathway-result" style="min-height:40px"></div>
-  </div>
+  </section>
 
-<div class="tab-panel" id="panel-25">
+<section class="tab-panel" id="panel-25">
   <div class="panel-wrap" style="max-width:820px;padding:36px 24px">
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:6px">
       <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(200,60,60,.15),rgba(200,60,60,.04));display:flex;align-items:center;justify-content:center;flex-shrink:0">
@@ -1256,6 +1256,7 @@ html{scroll-behavior:smooth}
       <span id="visit-counter">посещений: ...</span>
     </div>
   </footer>
+</section>
 </div>
 <script src="/data/rhetoric.js"></script>
 <script src="/data/concept_data.js"></script>
@@ -1273,16 +1274,17 @@ function switchInstrTab(btn, level) {
   if(sec) sec.style.display='block';
 }
 
-function toggleGroup(el){el.parentElement.classList.toggle('collapsed')}
+function toggleGroup(el){el.parentElement.classList.toggle('collapsed');var g=el.parentElement;var expanded=!g.classList.contains('collapsed');el.setAttribute('aria-expanded',expanded)}
 function switchTab(id){
-  // 1. Deactivate all items and panels
-  document.querySelectorAll('.side-item').forEach(function(s){s.classList.remove('active')});
+  // 1. Deactivate all items and panels — update aria-current
+  document.querySelectorAll('.side-item').forEach(function(s){s.classList.remove('active');s.removeAttribute('aria-current')});
   document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active')});
   
   // 2. Find and activate the target sidebar item
   var si=document.querySelector('.side-item[data-tab="'+id+'"]');
   if(!si) return;
   si.classList.add('active');
+  si.setAttribute('aria-current','page');
   
   // 3. Expand parent group if collapsed
   var group=si.closest('.side-group');
