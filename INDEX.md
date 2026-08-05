@@ -1,7 +1,7 @@
 # ЛЕНИН-КОРПУС: ИНДЕКС ВСЕГО СОЗДАННОГО
 
-> Последнее обновление: 2026-08-05 02:52 MSK
-> Коммитов: 32 | Файлов: 121 (py/html/js/json/md)
+> Последнее обновление: 2026-08-05 04:52 MSK
+> Коммитов: 33 | Файлов: 130+ (py/html/js/json/md)
 
 ---
 
@@ -24,20 +24,23 @@
 
 ---
 
-## 2. 10 ПРОДУКТОВ — iframe-панели на lenin-book.v2.site ✅ ВСЕ РАБОТАЮТ
+## 2. 13 ПРОДУКТОВ — в своих папках на lenin-book.v2.site ✅ ВСЕ РАБОТАЮТ
 
-| # | Продукт | URL | Файл | API |
-|---|---------|-----|------|-----|
-| 1 | Oracle (поиск) | `/oracle/` | `oracle/index.html` (7 KB) | `/api/oracle/search`, `/api/oracle/random`, `/api/oracle/stats` |
-| 2 | White Paper | `/papers/` | `papers/index.html` (7 KB) | `/api/papers/concepts`, `/api/papers/generate` |
-| 3 | Противоречия | `/contradictions/` | `contradictions/index.html` (4 KB) | `/api/contradictions` (30 противоречий) |
-| 4 | Тени | `/shadow/` | `shadow/index.html` (5 KB) | `/api/shadow` (дрейф частотности) |
-| 5 | Паспорт ДНК | `/passport/` | `passport/index.html` (5 KB) | `/api/passport` (стилометрия) |
-| 6 | Digital Twin | `/twin/` | `twin/index.html` (5 KB) | `/api/twin`, `/api/twin/ask` |
-| 7 | Dashboard | `/dashboard/` | `dashboard/index.html` (8 KB) | Все метрики в реальном времени |
-| 8 | Компаратор | `/comparator/` | `comparator/index.html` (6 KB) | `/api/comparator/topics`, `/api/comparator/compare` |
-| 9 | Obsidian Plugin | `/obsidian/` | `obsidian/index.html` (3 KB) | ZIP: `plugins/lenin-search.zip` |
-| 10 | Стиль Ленина | `/style/` | `style/index.html` (7 KB) | `/api/style/generate` (FTS5 + 6 тонов) |
+| # | Продукт | Папка | Файлы |
+|---|---------|-------|-------|
+| 1 | Lenin API | `products/01_lenin_api/` | `api_v1.py` + SPEC |
+| 2 | Lenin Oracle | `products/02_lenin_oracle/` | `index.html` (7 KB) + `oracle_engine.py` + `oracle_bot.py` |
+| 3 | Dashboard Pro | `products/03_dashboard_pro/` | `index.html` (8 KB) |
+| 4 | Ideology Comparator | `products/04_ideology_comparator/` | `index.html` (6 KB) — 89 тем |
+| 5 | White Paper | `products/05_white_paper/` | `index.html` (7 KB) + `paper_engine.py` |
+| 6 | Contradictions | `products/06_contradictions/` | `index.html` (4 KB) + `phase_c_engine.py` |
+| 7 | Obsidian Plugin | `products/06_obsidian_plugin/` | `index.html` + `main.js` + `manifest.json` + `plugins/` |
+| 8 | Digital Twin | `products/07_digital_twin/` | `index.html` (5 KB) + `twin_engine.py` |
+| 9 | Style Mimic | `products/08_style_mimic/` | `index.html` (7 KB) + `style_engine.py` |
+| 10 | Knowledge Graph | `products/09_knowledge_graph/` | `index.html` (14 KB) |
+| 11 | Generative Art | `products/10_generative_art/` | `index.html` (9 KB) — Canvas particles |
+| 12 | Shadow (Тени) | `products/11_shadow/` | `index.html` (5 KB) |
+| 13 | Passport (ДНК) | `products/12_passport/` | `index.html` (5 KB) |
 
 ---
 
@@ -121,10 +124,9 @@
 
 ---
 
-## 8. ЧТО ОСТАЛОСЬ (РЕАЛЬНЫЕ ЗАДАЧИ, НЕ СПЕКА)
+## 8. ЧТО ОСТАЛОСЬ
 
-1. **GitHub sync** — часть файлов лежит только на live, нужно досинхронизировать
-2. **API-ключи** — Mistral переведён на env var, нужен `.env` на сервере
-3. **Интерпретационные движки** — семантический поиск противоречий, cross-engine linking
-4. **Продактизация** — вынос продуктов на отдельные поддомены (lenin-oracle.v2.site и т.д.)
-5. **Монетизация** — API-ключи, rate limiting, тарифы
+1. **MISTRAL_API_KEY** — прописать `.env` на сервере для FAISS-поиска в Oracle
+2. **Продактизация** — вынос продуктов на отдельные поддомены (lenin-oracle.v2.site и т.д.)
+3. **Монетизация** — API-ключи, rate limiting, тарифы
+4. **Интерпретационные движки** — семантический поиск противоречий, cross-engine linking
