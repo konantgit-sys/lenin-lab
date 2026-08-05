@@ -2,7 +2,7 @@
 Transparent proxy to internal API (port 9770) with auth + rate limiting.
 """
 from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse, HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import httpx, sqlite3, hashlib, secrets, time, os
 
@@ -64,9 +64,13 @@ async def check_auth(request: Request):
 # ═══ PUBLIC ROUTES (before catch-all) ═══
 
 @app.get("/")
-async def root():
+async def root(request: Request):
+    accept = request.headers.get('accept', '')
+    if 'text/html' in accept:
+        return FileResponse("/home/agent/data/sites/api-lenin/pricing.html", media_type="text/html")
     return {"service": "Lenin-Book API Gateway", "version": "1.1",
-            "docs": "/docs", "endpoints": {"generate_key": "POST /keys/generate?owner=name&tier=free",
+            "docs": "/docs", "pricing": "/pricing",
+            "endpoints": {"generate_key": "POST /keys/generate?owner=name&tier=free",
             "list_keys": "GET /keys/list", "usage": "GET /keys/usage/{prefix}",
             "api_dashboard": "GET /api/dashboard", "api_oracle": "GET /api/oracle?q=",
             "api_comparator": "GET /api/comparator/topics", "api_shadow": "GET /api/shadow?word=",
@@ -119,6 +123,11 @@ async def key_usage(prefix: str, days: int = 7):
     conn.close()
     return {"prefix": prefix, "tier": tier_row['tier'] if tier_row else '?',
             "daily_limit": limit, "usage": [dict(r) for r in rows]}
+
+
+@app.get("/pricing")
+async def pricing():
+    return FileResponse("/home/agent/data/sites/api-lenin/pricing.html", media_type="text/html")
 
 # ═══ CATCH-ALL PROXY (must be LAST) ═══
 
