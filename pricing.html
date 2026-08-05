@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lenin-Book API — Тарифы</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,sans-serif;background:#08080a;color:#bbb;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+body::before{content:'';position:fixed;top:-500px;left:50%;transform:translateX(-50%);width:1200px;height:1200px;background:radial-gradient(circle at center,rgba(200,60,60,.06),transparent 60%);pointer-events:none}
+.container{max-width:960px;width:100%;z-index:1}
+h1{font-family:'Playfair Display',serif;font-size:40px;color:#e44;text-align:center;margin-bottom:8px;letter-spacing:.5px}
+.subtitle{text-align:center;color:#666;font-size:14px;margin-bottom:48px}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.plan{background:linear-gradient(135deg,#0f0f18,#141420);border:1px solid #1e1e2a;border-radius:12px;padding:32px 24px;text-align:center;transition:all .3s cubic-bezier(.23,1,.32,1);position:relative;overflow:hidden}
+.plan:hover{transform:translateY(-4px);border-color:#c4440;box-shadow:0 8px 40px rgba(200,60,60,.12)}
+.plan.pro{border-color:#c4430}
+.plan.pro::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#d55,#d55,transparent)}
+.plan-name{font-family:'Playfair Display',serif;font-size:20px;color:#ddd;margin-bottom:4px}
+.plan-price{font-size:36px;font-weight:700;color:#fff;margin:16px 0}
+.plan-price span{font-size:14px;color:#666;font-weight:400}
+.plan-limit{font-size:13px;color:#999;margin-bottom:24px;padding:4px 12px;background:rgba(255,255,255,.03);border-radius:20px;display:inline-block}
+.plan-features{list-style:none;text-align:left;margin-bottom:24px}
+.plan-features li{font-size:13px;color:#888;padding:6px 0;padding-left:20px;position:relative}
+.plan-features li::before{content:'✓';position:absolute;left:0;color:#4a8}
+.plan-features li.no::before{content:'—';color:#555}
+.btn{display:inline-block;padding:10px 28px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;text-decoration:none;border:none}
+.btn-free{background:rgba(255,255,255,.06);color:#999;border:1px solid #2a2a38}
+.btn-free:hover{background:rgba(255,255,255,.1);color:#ccc}
+.btn-basic{background:rgba(200,120,30,.12);color:#c9a030;border:1px solid rgba(200,150,40,.2)}
+.btn-basic:hover{background:rgba(200,130,30,.2)}
+.btn-pro{background:rgba(200,60,60,.15);color:#e44;border:1px solid rgba(200,60,60,.3)}
+.btn-pro:hover{background:rgba(200,60,60,.25)}
+.api-section{margin-top:56px;background:#0f0f18;border:1px solid #1e1e2a;border-radius:12px;padding:28px 32px}
+.api-section h2{font-family:'Playfair Display',serif;font-size:22px;color:#ddd;margin-bottom:16px}
+.code-block{background:#08080c;border:1px solid #1e1e2a;border-radius:8px;padding:16px 20px;font-family:'SF Mono','Fira Code',monospace;font-size:12px;color:#aaa;overflow-x:auto;margin-bottom:12px}
+.code-block .c{color:#666}
+.code-block .k{color:#d55}
+.code-block .v{color:#c9a030}
+.api-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:16px}
+.api-item{font-size:12px;color:#888;padding:6px 0}
+.api-item code{color:#c9a030;font-size:11px}
+.footer{text-align:center;margin-top:48px;color:#444;font-size:11px}
+.footer a{color:#c44;text-decoration:none}
+@media(max-width:768px){.plans{grid-template-columns:1fr}.api-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Lenin-Book API</h1>
+<p class="subtitle">55 томов Ленина — 169К параграфов — 9 движков анализа — доступ через API</p>
+
+<div class="plans">
+  <div class="plan">
+    <div class="plan-name">Free</div>
+    <div class="plan-price">0<span> ₽/мес</span></div>
+    <div class="plan-limit">100 запросов/день</div>
+    <ul class="plan-features">
+      <li>Dashboard API</li>
+      <li>Search (FTS5)</li>
+      <li>Random quotes</li>
+      <li class="no">Oracle (FAISS AI)</li>
+      <li class="no">Comparator (89 тем)</li>
+      <li class="no">Shadow / Passport</li>
+    </ul>
+    <button class="btn btn-free" onclick="genKey('free')">Получить ключ</button>
+  </div>
+
+  <div class="plan">
+    <div class="plan-name">Basic</div>
+    <div class="plan-price">500<span> ₽/мес</span></div>
+    <div class="plan-limit">1 000 запросов/день</div>
+    <ul class="plan-features">
+      <li>Всё из Free</li>
+      <li>Oracle (FAISS AI)</li>
+      <li>Comparator (89 тем)</li>
+      <li>Passport API</li>
+      <li class="no">Shadow Engine</li>
+      <li class="no">Приоритетная поддержка</li>
+    </ul>
+    <button class="btn btn-basic" onclick="genKey('basic')">Получить ключ</button>
+  </div>
+
+  <div class="plan pro">
+    <div class="plan-name">Pro</div>
+    <div class="plan-price">2 000<span> ₽/мес</span></div>
+    <div class="plan-limit">Безлимит</div>
+    <ul class="plan-features">
+      <li>Всё из Basic</li>
+      <li>Shadow Engine</li>
+      <li>Все 9 движков</li>
+      <li>Приоритетная поддержка</li>
+      <li>Доступ к бета-фичам</li>
+      <li>SLA 99.5%</li>
+    </ul>
+    <button class="btn btn-pro" onclick="genKey('pro')">Получить ключ</button>
+  </div>
+</div>
+
+<div class="api-section">
+  <h2>Быстрый старт</h2>
+  <div class="code-block">
+    <span class="c"># Получить ключ</span><br>
+    <span class="k">curl</span> -X POST <span class="v">https://api-lenin.v2.site/keys/generate?owner=myapp&tier=free</span><br><br>
+    <span class="c"># Запрос к API</span><br>
+    <span class="k">curl</span> -H <span class="v">"X-API-Key: lb-YOUR_KEY"</span> <span class="v">https://api-lenin.v2.site/api/dashboard</span>
+  </div>
+
+  <h2 style="margin-top:24px">Эндпоинты</h2>
+  <div class="api-grid">
+    <div class="api-item"><code>GET /api/dashboard</code> — сводная статистика корпуса</div>
+    <div class="api-item"><code>GET /api/oracle?q=</code> — AI-оракул (FAISS)</div>
+    <div class="api-item"><code>GET /api/comparator/topics</code> — 89 тем идеологии</div>
+    <div class="api-item"><code>GET /api/comparator/compare/{id}</code> — сравнение по теме</div>
+    <div class="api-item"><code>GET /api/shadow?word=</code> — дрейф словоупотребления</div>
+    <div class="api-item"><code>GET /api/passport</code> — паспорт корпуса</div>
+    <div class="api-item"><code>GET /api/quotes?limit=</code> — случайные цитаты</div>
+    <div class="api-item"><code>GET /docs</code> — Swagger-документация</div>
+  </div>
+</div>
+
+<div class="footer">
+  Lenin-Book API Gateway v1.1 · <a href="/docs">Swagger Docs</a> · <a href="/keys/list">Ключи</a>
+</div>
+</div>
+
+<script>
+async function genKey(tier) {
+  const btn = event.target;
+  btn.textContent = '...';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/keys/generate?owner=web&tier=' + tier, {method:'POST'});
+    const d = await r.json();
+    if (d.api_key) {
+      const area = document.createElement('div');
+      area.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:999';
+      area.innerHTML = `<div style="background:#111;border:1px solid #c44;border-radius:12px;padding:32px;max-width:440px;text-align:center">
+        <div style="font-family:'Playfair Display',serif;font-size:22px;color:#e44;margin-bottom:8px">Твой API-ключ</div>
+        <div style="color:#666;font-size:13px;margin-bottom:16px">Тариф: ${d.tier} · ${d.daily_limit} запросов/день</div>
+        <div style="background:#08080c;border:1px solid #2a2a38;border-radius:8px;padding:14px;font-family:monospace;font-size:13px;color:#c9a030;word-break:break-all;margin-bottom:16px;user-select:all">${d.api_key}</div>
+        <div style="color:#888;font-size:12px;margin-bottom:20px">Сохрани ключ. Он не будет показан снова.</div>
+        <button onclick="this.closest('[style*=fixed]').remove()" style="padding:8px 24px;background:rgba(200,60,60,.15);color:#e44;border:1px solid rgba(200,60,60,.3);border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px">Закрыть</button>
+      </div>`;
+      document.body.appendChild(area);
+    } else {
+      alert('Ошибка: ' + JSON.stringify(d));
+    }
+  } catch(e) {
+    alert('Ошибка соединения');
+  }
+  btn.textContent = 'Получить ключ';
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>

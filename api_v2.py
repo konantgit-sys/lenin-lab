@@ -26,6 +26,58 @@ import threading
 
 SITE_DIR = Path(__file__).parent
 
+# ==== API KEY MANAGEMENT (V2) ====
+import secrets
+KEYS_DB = SITE_DIR / "api_keys.db"
+TIERS = {"free": {"daily": 100, "name": "Free"}, "basic": {"daily": 1000, "name": "Basic"}, "pro": {"daily": 999999, "name": "Pro"}}
+
+def get_keys_conn():
+    conn = sqlite3.connect(str(KEYS_DB))
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def init_keys_db():
+    conn = get_keys_conn()
+    conn.execute("""CREATE TABLE IF NOT EXISTS api_keys (
+        key_hash TEXT PRIMARY KEY, key_prefix TEXT, tier TEXT DEFAULT 'free',
+        created_at TEXT DEFAULT (datetime('now')), owner TEXT DEFAULT '', active INTEGER DEFAULT 1)""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS usage_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT, key_prefix TEXT, endpoint TEXT,
+        timestamp TEXT DEFAULT (datetime('now')) )""")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_usage_ts ON usage_log(key_prefix, timestamp)")
+    if conn.execute("SELECT COUNT(*) FROM api_keys").fetchone()[0] == 0:
+        key = "lb-" + secrets.token_hex(16)
+        kh = hashlib.sha256(key.encode()).hexdigest()
+        conn.execute("INSERT INTO api_keys (key_hash, key_prefix, tier, owner) VALUES (?,?,?,?)",
+                     (kh, key[:8], "free", "seed"))
+        conn.commit()
+        print(f"[KEYS] Seed key: {key}")
+    conn.commit()
+    conn.close()
+
+def check_api_key_and_rate(x_api_key, path):
+    """Returns (authorized: bool, message: str, tier: str). Rate-limits per key."""
+    if not x_api_key:
+        return False, "Missing X-API-Key header. Get key at /pricing", ""
+    kh = hashlib.sha256(x_api_key.encode()).hexdigest()
+    conn = get_keys_conn()
+    row = conn.execute("SELECT * FROM api_keys WHERE key_hash=? AND active=1", (kh,)).fetchone()
+    if not row:
+        conn.close()
+        return False, "Invalid API key", ""
+    tier = row["tier"]
+    today = time.strftime("%Y-%m-%d")
+    count = conn.execute("SELECT COUNT(*) FROM usage_log WHERE key_prefix=? AND timestamp LIKE ?",
+                         (row["key_prefix"], today + "%")).fetchone()[0]
+    limit = TIERS.get(tier, {}).get("daily", 100)
+    if count >= limit:
+        conn.close()
+        return False, f"Rate limit exceeded: {limit}/day. Tier: {tier}", tier
+    conn.execute("INSERT INTO usage_log (key_prefix, endpoint) VALUES (?,?)", (row["key_prefix"], path))
+    conn.commit()
+    conn.close()
+    return True, "", tier
+
 # ==== TIMEOUT WRAPPER ====
 # Generative endpoints (papers, style, twin) can hang on heavy computation.
 # Default 15s hard timeout for any generative endpoint.
@@ -399,6 +451,159 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         status_code=200,
         content={"error": True, "code": 422, "detail": detail}
     )
+
+
+# ═══ PRICING & KEY MANAGEMENT ═══
+
+@app.get("/pricing")
+async def pricing_page():
+    return FileResponse(str(SITE_DIR / "pricing.html"), media_type="text/html")
+
+@app.post("/keys/generate")
+async def keys_generate(owner: str = "", tier: str = "free"):
+    if tier not in TIERS:
+        raise HTTPException(400, detail=f"Invalid tier: {list(TIERS.keys())}")
+    key = "lb-" + secrets.token_hex(16)
+    kh = hashlib.sha256(key.encode()).hexdigest()
+    conn = get_keys_conn()
+    conn.execute("INSERT INTO api_keys (key_hash, key_prefix, tier, owner) VALUES (?,?,?,?)",
+                 (kh, key[:8], tier, owner))
+    conn.commit()
+    conn.close()
+    return {"api_key": key, "prefix": key[:8], "tier": tier, "daily_limit": TIERS[tier]["daily"]}
+
+@app.get("/keys/list")
+async def keys_list():
+    conn = get_keys_conn()
+    rows = conn.execute("SELECT key_prefix, tier, owner, created_at, active FROM api_keys ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+@app.delete("/keys/revoke/{prefix}")
+async def keys_revoke(prefix: str):
+    conn = get_keys_conn()
+    conn.execute("UPDATE api_keys SET active=0 WHERE key_prefix=?", (prefix,))
+    changed = conn.total_changes
+    conn.commit()
+    conn.close()
+    if changed == 0:
+        raise HTTPException(404, "Key not found")
+    return {"revoked": prefix}
+
+@app.get("/keys/usage/{prefix}")
+async def keys_usage(prefix: str, days: int = 7):
+    conn = get_keys_conn()
+    rows = conn.execute("""SELECT date(timestamp) as day, COUNT(*) as count
+        FROM usage_log WHERE key_prefix=? AND timestamp >= date('now', ?)
+        GROUP BY day ORDER BY day DESC""", (prefix, f"-{days} days")).fetchall()
+    tier_row = conn.execute("SELECT tier FROM api_keys WHERE key_prefix=?", (prefix,)).fetchone()
+    limit = TIERS.get(tier_row["tier"], {}).get("daily", 0) if tier_row else 0
+    conn.close()
+    return {"prefix": prefix, "tier": tier_row["tier"] if tier_row else "?",
+            "daily_limit": limit, "usage": [dict(r) for r in rows]}
+
+@app.get("/keys/health")
+async def keys_health():
+    conn = get_keys_conn()
+    keys_n = conn.execute("SELECT COUNT(*) FROM api_keys WHERE active=1").fetchone()[0]
+    today = time.strftime("%Y-%m-%d")
+    usage_n = conn.execute("SELECT COUNT(*) FROM usage_log WHERE timestamp LIKE ?", (today+"%",)).fetchone()[0]
+    conn.close()
+    return {"status": "ok", "active_keys": keys_n, "usage_today": usage_n}
+
+# ═══ PROTECTED API V2 (requires X-API-Key) ═══
+
+@app.get("/api/v2/dashboard")
+async def api_v2_dashboard(x_api_key: str = Header(None, alias="X-API-Key")):
+    ok, msg, tier = check_api_key_and_rate(x_api_key, "/api/v2/dashboard")
+    if not ok:
+        raise HTTPException(401 if "Missing" in msg else 429 if "limit" in msg.lower() else 403, detail=msg)
+    return await _dashboard_raw()
+
+@app.get("/api/v2/comparator/topics")
+async def api_v2_comparator_topics(x_api_key: str = Header(None, alias="X-API-Key")):
+    ok, msg, _ = check_api_key_and_rate(x_api_key, "/api/v2/comparator/topics")
+    if not ok:
+        raise HTTPException(401 if "Missing" in msg else 429 if "limit" in msg.lower() else 403, detail=msg)
+    from shared.lenin_core import DB_PATH
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.row_factory = sqlite3.Row
+    try:
+        rows = conn.execute("SELECT * FROM comparator_topics ORDER BY topic_id").fetchall()
+        return [dict(r) for r in rows]
+    except:
+        return [{"id": i, "topic": f"Theme {i}", "marx": "...", "engels": "...", "lenin": "..."} for i in range(1, 90)]
+    finally:
+        conn.close()
+
+@app.get("/api/v2/comparator/compare/{topic_id}")
+async def api_v2_comparator_compare(topic_id: int, x_api_key: str = Header(None, alias="X-API-Key")):
+    ok, msg, _ = check_api_key_and_rate(x_api_key, "/api/v2/comparator/compare")
+    if not ok:
+        raise HTTPException(401 if "Missing" in msg else 429 if "limit" in msg.lower() else 403, detail=msg)
+    from shared.lenin_core import DB_PATH
+    conn = sqlite3.connect(str(DB_PATH))
+    conn.row_factory = sqlite3.Row
+    try:
+        row = conn.execute("SELECT * FROM comparator_topics WHERE topic_id=?", (topic_id,)).fetchone()
+        if not row:
+            raise HTTPException(404, "Topic not found")
+        return dict(row)
+    finally:
+        conn.close()
+
+@app.get("/api/v2/oracle")
+async def api_v2_oracle(q: str = "", x_api_key: str = Header(None, alias="X-API-Key")):
+    ok, msg, _ = check_api_key_and_rate(x_api_key, "/api/v2/oracle")
+    if not ok:
+        raise HTTPException(401 if "Missing" in msg else 429 if "limit" in msg.lower() else 403, detail=msg)
+    try:
+        from oracle_engine import OracleEngine
+        engine = OracleEngine()
+        return engine.query(q)
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/api/v2/quotes")
+async def api_v2_quotes(limit: int = 10, x_api_key: str = Header(None, alias="X-API-Key")):
+    ok, msg, _ = check_api_key_and_rate(x_api_key, "/api/v2/quotes")
+    if not ok:
+        raise HTTPException(401 if "Missing" in msg else 429 if "limit" in msg.lower() else 403, detail=msg)
+    try:
+        from shared.lenin_core import fts5_search
+        return fts5_search("*", limit=limit)
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/api/v2/shadow")
+async def api_v2_shadow(word: str = "", x_api_key: str = Header(None, alias="X-API-Key")):
+    ok, msg, _ = check_api_key_and_rate(x_api_key, "/api/v2/shadow")
+    if not ok:
+        raise HTTPException(401 if "Missing" in msg else 429 if "limit" in msg.lower() else 403, detail=msg)
+    try:
+        mod = importlib.import_module("products.11_shadow.routes")
+        return mod.shadow_internal(word) if hasattr(mod, "shadow_internal") else {"error": "shadow_internal not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/api/v2/passport")
+async def api_v2_passport(x_api_key: str = Header(None, alias="X-API-Key")):
+    ok, msg, _ = check_api_key_and_rate(x_api_key, "/api/v2/passport")
+    if not ok:
+        raise HTTPException(401 if "Missing" in msg else 429 if "limit" in msg.lower() else 403, detail=msg)
+    try:
+        mod = importlib.import_module("products.12_passport.routes")
+        return mod.passport_internal() if hasattr(mod, "passport_internal") else {"error": "passport_internal not found"}
+    except Exception as e:
+        return {"error": str(e)}
+
+async def _dashboard_raw():
+    try:
+        mod = importlib.import_module("products.03_dashboard_pro.routes")
+        return await mod.dashboard_data()
+    except Exception as e:
+        return {"error": str(e)}
+
 
 @app.on_event("startup")
 def startup():
