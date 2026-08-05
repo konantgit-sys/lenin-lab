@@ -12,6 +12,7 @@ import os
 import time
 import json
 import hashlib
+import importlib
 import sqlite3
 import logging
 import traceback as tb_module
@@ -831,16 +832,11 @@ async def papers_generate(topic: str):
     except Exception as e:
         return _safe_err(e, "api")
 
-# ===== PHASE C ROUTES — Products 6, 7, 8 =====
+# ===== PHASE C ROUTES — Products 6, 9 =====
 @app.get("/contradictions")
 @app.get("/contradictions/")
 async def contradictions_index():
     return FileResponse("products/06_contradictions/index.html")
-
-@app.get("/shadow")
-@app.get("/shadow/")
-async def shadow_index():
-    return FileResponse("products/11_shadow/index.html")
 
 @app.get("/graph")
 @app.get("/graph/")
@@ -853,54 +849,13 @@ async def contradictions():
     from phase_c_engine import get_contradictions_json
     return {"contradictions": get_contradictions_json()}
 
-# Shadow cache
-_shadow_cache = {"data": None, "time": 0, "ttl": 300}  # 5 min TTL
+# ===== SHADOW (Product #11) — extracted to route module =====
+shadow_router = importlib.import_module("products.11_shadow.routes").router
+app.include_router(shadow_router)
 
-@app.get("/api/shadow")
-def shadow():
-    """Shadow structure — word frequency drift. CACHED (5 min TTL)."""
-    import time as _time
-    now = _time.time()
-    if _shadow_cache["data"] is not None and (now - _shadow_cache["time"]) < _shadow_cache["ttl"]:
-        return _shadow_cache["data"]
-
-    try:
-        from phase_c_engine import get_shadow_json
-        result = get_shadow_json()
-        resp = {"terms": result}
-        _shadow_cache["data"] = resp
-        _shadow_cache["time"] = now
-        return resp
-    except Exception as e:
-        if _shadow_cache["data"] is not None:
-            _shadow_cache["data"]["stale"] = True
-            _shadow_cache["data"]["warning"] = f"Cache stale, refresh failed: {e}"
-            return _shadow_cache["data"]
-        logger.error(f"[papers/terms] {e}"); return {"error": "internal error", "terms": []}
-
-# Cached passport data (precomputed, avoids 19s timeout)
-_PASSPORT_CACHE = None
-
-def _load_passport_cache():
-    global _PASSPORT_CACHE
-    if _PASSPORT_CACHE is None:
-        cache_path = SITE_DIR / "passport_cache.json"
-        if cache_path.exists():
-            _PASSPORT_CACHE = json.loads(cache_path.read_text())
-        else:
-            _PASSPORT_CACHE = []
-    return _PASSPORT_CACHE
-
-@app.get("/api/passport")
-def passport():
-    """Stylometric passport — text DNA by year. Served from cache."""
-    return {"stats": _load_passport_cache()}
-
-@app.get("/passport")
-@app.get("/passport/")
-async def passport_page():
-    """Stylometric passport iframe page."""
-    return FileResponse("products/12_passport/index.html")
+# ===== PASSPORT (Product #12) — extracted to route module =====
+passport_router = importlib.import_module("products.12_passport.routes").router
+app.include_router(passport_router)
 
 # ===== PRODUCT #7: DIGITAL TWIN =====
 from twin_engine import twin_search, assemble_response
@@ -933,190 +888,13 @@ async def twin_ask(q: str = ""):
     except Exception as e:
         return _safe_err(e, "api")
 
-# ===== DASHBOARD PRO (Product #3) =====
-@app.get("/dashboard")
-@app.get("/dashboard/")
-async def dashboard_index():
-    return FileResponse("products/03_dashboard_pro/index.html")
+# ===== DASHBOARD PRO (Product #3) — extracted to route module =====
+dashboard_router = importlib.import_module("products.03_dashboard_pro.routes").router
+app.include_router(dashboard_router)
 
-@app.get("/api/dashboard")
-async def dashboard_data():
-    """Aggregated metrics from all engines."""
-    try:
-        import sqlite3, json
-        db = Path(DB_PATH)
-        conn = sqlite3.connect(str(db))
-        cur = conn.cursor()
-
-        # Period distribution
-        period_ranges = [
-            ("1893-1905", 1893, 1905),
-            ("1906-1916", 1906, 1916),
-            ("1917-1922", 1917, 1922),
-        ]
-        periods = []
-        for label, y1, y2 in period_ranges:
-            cur.execute("SELECT COUNT(*) FROM paragraphs WHERE year BETWEEN ? AND ?", (y1, y2))
-            periods.append({"label": label, "count": cur.fetchone()[0]})
-
-        # Top topics from lenin_positions
-        cur.execute("SELECT topic, COUNT(*) as cnt FROM lenin_positions GROUP BY topic ORDER BY cnt DESC LIMIT 8")
-        top_topics = [{"name": r[0], "count": r[1]} for r in cur.fetchall()]
-
-        # Contradictions count from lenin_positions
-        cur.execute("SELECT COUNT(*) FROM lenin_positions")
-        total_positions = cur.fetchone()[0] or 1502
-
-        # Rhetoric — from engine_06
-        rhetoric_years = 25
-        rhetoric_categories = 5
-
-        # Shadow terms — from positions
-        cur.execute("SELECT COUNT(DISTINCT topic) FROM lenin_positions")
-        shadow_terms = cur.fetchone()[0] or 518
-
-        conn.close()
-
-        return {
-            "corpus": {
-                "paragraphs": 169067,
-                "chars": "48.5M",
-                "years": 25,
-                "volumes": 55,
-                "db_size_mb": 176.0,
-                "periods": periods
-            },
-            "engines_count": 9,
-            "engines": [
-                {"name": "Хроно-разметка", "metric": "169K параграфов, 55 томов"},
-                {"name": "Концептуальный граф", "metric": "206 концептов, 8 кластеров"},
-                {"name": "Диалектический парсер", "metric": "24 781 триада"},
-                {"name": "Карта оппонентов", "metric": "29 оппонентов, 9 262 упоминания"},
-                {"name": "Машина времени", "metric": "31 событие, 4 формата дат"},
-                {"name": "Риторический анализатор", "metric": f"{rhetoric_years} лет, {rhetoric_categories} категорий"},
-                {"name": "Позиции Ленина", "metric": f"{shadow_terms} тем, {total_positions} цитат"},
-                {"name": "Цитатомёт", "metric": "5 000 цитат, скор до 18.0"},
-                {"name": "Компаративный анализ", "metric": "89 тем, Marx/Engels/Lenin — полный охват"}
-            ],
-            "top_topics": top_topics,
-            "contradictions": {
-                "total": total_positions,
-                "high_conflict": 30
-            },
-            "rhetoric_summary": f"{rhetoric_years} лет размечено, {rhetoric_categories} категорий: агрессия, сарказм, воодушевление, аналитика, презрение",
-            "shadow": {
-                "terms": shadow_terms,
-                "before_1918": "до 1918 — активны все темы",
-                "after_1918": "после 1918 — часть тем исчезает"
-            }
-        }
-    except Exception as e:
-        return _safe_err(e, "api")
-
-# ===== IDEOLOGY COMPARATOR (Product #4) =====
-@app.get("/comparator")
-@app.get("/comparator/")
-async def comparator_index():
-    return FileResponse("products/04_ideology_comparator/index.html")
-
-@app.get("/api/comparator/topics")
-async def comparator_topics():
-    """List all available comparison topics."""
-    try:
-        sys.path.insert(0, str(SITE_DIR / "engines"))
-        from engine_09_comparative import MARXIST_BASIS
-        topics = sorted(MARXIST_BASIS.keys())
-        return [{"topic": t} for t in topics]
-    except Exception as e:
-        return _safe_err(e, "api")
-
-@app.get("/api/comparator/compare")
-async def comparator_compare(topic: str = ""):
-    """Compare Lenin with Marx and Engels on a specific topic."""
-    try:
-        sys.path.insert(0, str(SITE_DIR / "engines"))
-        from engine_09_comparative import MARXIST_BASIS, get_lenin_position
-        import sqlite3
-
-        topic_lower = topic.strip().lower()
-
-        # Case-insensitive lookup in MARXIST_BASIS
-        basis = {}
-        for k, v in MARXIST_BASIS.items():
-            if k.lower() == topic_lower:
-                basis = v
-                break
-
-        # Get Lenin position from DB (case-insensitive)
-        db = Path(DB_PATH)
-        conn = sqlite3.connect(str(db))
-        raw_lenin = get_lenin_position(conn, topic_lower) or {}
-
-        # Get mentions of Marx/Engels in context of this topic (broad search)
-        marx_mentions = 0
-        engels_mentions = 0
-        if topic_lower:
-            # Try exact phrase first, then individual words for multi-word topics
-            patterns = [f"%{topic_lower}%"]
-            words = topic_lower.split()
-            if len(words) > 1:
-                patterns += [f"%{w}%" for w in words if len(w) > 3]
-            
-            for pat in patterns:
-                cnt = conn.execute(
-                    "SELECT COUNT(*) FROM paragraphs WHERE (text LIKE '%Маркс%' OR text LIKE '%Маркса%') AND text LIKE ?",
-                    (pat,)
-                ).fetchone()[0]
-                if cnt > 0:
-                    marx_mentions = max(marx_mentions, cnt)
-                
-                cnt = conn.execute(
-                    "SELECT COUNT(*) FROM paragraphs WHERE text LIKE '%Энгельс%' AND text LIKE ?",
-                    (pat,)
-                ).fetchone()[0]
-                if cnt > 0:
-                    engels_mentions = max(engels_mentions, cnt)
-
-        total_mentions = marx_mentions + engels_mentions
-
-        # Calculate base_match: word overlap between Lenin position and Marx/Engels basis
-        base_match = 0
-        if raw_lenin and basis:
-            l_text = raw_lenin.get("text", "").lower()
-            m_text = (basis.get("marx", "") + " " + basis.get("engels", "")).lower()
-            m_words = set(m_text.split())
-            if m_words:
-                l_words = set(l_text.split())
-                overlap = len(l_words & m_words)
-                base_match = min(95, round(overlap / len(m_words) * 100))
-
-        conn.close()
-
-        result = {
-            "topic": topic_lower,
-            "marx": {
-                "position": basis.get("marx", ""),
-                "source": basis.get("source", "")
-            },
-            "engels": {
-                "position": basis.get("engels", ""),
-                "source": basis.get("source", "")
-            },
-            "lenin": {
-                "position": raw_lenin.get("text", "") if raw_lenin else "",
-                "years": str(raw_lenin.get("year", "")) if raw_lenin else "",
-                "quotes": [raw_lenin.get("text", "")] if raw_lenin else [],
-                "volume": raw_lenin.get("volume", ""),
-                "mentions": total_mentions,
-                "base_match": base_match
-            },
-            "development": "Ленин применил марксистские положения к российским условиям, добавив анализ империализма, авангардной партии и союза рабочих с крестьянством.",
-            "divergence": ""
-        }
-        return result
-    except Exception as e:
-        import traceback
-        logger.error(f"[style/generate] {tb_module.format_exc()}"); return {"error": "internal error", "text": "Ошибка генерации. Попробуйте другой запрос."}
+# ===== IDEOLOGY COMPARATOR (Product #4) — extracted to route module =====
+comparator_router = importlib.import_module("products.04_ideology_comparator.routes").router
+app.include_router(comparator_router)
 
 # ===== STYLE MIMIC (Product #8) =====
 @app.get("/style")
