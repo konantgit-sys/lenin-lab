@@ -112,6 +112,8 @@ html{scroll-behavior:smooth}
 .side-group-label svg.arrow{width:8px;height:8px;transition:transform .25s;opacity:.4}
 .side-group.collapsed svg.arrow{transform:rotate(-90deg)}
 .side-group.collapsed .side-item{display:none}
+/* Fix scroll chaining: sidebar scrolls independently */
+#sidebar{overscroll-behavior:contain;scroll-behavior:smooth}
 .side-item{display:flex;align-items:center;gap:10px;padding:7px 20px;font-size:12.5px;color:var(--text-secondary);cursor:pointer;transition:all .18s;border-left:2px solid transparent;white-space:nowrap;position:relative}
 .side-item:hover{color:var(--text-primary);background:#14141c}
 .side-item.active{color:var(--text-primary);background:var(--red-bg);border-left-color:#d44;font-weight:500}
@@ -1272,10 +1274,35 @@ function switchInstrTab(btn, level) {
 
 function toggleGroup(el){el.parentElement.classList.toggle('collapsed')}
 function switchTab(id){
+  // 1. Deactivate all items and panels
   document.querySelectorAll('.side-item').forEach(function(s){s.classList.remove('active')});
-  var si=document.querySelector('.side-item[data-tab="'+id+'"]');if(si){si.classList.add('active');si.scrollIntoView({block:'nearest'})}
   document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active')});
-  var p=document.getElementById('panel-'+id);if(p){p.classList.add('active');p.scrollIntoView({behavior:'smooth',block:'start'})}
+  
+  // 2. Find and activate the target sidebar item
+  var si=document.querySelector('.side-item[data-tab="'+id+'"]');
+  if(!si) return;
+  si.classList.add('active');
+  
+  // 3. Expand parent group if collapsed (fix: prevent scroll into hidden element)
+  var group=si.closest('.side-group');
+  if(group && group.classList.contains('collapsed')){
+    group.classList.remove('collapsed');
+  }
+  
+  // 4. Scroll sidebar item into view (after group expanded)
+  requestAnimationFrame(function(){
+    si.scrollIntoView({block:'nearest',behavior:'instant'});
+  });
+  
+  // 5. Show the target panel
+  var p=document.getElementById('panel-'+id);
+  if(p){
+    p.classList.add('active');
+    // Only scroll on mobile where panels are stacked vertically
+    if(window.innerWidth < 768){
+      setTimeout(function(){ p.scrollIntoView({behavior:'smooth',block:'start'}); }, 100);
+    }
+  }
   if(id===2&&!window._timelineInit)initTimeline();if(id===3&&!window._rhetoricInit)initRhetoric();
   if(id===4&&!window._quotesInit){showPanelSkeleton(4);initQuotes()};if(id===5&&!window._enginesInit){showPanelSkeleton(5);initEngines()};
   if(id===6&&!window._conceptsInit)initConcepts();if(id===7&&!window._opponentsInit){showPanelSkeleton(7);initOpponents()};
