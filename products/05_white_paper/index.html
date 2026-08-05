@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>White Paper Generator — Lenin Book</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0d5c0;font-family:system-ui,sans-serif;min-height:100vh}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(180deg,#1a0a0a 0%,#0a0a0a 100%)}
+.hero h1{font-size:2.2em;color:#c0392b;margin-bottom:10px}
+.hero p{color:#8a7a6a;font-size:1.05em;max-width:600px;margin:0 auto}
+.container{max-width:900px;margin:0 auto;padding:20px}
+.concept-grid{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;max-height:300px;overflow-y:auto}
+.concept-tag{background:#1a1212;color:#8a6a5a;padding:6px 14px;border-radius:20px;font-size:0.9em;cursor:pointer;border:1px solid #2a1a1a;transition:all 0.2s}
+.concept-tag:hover{background:#2a1a1a;color:#c0392b;border-color:#c0392b}
+.concept-tag.selected{background:#c0392b!important;color:#fff!important;border-color:#c0392b!important}
+.actions{display:flex;gap:12px;margin:20px 0;flex-wrap:wrap;align-items:center}
+.btn{padding:14px 32px;border:none;border-radius:10px;font-size:15px;cursor:pointer;font-weight:600;transition:all 0.2s}
+.btn-gen{background:#c0392b;color:#fff}
+.btn-gen:hover{background:#e74c3c;transform:translateY(-1px)}
+.btn-gen:disabled{background:#4a2a2a;cursor:not-allowed}
+.btn-pdf{background:#2a6496;color:#fff}
+.btn-pdf:hover{background:#3498db}
+.loading{text-align:center;padding:40px;color:#8a7a6a;display:none}
+.error{background:#1a1010;border-left:4px solid #e74c3c;padding:16px;color:#e74c3c;display:none;margin:16px 0;border-radius:0 8px 8px 0}
+.preview{background:#141010;padding:24px;border-radius:12px;margin-top:20px;display:none}
+.preview h2{color:#c0392b;margin-bottom:12px}
+.preview .sections-list{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.preview .section-chip{background:#1a1616;color:#8a6a6a;padding:4px 12px;border-radius:16px;font-size:0.85em}
+.search{width:100%;padding:14px;background:#1a1212;border:2px solid #3a2020;color:#e0d5c0;font-size:16px;border-radius:10px;margin-bottom:12px}
+.search:focus{outline:none;border-color:#c0392b}
+.info-bar{display:flex;gap:20px;flex-wrap:wrap;color:#6a5a5a;font-size:0.85em;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="hero">
+<h1>White Paper Generator</h1>
+<p>Выберите концепт — получите исследовательскую статью с хронологией, цитатами, диалектическим анализом и риторическим профилем</p>
+</div>
+
+<div class="container">
+<input class="search" id="search" placeholder="🔍 Фильтр: введите концепт..." oninput="filterConcepts()">
+<div class="info-bar">
+<span id="concept-count"></span>
+<span id="selected-info" style="display:none"></span>
+</div>
+<div class="concept-grid" id="grid"></div>
+
+<div class="actions">
+<button class="btn btn-gen" id="genBtn" disabled onclick="generatePaper()">Сгенерировать White Paper</button>
+<button class="btn btn-pdf" id="pdfBtn" style="display:none" onclick="downloadPDF()">📄 Скачать PDF</button>
+</div>
+
+<div class="error" id="error"></div>
+<div class="loading" id="loading">⚡ Генерирую White Paper... (поиск по 169K параграфов, FAISS, диалектика)</div>
+
+<div class="preview" id="preview">
+<h2 id="previewTitle"></h2>
+<div class="sections-list" id="sectionsList"></div>
+<div style="margin-top:16px;max-height:60vh;overflow-y:auto;padding-right:8px" id="previewContent"></div>
+</div>
+</div>
+
+<script>
+var concepts = [];
+var selected = null;
+
+fetch('/api/papers/concepts').then(r=>r.json()).then(d=>{
+  concepts = d.concepts;
+  document.getElementById('concept-count').textContent = concepts.length + ' концептов доступно';
+  renderGrid(concepts);
+});
+
+function renderGrid(list) {
+  var g = document.getElementById('grid');
+  g.innerHTML = list.map(c=>'<span class="concept-tag" onclick="selectConcept(this,\''+c.replace(/'/g,"\\'")+'\')">'+c+'</span>').join('');
+}
+
+function filterConcepts() {
+  var q = document.getElementById('search').value.toLowerCase();
+  renderGrid(concepts.filter(c=>c.toLowerCase().includes(q)));
+}
+
+function selectConcept(el, name) {
+  document.querySelectorAll('.concept-tag').forEach(t=>t.classList.remove('selected'));
+  el.classList.add('selected');
+  selected = name;
+  document.getElementById('genBtn').disabled = false;
+  document.getElementById('genBtn').textContent = 'Сгенерировать: «'+name+'»';
+}
+
+async function generatePaper() {
+  if (!selected) return;
+  document.getElementById('error').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('preview').style.display = 'none';
+  document.getElementById('pdfBtn').style.display = 'none';
+  document.getElementById('genBtn').disabled = true;
+
+  try {
+    var resp = await fetch('/api/papers/generate?topic='+encodeURIComponent(selected));
+    if (!resp.ok) throw new Error('Server error: '+resp.status);
+    var data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('preview').style.display = 'block';
+    document.getElementById('previewTitle').textContent = data.title+' ('+data.sections+' разделов)';
+
+    // Extract section titles from HTML
+    var div = document.createElement('div');
+    div.innerHTML = data.html;
+    var headings = div.querySelectorAll('h2');
+    var chips = '';
+    headings.forEach(function(h){ chips += '<span class="section-chip">'+h.textContent+'</span>'; });
+    document.getElementById('sectionsList').innerHTML = chips;
+
+    // Show truncated preview
+    var text = div.textContent.substring(0, 2000);
+    document.getElementById('previewContent').innerHTML = '<pre style="white-space:pre-wrap;color:#8a7a6a;line-height:1.6;font-family:Georgia,serif">'+text+'...</pre>';
+
+    // Store HTML for PDF
+    window._paperHtml = data.html;
+    window._paperTopic = data.topic;
+    document.getElementById('pdfBtn').style.display = 'inline-block';
+
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').textContent = e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+  document.getElementById('genBtn').disabled = false;
+}
+
+async function downloadPDF() {
+  if (!window._paperHtml) return;
+  document.getElementById('error').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('loading').textContent = 'Рендеринг PDF...';
+
+  try {
+    // Use render_document via the same approach as the test
+    var blob = new Blob([window._paperHtml], {type:'text/html'});
+    var url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    document.getElementById('loading').style.display = 'none';
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('error').textContent = 'PDF download: '+e.message;
+    document.getElementById('error').style.display = 'block';
+  }
+}
+</script>
+</body>
+</html>

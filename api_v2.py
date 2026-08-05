@@ -740,12 +740,12 @@ from fastapi.responses import FileResponse
 @app.get("/oracle")
 @app.get("/oracle/")
 async def oracle_index():
-    return FileResponse("oracle/index.html")
+    return FileResponse("products/02_lenin_oracle/index.html")
 
 @app.get("/twin")
 @app.get("/twin/")
 async def twin_index():
-    return FileResponse("twin/index.html")
+    return FileResponse("products/07_digital_twin/index.html")
 
 @app.get("/api/oracle/search")
 @with_timeout(10)
@@ -798,7 +798,7 @@ async def oracle_stats():
 @app.get("/papers")
 @app.get("/papers/")
 async def papers_index():
-    return FileResponse("papers/index.html")
+    return FileResponse("products/05_white_paper/index.html")
 
 @app.get("/api/papers/concepts")
 async def papers_concepts():
@@ -835,17 +835,17 @@ async def papers_generate(topic: str):
 @app.get("/contradictions")
 @app.get("/contradictions/")
 async def contradictions_index():
-    return FileResponse("contradictions/index.html")
+    return FileResponse("products/06_contradictions/index.html")
 
 @app.get("/shadow")
 @app.get("/shadow/")
 async def shadow_index():
-    return FileResponse("shadow/index.html")
+    return FileResponse("products/11_shadow/index.html")
 
 @app.get("/graph")
 @app.get("/graph/")
 async def graph_index():
-    return FileResponse("graph/index.html")
+    return FileResponse("products/09_knowledge_graph/index.html")
 
 @app.get("/api/contradictions")
 async def contradictions():
@@ -900,7 +900,7 @@ def passport():
 @app.get("/passport/")
 async def passport_page():
     """Stylometric passport iframe page."""
-    return FileResponse("passport/index.html")
+    return FileResponse("products/12_passport/index.html")
 
 # ===== PRODUCT #7: DIGITAL TWIN =====
 from twin_engine import twin_search, assemble_response
@@ -937,7 +937,7 @@ async def twin_ask(q: str = ""):
 @app.get("/dashboard")
 @app.get("/dashboard/")
 async def dashboard_index():
-    return FileResponse("dashboard/index.html")
+    return FileResponse("products/03_dashboard_pro/index.html")
 
 @app.get("/api/dashboard")
 async def dashboard_data():
@@ -996,7 +996,7 @@ async def dashboard_data():
                 {"name": "Риторический анализатор", "metric": f"{rhetoric_years} лет, {rhetoric_categories} категорий"},
                 {"name": "Позиции Ленина", "metric": f"{shadow_terms} тем, {total_positions} цитат"},
                 {"name": "Цитатомёт", "metric": "5 000 цитат, скор до 18.0"},
-                {"name": "Компаративный анализ", "metric": "62 темы, 89% марксистский базис"}
+                {"name": "Компаративный анализ", "metric": "89 тем, Marx/Engels/Lenin — полный охват"}
             ],
             "top_topics": top_topics,
             "contradictions": {
@@ -1017,7 +1017,7 @@ async def dashboard_data():
 @app.get("/comparator")
 @app.get("/comparator/")
 async def comparator_index():
-    return FileResponse("comparator/index.html")
+    return FileResponse("products/04_ideology_comparator/index.html")
 
 @app.get("/api/comparator/topics")
 async def comparator_topics():
@@ -1122,7 +1122,17 @@ async def comparator_compare(topic: str = ""):
 @app.get("/style")
 @app.get("/style/")
 async def style_index():
-    return FileResponse("style/index.html")
+    return FileResponse("products/08_style_mimic/index.html")
+
+@app.get("/genart")
+@app.get("/genart/")
+async def genart_index():
+    return FileResponse("products/10_generative_art/index.html")
+
+@app.get("/products/10_generative_art")
+@app.get("/products/10_generative_art/")
+async def genart_product():
+    return FileResponse("products/10_generative_art/index.html")
 
 @app.get("/api/style/generate")
 @with_timeout(15)
@@ -1165,17 +1175,17 @@ async def style_tones():
 @app.get("/obsidian")
 @app.get("/obsidian/")
 async def obsidian_index():
-    return FileResponse("obsidian/index.html")
+    return FileResponse("products/06_obsidian_plugin/index.html")
 
 @app.get("/plugins/lenin-search.zip")
 async def download_plugin():
-    return FileResponse("plugins/lenin-search.zip", media_type="application/zip")
+    return FileResponse("products/06_obsidian_plugin/plugins/lenin-search.zip", media_type="application/zip")
 
 # ===== IDEOLOGY COMPARATOR (Product #4) =====
 @app.get("/comparator")
 @app.get("/comparator/")
 async def comparator_index():
-    return FileResponse("comparator/index.html")
+    return FileResponse("products/04_ideology_comparator/index.html")
 
 @app.get("/api/comparator/topics")
 async def comparator_topics():
@@ -1368,8 +1378,14 @@ async def spa_fallback(path: str):
     target = SITE_DIR / path
     if target.is_file():
         return FileResponse(str(target))
-    # Check in subdirectories
-    for sub in ["css", "js", "images", "style", "papers", "obsidian", "comparator"]:
+    # If directory, serve its index.html
+    if target.is_dir():
+        index_file = target / "index.html"
+        if index_file.is_file():
+            return FileResponse(str(index_file))
+    # Check in subdirectories (backward compat + product paths)
+    for sub in ["css", "js", "images", "oracle", "style", "papers", "obsidian", "comparator",
+                "twin", "dashboard", "shadow", "passport", "contradictions", "graph", "products"]:
         candidate = SITE_DIR / sub / path
         if candidate.is_file():
             return FileResponse(str(candidate))

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lenin vs Lenin — Детектор противоречий</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0d5c0;font-family:system-ui,sans-serif;min-height:100vh}
+.hero{text-align:center;padding:50px 20px 30px;background:linear-gradient(180deg,#1a0808 0%,#0a0a0a 100%)}
+.hero h1{font-size:2em;color:#c0392b}
+.hero p{color:#8a6a6a;max-width:650px;margin:8px auto 0;font-size:1.05em}
+.container{max-width:960px;margin:0 auto;padding:20px}
+.loading{text-align:center;padding:40px;color:#8a7a6a;display:none}
+.contra-card{background:#141010;border-radius:10px;padding:20px;margin-bottom:16px;border-left:4px solid #c0392b;transition:all 0.2s}
+.contra-card:hover{background:#1a1414}
+.contra-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.contra-topic{font-size:1.3em;color:#c0392b;font-weight:700}
+.contra-score{background:#c0392b;color:#fff;padding:4px 14px;border-radius:16px;font-size:0.9em;font-weight:700}
+.contra-years{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.contra-year{background:#2a1a1a;color:#e0d5c0;padding:4px 12px;border-radius:6px;font-size:0.85em}
+.contra-arrows{font-size:1.5em;color:#c0392b;margin:0 6px}
+.contra-text{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.contra-pos{background:#1a1616;padding:12px;border-radius:8px;font-size:0.9em;line-height:1.6;color:#b0a090;max-height:200px;overflow-y:auto}
+.contra-pos strong{color:#c0392b;font-size:0.8em;display:block;margin-bottom:6px}
+.contra-explanation{font-size:0.82em;color:#6a5a5a;border-top:1px solid #2a1a1a;padding-top:10px}
+.stats-bar{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+.stat{background:#141010;padding:14px 20px;border-radius:8px;text-align:center;flex:1;min-width:120px}
+.stat-val{font-size:1.8em;font-weight:700;color:#c0392b}
+.stat-label{font-size:0.8em;color:#6a5a5a;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="hero">
+<h1>Lenin vs Lenin</h1>
+<p>Детектор противоречий: где и как Ленин менял свою позицию с годами. Обнаружено сравнением 1 502 позиций по пересечению переломных лет</p>
+</div>
+<div class="container">
+<div class="loading" id="loading">Анализирую 1 502 позиции... поиск противоречий...</div>
+<div id="stats"></div>
+<div id="results"></div>
+</div>
+<script>
+fetch('/api/contradictions').then(r=>r.json()).then(d=>{
+  document.getElementById('loading').style.display='none';
+  var contras=d.contradictions;
+  var avgScore=contras.reduce((s,c)=>s+c.score,0)/contras.length;
+  document.getElementById('stats').innerHTML='<div class="stats-bar">'+
+    '<div class="stat"><div class="stat-val">'+contras.length+'</div><div class="stat-label">противоречий</div></div>'+
+    '<div class="stat"><div class="stat-val">'+Math.round(avgScore)+'</div><div class="stat-label">средний скор</div></div>'+
+    '<div class="stat"><div class="stat-val">'+Math.max.apply(null,contras.map(c=>c.score))+'</div><div class="stat-label">макс. скор</div></div>'+
+    '</div>';
+  var html='';
+  contras.forEach(function(c,i){
+    html+='<div class="contra-card">'+
+      '<div class="contra-header"><span class="contra-topic">#'+(i+1)+' '+c.topic+'</span><span class="contra-score">Скор: '+c.score+'</span></div>'+
+      '<div class="contra-years"><span class="contra-year">'+c.year1+'</span><span class="contra-arrows">→</span><span class="contra-year">'+c.year2+'</span><span style="color:#8a6a6a;margin-left:8px;font-size:0.9em">разрыв: '+(c.year2-c.year1)+' лет</span></div>'+
+      '<div class="contra-text">'+
+        '<div class="contra-pos"><strong>'+c.year1+' г.:</strong>'+c.position1+'</div>'+
+        '<div class="contra-pos"><strong>'+c.year2+' г.:</strong>'+c.position2+'</div>'+
+      '</div>'+
+      '<div class="contra-explanation">Признаки: '+c.explanation+'</div>'+
+    '</div>';
+  });
+  document.getElementById('results').innerHTML=html;
+}).catch(e=>{
+  document.getElementById('loading').innerHTML='Ошибка: '+e.message;
+  document.getElementById('loading').style.display='block';
+});
+</script>
+</body>
+</html>

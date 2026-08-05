@@ -1,0 +1,10 @@
+{
+  "id": "lenin-search",
+  "name": "Lenin Search",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Поиск по 55 томам Ленина (169K параграфов) прямо из Obsidian. Цитаты с атрибуцией, концепты, случайные цитаты.",
+  "author": "SNIN / Lenin Book",
+  "authorUrl": "https://lenin-book.v2.site",
+  "isDesktopOnly": false
+}

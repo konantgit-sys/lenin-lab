@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ленин-Оракул — задай вопрос, получи цитату</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0d5c0;font-family:system-ui,-apple-system,sans-serif;min-height:100vh}
+.hero{text-align:center;padding:60px 20px 40px;background:linear-gradient(180deg,#1a0a0a 0%,#0a0a0a 100%)}
+.hero h1{font-size:2.5em;color:#c0392b;margin-bottom:10px}
+.hero p{color:#8a7a6a;font-size:1.1em;max-width:600px;margin:0 auto}
+.query-box{max-width:700px;margin:0 auto;padding:0 20px}
+textarea{width:100%;height:80px;background:#1a1212;border:2px solid #3a2020;color:#e0d5c0;padding:16px;font-size:16px;border-radius:12px;resize:none}
+textarea:focus{outline:none;border-color:#c0392b}
+.buttons{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+.btn{padding:12px 28px;border:none;border-radius:10px;font-size:15px;cursor:pointer;font-weight:600;transition:all 0.2s}
+.btn-search{background:#c0392b;color:#fff}
+.btn-search:hover{background:#e74c3c;transform:translateY(-1px)}
+.btn-random{background:transparent;color:#c0392b;border:2px solid #c0392b}
+.btn-random:hover{background:#1a1010;transform:translateY(-1px)}
+.results{max-width:800px;margin:30px auto;padding:0 20px}
+.quote-card{background:#141010;border-left:4px solid #c0392b;padding:24px;margin-bottom:16px;border-radius:0 12px 12px 0;transition:all 0.2s}
+.quote-card:hover{background:#1a1414;transform:translateX(2px)}
+.quote-meta{color:#8a6a5a;font-size:0.85em;margin-bottom:10px;display:flex;justify-content:space-between}
+.quote-text{font-size:1.05em;line-height:1.7;color:#d4c8b8}
+.quote-volume{color:#6a5a4a}
+.score{color:#c0392b;font-weight:700}
+.stats-bar{display:flex;justify-content:center;gap:40px;padding:20px;background:#111;border-top:1px solid #2a1a1a;margin-top:40px;color:#6a5a5a;font-size:0.9em;flex-wrap:wrap}
+.stats-bar span strong{color:#c0392b}
+.loading{text-align:center;padding:40px;color:#8a7a6a;display:none}
+.error{background:#1a1010;border-left:4px solid #e74c3c;padding:16px;color:#e74c3c;display:none}
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.example-tag{background:#1a1212;color:#8a6a5a;padding:6px 14px;border-radius:20px;font-size:0.85em;cursor:pointer;border:1px solid #2a1a1a;transition:all 0.2s}
+.example-tag:hover{background:#2a1a1a;color:#c0392b;border-color:#c0392b}
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>Ленин-Оракул</h1>
+  <p>Задайте вопрос — получите реальные цитаты из 55 томов. Никаких галлюцинаций — только подлинные слова, с указанием тома и года.</p>
+</div>
+
+<div class="query-box">
+  <textarea id="query" placeholder="Что Ленин думал о кооперации?"></textarea>
+  <div class="examples" id="examples">
+    <span class="example-tag" onclick="searchTag(this)">диктатура пролетариата</span>
+    <span class="example-tag" onclick="searchTag(this)">кооперация</span>
+    <span class="example-tag" onclick="searchTag(this)">революция 1905</span>
+    <span class="example-tag" onclick="searchTag(this)">империализм</span>
+    <span class="example-tag" onclick="searchTag(this)">государство и революция</span>
+  </div>
+  <div class="buttons">
+    <button class="btn btn-search" onclick="doSearch()">Спросить Ленина</button>
+    <button class="btn btn-random" onclick="doRandom()">🎲 Случайная цитата</button>
+  </div>
+  <div class="error" id="error"></div>
+  <div class="loading" id="loading">⚡ Ищем в 169 000 параграфах...</div>
+</div>
+
+<div class="results" id="results"></div>
+<div class="stats-bar" id="stats"></div>
+
+<script>
+async function doSearch() {
+  const q = document.getElementById('query').value.trim();
+  if (!q) return;
+  await search(q);
+}
+
+async function searchTag(el) {
+  document.getElementById('query').value = el.textContent;
+  await search(el.textContent);
+}
+
+async function search(q) {
+  const errDiv = document.getElementById('error');
+  const loadDiv = document.getElementById('loading');
+  const resDiv = document.getElementById('results');
+  errDiv.style.display = 'none';
+  loadDiv.style.display = 'block';
+  resDiv.innerHTML = '';
+
+  try {
+    const resp = await fetch('/api/oracle/search?q=' + encodeURIComponent(q));
+    if (!resp.ok) throw new Error('Ошибка сервера: ' + resp.status);
+    const data = await resp.json();
+    renderResults(data);
+  } catch(e) {
+    errDiv.textContent = '⚠️ ' + e.message;
+    errDiv.style.display = 'block';
+  } finally {
+    loadDiv.style.display = 'none';
+  }
+}
+
+async function doRandom() {
+  const errDiv = document.getElementById('error');
+  const loadDiv = document.getElementById('loading');
+  const resDiv = document.getElementById('results');
+  errDiv.style.display = 'none';
+  loadDiv.style.display = 'block';
+  resDiv.innerHTML = '';
+
+  try {
+    const resp = await fetch('/api/oracle/random');
+    if (!resp.ok) throw new Error('Ошибка сервера');
+    const data = await resp.json();
+    renderSingleQuote(data);
+  } catch(e) {
+    errDiv.textContent = '⚠️ ' + e.message;
+    errDiv.style.display = 'block';
+  } finally {
+    loadDiv.style.display = 'none';
+  }
+}
+
+function renderResults(data) {
+  let html = '';
+  for (const r of (data.results || [])) {
+    const year = r.year || 'б/д';
+    const vol = r.volume || '?';
+    const score = Math.round((r.score || 0) * 100);
+    html += '<div class="quote-card"><div class="quote-meta"><span>' + year + ' г., том ' + vol + '</span><span class="score">' + score + '%</span></div><div class="quote-text">«' + escapeHtml(r.text) + '»</div></div>';
+  }
+  document.getElementById('results').innerHTML = html;
+  document.getElementById('query').value = '';
+}
+
+function renderSingleQuote(data) {
+  const r = data;
+  const year = r.year || 'б/д';
+  const vol = r.volume || '?';
+  let html = '<div class="quote-card"><div class="quote-meta"><span>' + year + ' г., том ' + vol + '</span></div><div class="quote-text">«' + escapeHtml(r.text) + '»</div></div>';
+  document.getElementById('results').innerHTML = html;
+}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Load stats
+fetch('/api/oracle/stats').then(r => r.json()).then(d => {
+  document.getElementById('stats').innerHTML = '<span>📚 <strong>' + d.total_paragraphs.toLocaleString() + '</strong> параграфов</span><span>📅 <strong>' + d.year_from + '–' + d.year_to + '</strong></span><span>🔍 <strong>93 711</strong> FAISS-векторов</span><span>💬 <strong>' + d.scored_quotes.toLocaleString() + '</strong> цитат</span>';
+});
+
+document.getElementById('query').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSearch(); }
+});
+</script>
+</body>
+</html>

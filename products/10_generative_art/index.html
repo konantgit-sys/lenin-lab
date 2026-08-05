@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Generative Art — Lenin Corpus</title>
+<style>
+:root {
+  --bg: #0a0a0f;
+  --text: #c8c8d4;
+  --accent: #c4202b;
+  --accent2: #e07020;
+  --accent3: #2080c4;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI',system-ui,sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+canvas { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; }
+#overlay {
+  position:fixed; bottom:20px; left:20px; right:20px;
+  z-index:10; display:flex; justify-content:space-between;
+  align-items:flex-end; pointer-events:none;
+}
+#info {
+  background: rgba(10,10,15,0.85);
+  border: 1px solid rgba(200,200,220,0.1);
+  border-radius: 8px; padding: 12px 16px;
+  font-size: 12px; line-height: 1.6;
+  max-width: 300px; pointer-events:auto;
+  backdrop-filter: blur(8px);
+}
+#info h2 { font-size:14px; color:var(--accent); margin-bottom:4px; }
+#info p { opacity:0.7; font-size:11px; }
+#info .metric { color:var(--accent2); font-weight:600; }
+#controls {
+  display:flex; gap:8px; pointer-events:auto;
+}
+.btn {
+  background: rgba(10,10,15,0.85);
+  border: 1px solid rgba(200,200,220,0.15);
+  color: var(--text); padding: 8px 14px;
+  border-radius: 6px; cursor:pointer; font-size:12px;
+  backdrop-filter: blur(8px);
+  transition: all 0.2s;
+}
+.btn:hover { border-color:var(--accent); background:rgba(196,32,43,0.1); }
+.btn.active { border-color:var(--accent); color:var(--accent); }
+#stats-bar {
+  position:fixed; top:12px; right:16px; z-index:10;
+  font-size:10px; opacity:0.5;
+  font-family: monospace;
+  pointer-events:none;
+}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="stats-bar"></div>
+<div id="overlay">
+  <div id="info">
+    <h2>Lenin Corpus — Generative Art</h2>
+    <p id="info-text">Загрузка данных корпуса...</p>
+  </div>
+  <div id="controls">
+    <button class="btn active" data-mode="flow">Flow</button>
+    <button class="btn" data-mode="burst">Burst</button>
+    <button class="btn" data-mode="orbit">Orbit</button>
+    <button class="btn" data-mode="drift">Drift</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const infoText = document.getElementById('info-text');
+const statsBar = document.getElementById('stats-bar');
+
+let W, H, particles = [], mode = 'flow';
+let concepts = [], clusters = [];
+let mouse = { x:0, y:0, active:false };
+
+// Resize handler
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Mouse tracking
+canvas.addEventListener('mousemove', e => {
+  mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true;
+});
+canvas.addEventListener('mouseleave', () => { mouse.active = false; });
+
+// Mode buttons
+document.querySelectorAll('.btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    mode = btn.dataset.mode;
+  });
+});
+
+// Color palette based on Lenin-era Soviet aesthetics
+const palette = [
+  [196,32,43],    // Soviet red
+  [220,100,40],   // Constructivist orange
+  [200,180,40],   // Propaganda yellow
+  [255,255,255],  // White (text)
+  [40,60,100],    // Industrial blue
+  [100,40,60],    // Deep burgundy
+  [60,80,60],     // Military green
+  [80,60,100],    // Purple
+];
+
+function hex(r,g,b) { return `rgb(${r},${g},${b})`; }
+
+// Particle class
+class Particle {
+  constructor(concept, clusterIdx) {
+    this.reset(concept, clusterIdx);
+  }
+
+  reset(concept, clusterIdx) {
+    const [r,g,b] = palette[clusterIdx % palette.length];
+    this.color = `rgba(${r},${g},${b}`;
+    this.x = Math.random() * W;
+    this.y = Math.random() * H;
+    this.vx = (Math.random() - 0.5) * 0.5;
+    this.vy = (Math.random() - 0.5) * 0.5;
+    this.size = 1.5 + Math.random() * 3;
+    this.opacity = 0.3 + Math.random() * 0.7;
+    this.concept = concept;
+    this.cluster = clusterIdx;
+    this.life = 300 + Math.random() * 400;
+    this.age = 0;
+    this.pulsePhase = Math.random() * Math.PI * 2;
+  }
+
+  update() {
+    this.age++;
+    if (this.age > this.life) return false;
+
+    // Mode-specific behavior
+    const speed = 0.3;
+    switch(mode) {
+      case 'flow':
+        this.vx += (Math.sin(this.x * 0.003 + this.pulsePhase) * 0.02);
+        this.vy += (Math.cos(this.y * 0.003 + this.pulsePhase) * 0.02);
+        break;
+      case 'burst':
+        if (mouse.active) {
+          const dx = this.x - mouse.x;
+          const dy = this.y - mouse.y;
+          const dist = Math.sqrt(dx*dx+dy*dy) || 1;
+          const force = 200 / (dist + 10);
+          this.vx += (dx / dist) * force * 0.03;
+          this.vy += (dy / dist) * force * 0.03;
+        }
+        break;
+      case 'orbit':
+        const cx = W/2, cy = H/2;
+        const rx = this.x - cx, ry = this.y - cy;
+        this.vx += -ry * 0.0003;
+        this.vy += rx * 0.0003;
+        break;
+      case 'drift':
+        this.vx += (Math.random() - 0.5) * 0.04;
+        this.vy += (Math.random() - 0.5) * 0.04;
+        break;
+    }
+
+    // Damping
+    this.vx *= 0.995;
+    this.vy *= 0.995;
+
+    // Speed limit
+    const spd = Math.sqrt(this.vx*this.vx+this.vy*this.vy);
+    if (spd > 2) { this.vx = (this.vx/spd)*2; this.vy = (this.vy/spd)*2; }
+
+    this.x += this.vx;
+    this.y += this.vy;
+
+    // Wrap
+    if (this.x < -20) this.x = W + 20;
+    if (this.x > W + 20) this.x = -20;
+    if (this.y < -20) this.y = H + 20;
+    if (this.y > H + 20) this.y = -20;
+
+    return true;
+  }
+
+  draw(ctx) {
+    const lifeRatio = 1 - (this.age / this.life);
+    const alpha = this.opacity * lifeRatio;
+    const pulse = 1 + Math.sin(this.age * 0.05 + this.pulsePhase) * 0.3;
+
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * pulse, 0, Math.PI * 2);
+    ctx.fillStyle = `${this.color},${alpha})`;
+    ctx.fill();
+
+    // Glow effect for larger particles
+    if (this.size > 2.5 && lifeRatio > 0.3) {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size * pulse * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = `${this.color},${alpha * 0.08})`;
+      ctx.fill();
+    }
+  }
+}
+
+// Fetch concept data and initialize
+async function init() {
+  try {
+    const resp = await fetch('/api/concepts');
+    const data = await resp.json();
+
+    if (data.concepts) {
+      concepts = data.concepts;
+      clusters = data.clusters || [];
+      infoText.innerHTML = `<span class="metric">${concepts.length}</span> концептов · <span class="metric">${clusters.length || 8}</span> кластеров<br>
+        169K параграфов · 55 томов · 1893–1922<br>
+        <span style="opacity:0.6">Двигай мышью в режиме Burst</span>`;
+    }
+  } catch(e) {
+    infoText.innerHTML = `<span class="metric">206</span> концептов · <span class="metric">8</span> кластеров<br>
+      169K параграфов · 55 томов<br>
+      <span style="opacity:0.6">Оффлайн-режим</span>`;
+    // Create synthetic particles
+    for (let c = 0; c < 8; c++) {
+      clusters.push({name: `Кластер ${c+1}`, size: 15 + Math.random()*40});
+    }
+    for (let i = 0; i < 206; i++) {
+      concepts.push({name: `concept_${i}`, cluster: i % 8});
+    }
+  }
+
+  // Create particles
+  const targetCount = Math.min(300, W * H / 8000);
+  for (let i = 0; i < targetCount; i++) {
+    const ci = i % (concepts.length || 206);
+    particles.push(new Particle(
+      concepts[ci]?.name || `c${ci}`,
+      concepts[ci]?.cluster || (i % 8)
+    ));
+  }
+
+  statsBar.textContent = `particles:${particles.length} | mode:${mode} | fps:--`;
+}
+
+// Animation loop
+let frameCount = 0, lastFpsTime = 0;
+function animate(timestamp) {
+  ctx.fillStyle = 'rgba(10,10,15,0.15)';
+  ctx.fillRect(0, 0, W, H);
+
+  // Update and draw particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    if (!particles[i].update()) {
+      // Respawn
+      const ci = Math.floor(Math.random() * (concepts.length || 206));
+      particles[i].reset(concepts[ci]?.name || `c${ci}`, concepts[ci]?.cluster || (i % 8));
+    }
+    particles[i].draw(ctx);
+  }
+
+  // Drawing connections between nearby particles
+  if (mode === 'flow' || mode === 'drift') {
+    const connDist = 80;
+    ctx.strokeStyle = 'rgba(200,200,220,0.03)';
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < particles.length; i += 4) {
+      for (let j = i + 4; j < particles.length; j += 4) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if (dist < connDist && particles[i].cluster === particles[j].cluster) {
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+        }
+      }
+    }
+  }
+
+  // FPS counter
+  frameCount++;
+  if (timestamp - lastFpsTime > 1000) {
+    const fps = Math.round(frameCount / ((timestamp - lastFpsTime) / 1000));
+    statsBar.textContent = `particles:${particles.length} | mode:${mode} | fps:${fps}`;
+    frameCount = 0;
+    lastFpsTime = timestamp;
+  }
+
+  requestAnimationFrame(animate);
+}
+
+init().then(() => requestAnimationFrame(animate));
+</script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Стилометрический паспорт — Lenin Book</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#d4c8b8;font-family:system-ui,-apple-system,sans-serif;min-height:100vh;padding:24px}
+h1{color:#c0392b;font-size:1.6em;margin-bottom:6px}
+.subtitle{color:#6a5a5a;font-size:0.82em;margin-bottom:28px}
+.card{background:#141010;border:1px solid #2a1a1a;border-radius:12px;padding:20px;margin-bottom:14px}
+.card h3{color:#c4a040;font-size:1em;margin-bottom:10px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.stat-item{background:#0e0e0e;border-radius:8px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+.stat-label{color:#6a5a5a;font-size:0.78em}
+.stat-value{color:#d4c8b8;font-size:0.95em;font-weight:600}
+.year-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.year-badge{background:#c0392b;color:#fff;padding:3px 10px;border-radius:6px;font-weight:700;font-size:0.85em}
+.par-count{color:#5a5a5a;font-size:0.78em}
+.chart-bar{height:6px;background:#2a1a1a;border-radius:3px;margin-top:8px;overflow:hidden}
+.chart-fill{height:100%;background:linear-gradient(90deg,#c0392b,#e74c3c);border-radius:3px;transition:width 0.5s ease-out}
+.loading{text-align:center;padding:60px;color:#6a5a5a}
+.error{background:#1a1010;border-left:4px solid #e74c3c;padding:16px;color:#e74c3c;display:none}
+table{border-collapse:collapse;width:100%;margin-top:20px}
+th{background:#1a1212;color:#8a6a5a;padding:10px 12px;text-align:left;font-size:0.78em;font-weight:600;border-bottom:2px solid #2a1a1a}
+td{padding:8px 12px;border-bottom:1px solid #1a1212;font-size:0.82em}
+tr:hover{background:#111}
+.num{text-align:right;font-family:monospace}
+.high{color:#4ade80}
+.med{color:#c4a040}
+.low{color:#8a6a6a}
+</style>
+</head>
+<body>
+<h1>Стилометрический паспорт</h1>
+<p class="subtitle">Текстовая ДНК Ленина: метрики стиля по годам</p>
+<div id="content"><div class="loading">Загрузка...</div></div>
+<div id="error" class="error"></div>
+
+<script>
+async function load() {
+  try {
+    const r = await fetch('/api/passport');
+    const data = await r.json();
+    if (data.error) throw new Error(data.error);
+
+    const stats = data.stats;
+    if (!stats || !stats.length) throw new Error('No data');
+
+    const maxPars = Math.max(...stats.map(s => s.paragraph_count));
+
+    // Summary card
+    const totalPars = stats.reduce((sum, s) => sum + s.paragraph_count, 0);
+    const avgSent = (stats.reduce((sum, s) => sum + s.avg_sentence_len * s.paragraph_count, 0) / totalPars).toFixed(1);
+    const avgLex = (stats.reduce((sum, s) => sum + s.lexical_diversity, 0) / stats.length).toFixed(4);
+    const maxCaps = stats.reduce((best, s) => s.caps_ratio > best.caps_ratio ? s : best, stats[0]);
+
+    let html = `
+      <div class="card">
+        <h3>Сводка по 25 годам</h3>
+        <div class="stats-grid">
+          <div class="stat-item"><span class="stat-label">Параграфов всего</span><span class="stat-value">${totalPars.toLocaleString()}</span></div>
+          <div class="stat-item"><span class="stat-label">Средняя длина предложения</span><span class="stat-value">${avgSent} симв.</span></div>
+          <div class="stat-item"><span class="stat-label">Лексическое разнообразие</span><span class="stat-value">${avgLex}</span></div>
+          <div class="stat-item"><span class="stat-label">Пик заглавных букв</span><span class="stat-value">${maxCaps.year} (${(maxCaps.caps_ratio*100).toFixed(2)}%)</span></div>
+        </div>
+      </div>
+    `;
+
+    // Per-year cards
+    html += '<div class="stats-grid">';
+    for (const s of stats) {
+      const pct = (s.paragraph_count / maxPars * 100).toFixed(0);
+      html += `
+        <div class="card">
+          <div class="year-header">
+            <span class="year-badge">${s.year}</span>
+            <span class="par-count">${s.paragraph_count.toLocaleString()} параграфов</span>
+          </div>
+          <div class="chart-bar"><div class="chart-fill" style="width:${pct}%"></div></div>
+          <div style="margin-top:10px;font-size:0.78em;color:#6a5a5a;">
+            Предложений: ~${s.avg_sentence_len}с &nbsp;|&nbsp; 
+            LexDiv: <span class="${s.lexical_diversity > 0.15 ? 'high' : s.lexical_diversity > 0.1 ? 'med' : 'low'}">${s.lexical_diversity.toFixed(3)}</span> &nbsp;|&nbsp;
+            Caps: ${(s.caps_ratio*100).toFixed(1)}%
+          </div>
+        </div>`;
+    }
+    html += '</div>';
+
+    document.getElementById('content').innerHTML = html;
+  } catch(e) {
+    document.getElementById('error').style.display = 'block';
+    document.getElementById('error').textContent = 'Ошибка: ' + e.message;
+    document.getElementById('content').innerHTML = '';
+  }
+}
+load();
+</script>
+</body>
+</html>
