@@ -4,3 +4,8 @@ starlette>=0.37.0
 networkx>=3.3
 python-multipart>=0.0.9
 aiogram>=3.7.0
+
+# optional: semantic Oracle
+torch>=2.2
+fastembed>=0.3.0
+faiss-cpu>=1.8.0

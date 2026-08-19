@@ -1,13 +1,30 @@
-# Lenin-Book 📚 [BETA]
+# Lenin-Book 📚
 
 **V.I. Lenin's Complete Works — Search, Analyze, Explore.**
 
-169,067 paragraphs across 55 volumes (1893–1922). 9 analytical engines, REST API.
-AGPLv3 — free software, copyleft.
+169,067 paragraphs across 55 volumes (1893–1922). 9 analytical engines, semantic Oracle, REST API, and a 118-page book.
 
-> ⚠️ **Beta status:** Engines + API v1 are production-ready (100 tests, CI/CD). Products (Oracle, Digital Twin, White Paper) are in development — some return 502. See [Roadmap](#roadmap).
+[![Live](https://img.shields.io/badge/live-lenin--book.v2.site-brightgreen)](https://lenin-book.v2.site)
+[![Version](https://img.shields.io/badge/version-2.46-orange)]()
+[![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-100%2F100-green)]()
+[![Book](https://img.shields.io/badge/book-118%20pages-red)](https://lenin-book.v2.site/lenin_book_v5.8.3.pdf)
 
-🌐 **Live:** **[lenin-book.v2.site](https://lenin-book.v2.site)**
+> ⚠️ **Beta status:** Engines + API v1 are production-ready (100 tests). Products (Digital Twin, White Paper, Contradictions) are in development — some return 502. Oracle (semantic search) is live. See [Roadmap](#roadmap).
+
+---
+
+## Screenshots
+
+| Main dashboard | Concept graph |
+|---|---|
+| ![Home](screenshots/01_home.png) | ![Graph](screenshots/02_graph.png) |
+
+| Semantic Oracle | Book (118 pages) |
+|---|---|
+| ![Oracle](screenshots/03_oracle.png) | [![Book](screenshots/04_book_cover.png)](https://lenin-book.v2.site/lenin_book_v5.8.3.pdf) |
+
+**📖 The book:** [*«Ленин как архитектор распределённых систем»* — 200 theses, 118 pages, PDF](https://lenin-book.v2.site/lenin_book_v5.8.3.pdf)
 
 ---
 
@@ -20,8 +37,53 @@ Nobody has built a **specialized single-author analytical platform** at this dep
 | Engines | 9 | Chronology, Concepts, Dialectics, Opponents, Time Machine, Rhetoric, Positions, Quotes, Comparative |
 | Products | 10 | Oracle, Digital Twin, White Paper, Contradictions, Style Mimic + 5 more |
 | API v1 | 15 endpoints | Search, Timeline, Concepts, Rhetoric, Entropy, Tomography, Phantoms, Compare |
+| Oracle | 93,711 vectors | Semantic search, local MiniLM-L12 embeddings (384-dim), FAISS index |
 | Tests | 100/100 | 13.6 seconds |
 | Concepts | 206 | Louvain clusters (8), co-occurrence edges (12,735) |
+
+---
+
+## Quick Start
+
+```bash
+# 1. Clone
+git clone https://github.com/konantgit-sys/lenin-lab.git
+cd lenin-lab
+
+# 2. Install
+pip install -r requirements.txt          # FastAPI, uvicorn, networkx
+pip install fastembed faiss-cpu          # semantic Oracle (optional)
+
+# 3. Run API (port 9770)
+python3 api_v2.py --port 9770            # or: uvicorn api_v2:app --port 9770
+
+# 4. Open the site — serve this directory statically:
+python3 -m http.server 8080              # then open http://localhost:8080
+```
+
+**Data note:** the full corpus (169K paragraphs) lives in a SQLite database not shipped in this repo — run `python3 api_v2.py --build-caches` after loading your own `lenin.db` into the project dir.
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Client
+        UI[Web UI] --> API2[API v2 :9770]
+        API1[API v1 clients] --> GW[API gateway]
+    end
+    API2 --> ENG[9 analytical engines]
+    API2 --> DB[(SQLite + FTS5<br/>55 volumes · 169K paragraphs)]
+    API2 --> ORC[Oracle<br/>semantic search]
+    ORC --> EMB[(93,711 vectors<br/>384-dim MiniLM)]
+    GW --> API2
+    ENG --> DB
+    subgraph Products
+        P1[Oracle] & P2[Digital Twin] & P3[White Paper] & P4[Contradictions]
+    end
+    API2 --> Products
+```
 
 ---
 
@@ -94,6 +156,7 @@ All errors return HTTP 200 (proxy-friendly) with `error: true`:
 
 - **Backend:** Python 3.11 + FastAPI + uvicorn
 - **Database:** SQLite 3 + FTS5 (full-text search, RU + EN)
+- **Semantic search:** FAISS + sentence-transformers `paraphrase-multilingual-MiniLM-L12-v2` (local, no external API)
 - **Graph:** NetworkX + Louvain community detection
 - **Analytics:** Precomputed JSON caches
 - **Deploy:** V2Bot platform, `*.v2.site`
@@ -119,7 +182,8 @@ python3 api_v2.py --build-caches
 
 | Priority | What | Status |
 |---|---|---|
-| 🔴 | Fix product APIs (Oracle, Twin, White Paper — 502 errors) | Next |
+| 🔴 | Oracle semantic search | ✅ Live (93,711 vectors, local model) |
+| 🟡 | Fix product APIs (Digital Twin, White Paper, Contradictions) | Next |
 | 🟡 | Analytics (GA/Metrica) for visitor tracking | Next |
 | 🟡 | REST API docs page on site | Planned |
 | 🟢 | Obsidian Plugin polish | Planned |
