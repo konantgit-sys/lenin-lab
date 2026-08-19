@@ -8,8 +8,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from engines.engine_07_positions import search_position, TOPICS, auto_keywords
+import os
 
-DB_PATH = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+DB_PATH = Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db"))
 
 
 def test_table_exists():

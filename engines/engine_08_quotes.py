@@ -15,8 +15,9 @@ import sqlite3
 import time
 from pathlib import Path
 from collections import defaultdict
+import os
 
-DB_PATH = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+DB_PATH = Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db"))
 
 # Признаки афористичности
 APHORISM_MARKERS = {

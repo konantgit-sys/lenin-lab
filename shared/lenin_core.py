@@ -15,7 +15,7 @@ logger = logging.getLogger("lenin-core")
 # Database paths
 _DB_CANDIDATES = [
     SITE_DIR / "lenin.db",
-    Path("/home/agent/data/projects/lenin-knowledge/lenin.db"),
+    Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db")),
 ]
 DB_PATH = next((p for p in _DB_CANDIDATES if p.exists()), _DB_CANDIDATES[1])
 ANALYTICS_DB = SITE_DIR / "data" / "analytics.db"

@@ -3,6 +3,7 @@ Tests for Engine #3: Диалектический парсер.
 """
 
 import sys
+import os
 import sqlite3
 import json
 from pathlib import Path
@@ -18,7 +19,7 @@ from engines.engine_03_dialectics import (
     NEGATION_AFFIRMATION,
 )
 
-DB_PATH = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+DB_PATH = Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db"))
 
 
 def test_table_exists():

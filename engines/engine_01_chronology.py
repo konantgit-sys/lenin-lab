@@ -6,8 +6,9 @@ Engine #1: Хронологическая разметка
 import sqlite3
 import json
 from pathlib import Path
+import os
 
-DB_PATH = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+DB_PATH = Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db"))
 
 # Маппинг том → год на основе реальной хронологии ПСС (5-е издание)
 VOLUME_TO_YEAR = {

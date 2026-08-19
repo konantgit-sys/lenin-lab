@@ -10,8 +10,9 @@ import sqlite3, re, math
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import List, Dict, Tuple, Optional
+import os
 
-DB = "/home/agent/data/projects/lenin-knowledge/lenin.db"
+DB = os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db")
 
 # =============================================================================
 # UTILS

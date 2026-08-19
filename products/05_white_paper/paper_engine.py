@@ -12,7 +12,7 @@ from collections import defaultdict, Counter
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 
-DB_PATH = "/home/agent/data/projects/lenin-knowledge/lenin.db"
+DB_PATH = os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db")
 
 @dataclass
 class PaperSection:

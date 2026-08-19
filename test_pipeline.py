@@ -5,6 +5,7 @@ Reads test_config.yaml, runs all phases, produces report.
 """
 import json, re, requests, sys, time, os, subprocess
 from datetime import datetime
+import os
 
 BASE = "https://lenin-book.v2.site"
 PASS, FAIL, WARN = 0, 0, 0
@@ -64,7 +65,7 @@ try:
 except:
     check("Port 9770 listening", False, "could not check local")
 
-check("start.sh exists", os.path.exists('/home/agent/data/sites/lenin-book/start.sh'))
+check("start.sh exists", os.path.exists(os.environ.get('LENIN_START_SH', '/home/agent/data/sites/lenin-book/start.sh')))
 
 # ═══════ PHASE 2: API ═══════
 print(f"\n{bold('🔌 PHASE 2: API ENDPOINTS')}")
@@ -251,7 +252,7 @@ report = {
     "warn": WARN,
     "score_pct": round(pct, 1),
 }
-report_path = '/home/agent/data/sites/lenin-book/test_report.json'
+report_path = os.environ.get('LENIN_TEST_REPORT', '/home/agent/data/sites/lenin-book/test_report.json')
 with open(report_path, 'w') as f:
     json.dump(report, f, indent=2)
 print(f"\n  Report saved: {report_path}")

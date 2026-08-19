@@ -4,9 +4,10 @@ import sys
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+DB_PATH = Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db"))
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from engines.engine_07_positions import search_position
+import os
 
 
 def list_topics():

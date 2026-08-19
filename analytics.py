@@ -8,8 +8,9 @@ import json
 from pathlib import Path
 from collections import defaultdict, Counter
 from datetime import datetime, timedelta
+import os
 
-LOG_PATH = Path("/home/agent/data/sites/lenin-book/api_access.log")
+LOG_PATH = Path(os.environ.get("LENIN_LOG_PATH", "/home/agent/data/sites/lenin-book/api_access.log"))
 
 def parse_log(days: int = 30):
     """Parse access log, return structured data."""

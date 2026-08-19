@@ -6,7 +6,7 @@
 import json, sqlite3, sys, re
 from collections import defaultdict, Counter
 
-DB_PATH = "/home/agent/data/projects/lenin-knowledge/lenin.db"
+DB_PATH = os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db")
 db = sqlite3.connect(DB_PATH)
 
 print("=" * 60)
@@ -23,6 +23,7 @@ baseline_clusters = Counter(n["cluster_name"] for n in baseline_nodes)
 # Загружаем концепты
 sys.path.insert(0, ".")
 from engines.engine_02_concepts import CONCEPTS
+import os
 
 # Строим regex для всех 206 концептов (только основные формы)
 concept_regexes = {}

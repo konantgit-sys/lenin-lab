@@ -20,9 +20,9 @@ MISTRAL_URL = "https://api.mistral.ai/v1/embeddings"
 MODEL = "mistral-embed"
 EMBEDDING_DIM = 1024
 
-DB_PATH = "/home/agent/data/projects/lenin-knowledge/lenin.db"
-FAISS_INDEX = "/home/agent/data/projects/lenin-knowledge/embeddings/final_faiss.index"
-IDS_PATH = "/home/agent/data/projects/lenin-knowledge/embeddings/final_ids.npy"
+DB_PATH = os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db")
+FAISS_INDEX = os.environ.get("LENIN_FAISS_INDEX", "/home/agent/data/projects/lenin-knowledge/embeddings/final_faiss.index")
+IDS_PATH = os.environ.get("LENIN_IDS_PATH", "/home/agent/data/projects/lenin-knowledge/embeddings/final_ids.npy")
 
 # Cache
 _index = None

@@ -103,7 +103,7 @@ if not _raw_db:
     if _local_db.exists() and _local_db.stat().st_size > 1_000_000:
         _raw_db = str(_local_db)
     else:
-        _fallback = "/home/agent/data/projects/lenin-knowledge/lenin.db"
+        _fallback = os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db")
         _raw_db = _fallback if Path(_fallback).exists() else str(_local_db)
 DB_PATH = _raw_db
 

@@ -34,7 +34,7 @@ jobs:
         run: |
           python -c "
           import sqlite3, os
-          db_path = os.environ.get('LENIN_DB', '/home/agent/data/projects/lenin-knowledge/lenin.db')
+          db_path = os.environ.get('LENIN_DB', 'data/lenin.db')
           if not os.path.exists(db_path):
               print(f'WARNING: DB not found at {db_path} — skipping FTS5 checks')
               print('Tests that require DB will be skipped.')
@@ -48,7 +48,7 @@ jobs:
 
       - name: Run tests
         env:
-          LENIN_DB: /home/agent/data/projects/lenin-knowledge/lenin.db
+          LENIN_DB: data/lenin.db
           PYTHONPATH: sites/lenin-book:${{ github.workspace }}/sites/lenin-book
         run: |
           # Skip tests that require real DB in CI (use marker)

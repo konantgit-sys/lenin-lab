@@ -22,9 +22,10 @@ import sqlite3
 import sys
 import subprocess
 from pathlib import Path
+import os
 
-DB_PATH = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
-ENGINES_DIR = Path("/home/agent/data/sites/lenin-book/engines")
+DB_PATH = Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db"))
+ENGINES_DIR = Path(os.environ.get("LENIN_ENGINES_DIR", "/home/agent/data/sites/lenin-book/engines"))
 
 
 def get_connection():

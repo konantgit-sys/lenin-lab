@@ -20,7 +20,7 @@ backend:
     check: port_open 9770
     critical: true
   - name: "startup_script"
-    check: file_exists /home/agent/data/sites/lenin-book/start.sh
+    check: file_exists ${LENIN_START_SH:-start.sh}
     critical: true
 
 # ═══════════════════════════════════════════

@@ -11,8 +11,9 @@ import sqlite3
 import re
 from pathlib import Path
 from collections import defaultdict, Counter
+import os
 
-DB_PATH = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+DB_PATH = Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db"))
 
 # Эмоциональные маркеры
 MARKERS = {

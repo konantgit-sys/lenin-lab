@@ -9,8 +9,9 @@ import json
 import sqlite3
 from pathlib import Path
 from collections import defaultdict
+import os
 
-DB_PATH = Path("/home/agent/data/projects/lenin-knowledge/lenin.db")
+DB_PATH = Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db"))
 
 # Ключевые исторические события
 HISTORICAL_CONTEXT = {

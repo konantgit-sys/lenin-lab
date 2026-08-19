@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import JSONResponse, StreamingResponse, HTMLResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import httpx, sqlite3, hashlib, secrets, time, os
+import os
 
 app = FastAPI(title="Lenin-Book API Gateway", version="1.1")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
@@ -67,7 +68,7 @@ async def check_auth(request: Request):
 async def root(request: Request):
     accept = request.headers.get('accept', '')
     if 'text/html' in accept:
-        return FileResponse("/home/agent/data/sites/api-lenin/pricing.html", media_type="text/html")
+        return FileResponse(os.environ.get("LENIN_PRICING_HTML", "/home/agent/data/sites/api-lenin/pricing.html"), media_type="text/html")
     return {"service": "Lenin-Book API Gateway", "version": "1.1",
             "docs": "/docs", "pricing": "/pricing",
             "endpoints": {"generate_key": "POST /keys/generate?owner=name&tier=free",
@@ -127,7 +128,7 @@ async def key_usage(prefix: str, days: int = 7):
 
 @app.get("/pricing")
 async def pricing():
-    return FileResponse("/home/agent/data/sites/api-lenin/pricing.html", media_type="text/html")
+    return FileResponse(os.environ.get("LENIN_PRICING_HTML", "/home/agent/data/sites/api-lenin/pricing.html"), media_type="text/html")
 
 # ═══ CATCH-ALL PROXY (must be LAST) ═══
 

@@ -7,6 +7,7 @@
 import json, sqlite3, random, sys
 from pathlib import Path
 from collections import defaultdict
+import os
 
 PROJECT = Path(__file__).parent.parent
 random.seed(42)
@@ -55,8 +56,8 @@ print(f"\nВсего в выборке: {sum(len(v) for v in samples.values())}"
 
 # Подключаем БД для топ-контекстов
 db_paths = [
-    Path("/home/agent/data/projects/lenin-knowledge/lenin.db"),
-    Path("/home/agent/data/projects/lenin-knowledge/lenin.db"),
+    Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db")),
+    Path(os.environ.get("LENIN_DB", "/home/agent/data/projects/lenin-knowledge/lenin.db")),
 ]
 db = None
 for p in db_paths:
