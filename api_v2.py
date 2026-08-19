@@ -438,6 +438,8 @@ app.add_middleware(
 # The V2Bot proxy strips non-200 responses to 502 "Backend temporarily unavailable"
 @app.exception_handler(HTTPException)
 async def proxy_friendly_exception_handler(request: Request, exc: HTTPException):
+    # MUST return 200 — V2Bot platform proxy strips non-200 to 502 "Backend unavailable"
+    # Error code embedded in JSON body for API clients to parse
     return JSONResponse(
         status_code=200,
         content={"error": True, "code": exc.status_code, "detail": exc.detail}
