@@ -170,12 +170,16 @@ All errors return HTTP 200 (proxy-friendly) with `error: true`:
 # Run tests (100 tests, ~10s)
 python3 -m pytest tests/ -v
 
-# Start API server
-python3 api_v2.py --port 9770
+# Start API server (port is a positional arg)
+python3 api_v2.py 9770
 
 # Regenerate caches (after DB update)
 python3 api_v2.py --build-caches
 ```
+
+**CI mode:** GitHub Actions runs the suite without the 770 MB corpus DB — the
+16 cache-based unit tests always run, DB/API-contract tests auto-skip
+(`conftest.py`). A local run with the full DB executes all 100 tests.
 
 ---
 
