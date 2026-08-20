@@ -10,6 +10,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      LENIN_DB: data/lenin.db
 
     steps:
       - uses: actions/checkout@v4
@@ -24,11 +26,27 @@ jobs:
           python -m pip install --upgrade pip
           pip install fastapi uvicorn networkx numpy python-multipart pytest pytest-timeout
 
-      - name: Start API server (cache mode, no corpus DB)
+      - name: Restore corpus from cache
+        id: corpus-cache
+        uses: actions/cache@v4
+        with:
+          path: data/lenin.db
+          key: lenin-corpus-v1
+
+      - name: Download corpus (release asset)
+        if: steps.corpus-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p data
+          curl -sL -o /tmp/lenin_corpus.db.gz \
+            https://github.com/konantgit-sys/lenin-lab/releases/download/corpus-v1/lenin_corpus.db.gz
+          gzip -d -c /tmp/lenin_corpus.db.gz > data/lenin.db
+          ls -lh data/lenin.db
+
+      - name: Start API server (full corpus)
         run: |
           nohup python3 api_v2.py 9770 > /tmp/api.log 2>&1 &
-          for i in $(seq 1 30); do
-            if curl -sf -o /dev/null http://localhost:9770/api/v1/stats; then
+          for i in $(seq 1 60); do
+            if curl -sf -o /dev/null http://localhost:9770/api/v1/health; then
               echo "API server is up after ${i}s"
               exit 0
             fi
@@ -36,5 +54,5 @@ jobs:
           done
           echo "API server failed to start" && tail -20 /tmp/api.log && exit 1
 
-      - name: Run test suite
-        run: python -m pytest tests/ -q --timeout=90 -m "not slow" --no-header
+      - name: Run test suite (100 tests)
+        run: python -m pytest tests/ -q --timeout=90 --no-header

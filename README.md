@@ -177,9 +177,9 @@ python3 api_v2.py 9770
 python3 api_v2.py --build-caches
 ```
 
-**CI mode:** GitHub Actions runs the suite without the 770 MB corpus DB — the
-16 cache-based unit tests always run, DB/API-contract tests auto-skip
-(`conftest.py`). A local run with the full DB executes all 100 tests.
+**CI mode:** GitHub Actions runs the **full 100-test suite** — the corpus DB is
+downloaded from the [corpus-v1 release asset](https://github.com/konantgit-sys/lenin-lab/releases/tag/corpus-v1)
+and cached (first run ~2 min, afterwards seconds).
 
 ---
 
