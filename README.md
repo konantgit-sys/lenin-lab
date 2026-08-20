@@ -202,6 +202,8 @@ python3 api_v2.py --build-caches
 
 **Data** (corpus annotations, concept graph, rhetoric fingerprints): Creative Commons BY-NC-SA 4.0.
 
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ---
 
 ## Built with V2Bot
