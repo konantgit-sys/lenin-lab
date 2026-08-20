@@ -197,4 +197,12 @@ python3 api_v2.py --build-caches
 
 **Data** (corpus annotations, concept graph, rhetoric fingerprints): Creative Commons BY-NC-SA 4.0.
 
-Built by @AnKocrypto + V2Bot Agent, 2026.
+---
+
+## Built with V2Bot
+
+Lenin-Lab was co-created with **V2Bot Agent** — an AI assistant that plans, codes, deploys and polishes products end-to-end: from the corpus pipeline and 9 analytical engines to the semantic Oracle, the 118-page book and this very README.
+
+👉 [v2bot.ai](https://v2bot.ai/?r=FC28B6B3) — build your own project with V2Bot.
+
+© 2026 @AnKocrypto + V2Bot Agent.
