@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install fastapi uvicorn networkx python-multipart pytest pytest-timeout
+          pip install fastapi uvicorn networkx numpy python-multipart pytest pytest-timeout
 
       - name: Start API server (cache mode, no corpus DB)
         run: |
