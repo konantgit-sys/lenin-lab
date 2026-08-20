@@ -24,5 +24,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install fastapi uvicorn networkx python-multipart pytest pytest-timeout
 
+      - name: Start API server (cache mode, no corpus DB)
+        run: |
+          nohup python3 api_v2.py 9770 > /tmp/api.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -sf -o /dev/null http://localhost:9770/api/v1/stats; then
+              echo "API server is up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "API server failed to start" && tail -20 /tmp/api.log && exit 1
+
       - name: Run test suite
         run: python -m pytest tests/ -q --timeout=90 -m "not slow" --no-header
