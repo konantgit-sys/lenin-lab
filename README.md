@@ -7,6 +7,7 @@
 [![Live](https://img.shields.io/badge/live-lenin--book.v2.site-brightgreen)](https://lenin-book.v2.site)
 [![Version](https://img.shields.io/badge/version-2.46-orange)]()
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+[![CI](https://github.com/konantgit-sys/lenin-lab/actions/workflows/tests.yml/badge.svg)](https://github.com/konantgit-sys/lenin-lab/actions/workflows/tests.yml)
 [![Tests](https://img.shields.io/badge/tests-100%2F100-green)]()
 [![Book](https://img.shields.io/badge/book-118%20pages-red)](https://lenin-book.v2.site/lenin_book_v5.8.3.pdf)
 
