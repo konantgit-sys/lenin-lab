@@ -189,7 +189,7 @@ python3 api_v2.py --build-caches
 |---|---|---|
 | 🔴 | Oracle semantic search | ✅ Live (93,711 vectors, local model) |
 | 🟡 | Fix product APIs (Digital Twin, White Paper, Contradictions) | Next |
-| 🟡 | Analytics (GA/Metrica) for visitor tracking | Next |
+| ✅ | Analytics — self-hosted (parses access logs, no third-party) | ✅ Live |
 | 🟡 | REST API docs page on site | Planned |
 | 🟢 | Obsidian Plugin polish | Planned |
 | 🟢 | Multi-author expansion (Marx, Engels, Trotsky) | Future |
